@@ -26,8 +26,8 @@ class BotController extends Controller
     public function storeMessage(Request $request)
     {
         $request->validate([
-            'conversation_id' => 'required|exists:conversations,id',
-            'phone' => 'required|string|max:255',
+            'conversation_id' => 'required',
+            'phone' => 'string',
             'message' => 'required|string',
             'role' => 'required|in:user,assistant',
             'name' => 'nullable|string|max:255',
