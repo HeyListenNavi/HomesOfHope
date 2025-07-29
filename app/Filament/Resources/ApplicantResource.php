@@ -21,6 +21,10 @@ class ApplicantResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    protected static ?string $modelLabel = 'Solicitante';
+
+    protected static ?string $pluralModelLabel = 'Solicitantes';
+
     public static function form(Form $form): Form
     {
         return $form
@@ -123,7 +127,7 @@ class ApplicantResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ApplicantMessagesRelationManager::class,
         ];
     }
 

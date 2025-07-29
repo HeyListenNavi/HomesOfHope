@@ -18,6 +18,11 @@ return new class extends Migration
             $table->text('rejection_reason')->nullable();
             $table->foreignId('group_id')->nullable()->constrained()->onDelete('set null');
             $table->json('final_evaluation_data')->nullable();
+            $table->foreignId('conversation_id')
+                  ->nullable()
+                  ->constrained('conversations')
+                  ->onDelete('set null');
+            $table->index('conversation_id');
             $table->timestamps();
         });
     }

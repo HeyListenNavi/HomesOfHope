@@ -84,7 +84,7 @@ class BotController extends Controller
         $request->validate([
             'current_process' => 'nullable|string|max:255',
             'process_status' => 'nullable|string|max:255',
-            'process_id' => 'nullable|numeric|exists_or_null:partial_applicants,id', // Valida que el ID exista si no es nulo
+            'process_id' => 'nullable|numeric',
         ]);
 
         $conversation = Conversation::findOrFail($conversationId);

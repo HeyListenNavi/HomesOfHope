@@ -100,8 +100,8 @@ class PartialApplicantResource extends Resource
                     ->placeholder('Todas'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                //Tables\Actions\ViewAction::make(),
+                //Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -121,9 +121,9 @@ class PartialApplicantResource extends Resource
     {
         return [
             'index' => Pages\ListPartialApplicants::route('/'),
-            'create' => Pages\CreatePartialApplicant::route('/create'),
-            'view' => Pages\ViewPartialApplicant::route('/{record}'),
-            'edit' => Pages\EditPartialApplicant::route('/{record}/edit'),
+            //'create' => Pages\CreatePartialApplicant::route('/create'),
+            //'view' => Pages\ViewPartialApplicant::route('/{record}'),
+            //'edit' => Pages\EditPartialApplicant::route('/{record}/edit'),
         ];
     }
 }
