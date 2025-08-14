@@ -359,14 +359,14 @@ class DatabaseSeeder extends Seeder
                 'question_text' => '¿Tus hijos están yendo a la escuela? Si es así, indica el grado o grados que cursan.',
                 'validation_rules' => ['requerido' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 18,
+                'order' => 20,
             ],
             [
                 'key' => 'hijos_residencia_visa',
                 'question_text' => '¿Tus hijos son residentes o tienen visa para los Estados Unidos?',
                 'validation_rules' => ['requerido' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 19,
+                'order' => 21,
             ],
 
             // Otros miembros
@@ -375,14 +375,14 @@ class DatabaseSeeder extends Seeder
                 'question_text' => '¿Quiénes más vivirían en la casa de esperanza si se les llega a construir?',
                 'validation_rules' => ['otro' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 20,
+                'order' => 22,
             ],
             [
                 'key' => 'detalles_otros_miembros',
                 'question_text' => 'Dime su nombre, edad y relación con la familia.',
                 'validation_rules' => ['otro' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 21,
+                'order' => 23,
             ],
 
             // Problemas adicionales
@@ -391,14 +391,14 @@ class DatabaseSeeder extends Seeder
                 'question_text' => '¿Existen problemas de adicción en la familia? Si es así, ¿cuáles?',
                 'validation_rules' => ['otro' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 22,
+                'order' => 24,
             ],
             [
                 'key' => 'dialecto_familia',
                 'question_text' => '¿Alguien de la familia habla algún dialecto?',
                 'validation_rules' => ['otro' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 23,
+                'order' => 25,
             ],
 
             // Coorderadas
@@ -407,7 +407,7 @@ class DatabaseSeeder extends Seeder
                 'question_text' => 'Deberás enviar las coorderadas de tu terreno.',
                 'validation_rules' => ['requerido' => 'texto'],
                 'approval_criteria' => null,
-                'order' => 24,
+                'order' => 26,
             ],
         ]);
     }
