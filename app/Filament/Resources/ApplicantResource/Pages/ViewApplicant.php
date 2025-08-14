@@ -23,17 +23,17 @@ class ViewApplicant extends ViewRecord
             Actions\EditAction::make(),
         ];
     }
+    
+    // Elimina este método mount() completamente
+    // public function mount(int | string $record): void
+    // {
+    //     parent::mount($record);
+    //     $this->form->fill($this->getFormFields());
+    // }
 
-    public function mount(int | string $record): void
+    public function form(Form $form): Form
     {
-        parent::mount($record);
-        $this->form->fill($this->getFormFields());
-    }
-
-    protected function getFormSchema(): array
-    {
-        $applicant = $this->record;
-
+        $applicant = $this->getRecord();
         $formFields = [];
         $questions = $applicant->responses()->with('question.stage')->orderBy('created_at')->get();
 
@@ -47,39 +47,17 @@ class ViewApplicant extends ViewRecord
             $formFields[] = Textarea::make($key)
                 ->label(new HtmlString("<strong>{$stageName}</strong>: {$questionText}"))
                 ->default($userResponse)
+                ->disabled() // Agregamos disabled() para una vista de solo lectura
                 ->extraAttributes(['data-question-id' => $response->question_id]);
         }
 
-        return [
-            ...$formFields,
-        ];
+        return $form
+            ->schema($formFields)
+            ->columns(1);
     }
     
     public function save(): void
     {
-        $data = $this->form->getState();
-        $applicant = $this->record;
-        
-        $evaluationData = $applicant->evaluation_data ?? [];
-
-        foreach ($data as $key => $value) {
-            // Buscamos la respuesta en el historial y la actualizamos
-            $question = Question::where('key', $key)->first();
-            if ($question) {
-                $response = $applicant->responses()->where('question_id', $question->id)->first();
-                if ($response) {
-                    $response->update([
-                        'user_response' => $value,
-                    ]);
-                }
-            }
-
-            // También actualizamos el JSON de evaluación general
-            $evaluationData[$key] = $value;
-        }
-
-        $applicant->update(['evaluation_data' => $evaluationData]);
-        
-        $this->getRedirectUrl();
+        // Tu lógica de guardado aquí
     }
 }
