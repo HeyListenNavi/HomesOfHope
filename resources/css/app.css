@@ -6,6 +6,75 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-*: initial;
+    --font-sans: Inter, sans-serif;
+    --font-serif: Inter, serif;
+
+    /* Colors */
+    --color-foreground: white;
+    --color-foreground-dark: #101418;
+    --color-foreground-tertiary: #808080;
+
+    --color-background-light: #fef6ff;
+
+    --color-highlight: #61b346;
+
+    /* Texts */
+    --text-display-large: 72px;
+    --text-display-large--line-height: 120%;
+    --text-display-large--font-weight: bold;
+
+    --text-display-medium: 48px;
+    --text-display-medium--line-height: 120%;
+    --text-display-medium--font-weight: bold;
+
+    --text-headline-large: 40px;
+    --text-headline-large--line-height: 120%;
+    --text-headline-large--font-weight: bold;
+
+    --text-headline-medium: 32px;
+    --text-headline-medium--line-height: 120%;
+    --text-headline-medium--font-weight: bold;
+
+    --text-body-large: 24px;
+    --text-body-large--line-height: 140%;
+    --text-body-large--font-weight: bold;
+
+    --text-body-medium: 20px;
+    --text-body-medium--line-height: 160%;
+    --text-body-medium--font-weight: regular;
+
+    --text-body-small: 16px;
+    --text-body-small--line-height: 160%;
+    --text-body-small--font-weight: regular;
+
+    --text-label-large: 20px;
+    --text-label-large--line-height: 120%;
+    --text-label-large--font-weight: bold;
+
+    --text-label-medium: 14px;
+    --text-label-medium--line-height: 120%;
+    --text-label-medium--font-weight: regular;
+
+    --text-label-small: 12px;
+    --text-label-small--line-height: 120%;
+    --text-label-small--font-weight: regular;
+
+    /* Images */
+    --background-image-body: linear-gradient(
+            180deg,
+            rgba(8, 10, 12, 0.10) 0%,
+            rgba(16, 20, 24, 0.10) 100%
+        ),
+        url("https://images.squarespace-cdn.com/content/v1/5148c65be4b00086bb8cc9cb/1472675970665-R3NHYNAVQNH5QOVVEX5D/HOH_bookcover_tiffany_1.jpg?format=2500w");
+
+    --background-color-glass: rgba(39, 39, 39, 0.3);
+}
+
+.bx {
+    font-size: 1.5em;
+}
+
+[x-cloak] {
+    display: none !important;
 }
