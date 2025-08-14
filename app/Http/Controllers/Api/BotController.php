@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Conversation;
 use App\Models\Message;
-use App\Models\PartialApplicant;
 use App\Models\Applicant;
 use App\Models\Group;
-use App\Services\GroupAssignmentService; // Vamos a crear este servicio
+use App\Services\GroupAssignmentService;
+use App\Models\Stage;
+use App\Models\Question;
+use App\Models\ApplicantQuestionResponse;
+use Illuminate\Support\Facades\DB;
 
 class BotController extends Controller
 {
@@ -100,149 +103,284 @@ class BotController extends Controller
         ]);
     }
 
-    /**
-     * Crea un nuevo registro PartialApplicant y lo asocia a una conversation_id.
-     */
-    public function createPartialApplicant(Request $request)
+    // Endpoints para el Flujo de Solicitantes
+    public function startEvaluation(Request $request)
     {
-        $request->validate([
-            'conversation_id' => 'required|unique:partial_applicants,conversation_id|exists:conversations,id',
-            'current_evaluation_status' => 'required|string|max:255',
-            'evaluation_data' => 'nullable|json',
+        $validated = $request->validate([
+            'chat_id' => 'required|string|unique:applicants,chat_id',
         ]);
 
-        $partialApplicant = PartialApplicant::create([
-            'conversation_id' => $request->conversation_id,
-            'current_evaluation_status' => $request->current_evaluation_status,
-            'evaluation_data' => json_decode($request->evaluation_data, true) ?? [],
-        ]);
+        // Crea un nuevo Applicant y lo asocia a la primera etapa y pregunta
+        $firstStage = Stage::orderBy('order')->first();
+        $firstQuestion = $firstStage ? $firstStage->questions()->orderBy('order')->first() : null;
 
-        return response()->json([
-            'status' => 'success',
-            'partial_applicant_id' => $partialApplicant->id
-        ], 201);
-    }
-
-    /**
-     * Recupera el current_evaluation_status y evaluation_data para el PartialApplicant.
-     */
-    public function getPartialApplicant(Request $request, $conversationId)
-    {
-        $partialApplicant = PartialApplicant::where('conversation_id', $conversationId)
-                                            ->firstOrFail();
-
-        return response()->json($partialApplicant);
-    }
-
-    /**
-     * Actualiza el current_evaluation_status y evaluation_data de un registro PartialApplicant.
-     */
-    public function updatePartialApplicant(Request $request, $partialApplicantId)
-    {
-        $request->validate([
-            'current_evaluation_status' => 'required|string|max:255',
-            'evaluation_data' => 'required|json',
-            'is_completed' => 'boolean',
-        ]);
-
-        $partialApplicant = PartialApplicant::findOrFail($partialApplicantId);
-        $partialApplicant->update([
-            'current_evaluation_status' => $request->current_evaluation_status,
-            'evaluation_data' => json_decode($request->evaluation_data, true),
-            'is_completed' => $request->input('is_completed', $partialApplicant->is_completed),
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Partial applicant updated.'
-        ]);
-    }
-
-    /**
-     * Lógica de Negocio Crítica: Evalúa y guarda al solicitante final, asigna grupo.
-     */
-    public function evaluateAndSaveApplicant(Request $request)
-    {
-        $request->validate([
-            'conversation_id' => 'required|exists:conversations,id',
-            'partial_applicant_id' => 'required|exists:partial_applicants,id',
-            'final_evaluation_data' => 'required|json', // Asegúrate de que n8n envíe un JSON válido
-        ]);
-
-        $finalEvaluationData = json_decode($request->final_evaluation_data, true);
-        $conversation = Conversation::findOrFail($request->conversation_id);
-        $partialApplicant = PartialApplicant::findOrFail($request->partial_applicant_id);
-
-        // 1. Lógica de Evaluación de Elegibilidad
-        $isApproved = false;
-        $rejectionReason = null;
-
-        // Ejemplo de reglas de negocio:
-        // Debe tener CURP, poseer terreno, y el terreno debe medir al menos 6 metros
-        if (isset($finalEvaluationData['curp']) &&
-            isset($finalEvaluationData['owns_land']) && $finalEvaluationData['owns_land'] === true &&
-            isset($finalEvaluationData['land_size_meters']) && $finalEvaluationData['land_size_meters'] >= 6 &&
-            isset($finalEvaluationData['is_land_payments_current']) && $finalEvaluationData['is_land_payments_current'] === true)
-        {
-            $isApproved = true;
-        } else {
-            // Aquí podrías tener lógica más compleja para determinar el motivo
-            if (!isset($finalEvaluationData['curp'])) {
-                $rejectionReason = "CURP no proporcionado.";
-            } elseif (!isset($finalEvaluationData['owns_land']) || $finalEvaluationData['owns_land'] === false) {
-                $rejectionReason = "No eres dueño del terreno.";
-            } elseif (!isset($finalEvaluationData['land_size_meters']) || $finalEvaluationData['land_size_meters'] < 6) {
-                $rejectionReason = "El tamaño del terreno es insuficiente (mínimo 6 metros).";
-            } elseif (!isset($finalEvaluationData['is_land_payments_current']) || $finalEvaluationData['is_land_payments_current'] === false) {
-                $rejectionReason = "No estás al corriente con los pagos del terreno.";
-            } else {
-                $rejectionReason = "No cumples con todos los requisitos.";
-            }
+        if (!$firstStage || !$firstQuestion) {
+            return response()->json(['error' => 'No hay etapas o preguntas configuradas.'], 404);
         }
 
-        // Asegura que la CURP esté presente en los datos finales para el Applicant
-        $curp = $finalEvaluationData['curp'] ?? 'N/A_' . uniqid();
-
-
-        // 2. Crear/Actualizar Applicant
         $applicant = Applicant::create([
-            'curp' => $curp, // Asegura que la CURP esté en el modelo Applicant
-            'is_approved' => $isApproved,
-            'rejection_reason' => $rejectionReason,
-            'final_evaluation_data' => $finalEvaluationData,
+            'chat_id' => $validated['chat_id'],
+            'current_stage_id' => $firstStage->id,
+            'current_question_id' => $firstQuestion->id,
+            'process_status' => 'in_progress',
         ]);
 
-        $responseMessage = '';
-        $groupData = null;
+        // Crea un registro de respuesta vacío para todas las preguntas para el historial
+        $allQuestions = Question::orderBy('stage_id')->orderBy('order')->get();
+        foreach ($allQuestions as $question) {
+            ApplicantQuestionResponse::create([
+                'applicant_id' => $applicant->id,
+                'question_id' => $question->id,
+                'question_text_snapshot' => $question->question_text,
+                'user_response' => null,
+                'is_correct' => null,
+            ]);
+        }
 
-        // 3. Asignación de Grupo (CONDICIONAL)
+        return response()->json([
+            'applicant_id' => $applicant->id,
+            'question' => $firstQuestion,
+            'next_question_text' => $firstQuestion->question_text,
+            'validation_rules' => $firstQuestion->validation_rules,
+        ]);
+    }
+
+    public function submitAnswer(Request $request, string $chat_id)
+    {
+        $validated = $request->validate([
+            'question_key' => 'required|string',
+            'user_response' => 'required|string',
+        ]);
+
+        $applicant = Applicant::where('chat_id', $chat_id)->where('process_status', 'in_progress')->firstOrFail();
+        $question = Question::where('key', $validated['question_key'])->firstOrFail();
+
+        // Lógica de validación
+        $isCorrect = $this->validateResponse($question->validation_rules, $validated['user_response']);
+
+        // Guarda la respuesta en el historial y en evaluation_data
+        $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
+                                            ->where('question_id', $question->id)
+                                            ->first();
+        if ($response) {
+            $response->update([
+                'user_response' => $validated['user_response'],
+                'is_correct' => $isCorrect,
+            ]);
+        }
+
+        $evaluationData = $applicant->evaluation_data ?? [];
+        $evaluationData[$validated['question_key']] = $validated['user_response'];
+        $applicant->update(['evaluation_data' => $evaluationData]);
+
+        return response()->json(['status' => 'success', 'is_correct' => $isCorrect]);
+    }
+
+    public function updateManually(Request $request, int $applicant_id)
+    {
+        // Este endpoint es para uso exclusivo de Filament
+        $applicant = Applicant::findOrFail($applicant_id);
+
+        $validated = $request->validate([
+            'question_id' => 'required|exists:questions,id',
+            'user_response' => 'nullable|string',
+            'current_stage_id' => 'nullable|exists:stages,id',
+            'current_question_id' => 'nullable|exists:questions,id',
+            'process_status' => 'nullable|string|in:in_progress,completed,rejected,approved',
+        ]);
+        
+        // Actualiza la respuesta en el historial
+        $response = $applicant->responses()->where('question_id', $validated['question_id'])->firstOrFail();
+        $response->update(['user_response' => $validated['user_response']]);
+
+        // Actualiza el evaluation_data
+        $questionKey = Question::find($validated['question_id'])->key;
+        $evaluationData = $applicant->evaluation_data ?? [];
+        $evaluationData[$questionKey] = $validated['user_response'];
+        $applicant->evaluation_data = $evaluationData;
+
+        // Actualiza el estado si se pasa en el request
+        if (isset($validated['current_stage_id'])) {
+            $applicant->current_stage_id = $validated['current_stage_id'];
+        }
+        if (isset($validated['current_question_id'])) {
+            $applicant->current_question_id = $validated['current_question_id'];
+        }
+        if (isset($validated['process_status'])) {
+            $applicant->process_status = $validated['process_status'];
+        }
+
+        $applicant->save();
+
+        return response()->json(['status' => 'success', 'applicant' => $applicant]);
+    }
+    
+    // --- Métodos de Ayuda (Lógica de Negocio) ---
+
+    private function validateResponse(array $rules, string $response)
+    {
+        // TODO: Implementar la lógica de validación aquí
+        // Por ejemplo, usando una librería como 'json-schema' o reglas personalizadas.
+        // Por ahora, solo devolver true
+        return true;
+    }
+
+    private function evaluateStageApproval(Applicant $applicant, Stage $stage): bool
+    {
+        // TODO: Implementar la lógica para evaluar los criterios de aprobación de la etapa
+        // Por ejemplo:
+        // $criteria = $stage->approval_criteria;
+        // if ($criteria && $applicant->evaluation_data[$criteria['key']] !== $criteria['value']) {
+        //     return false;
+        // }
+        return true;
+    }
+
+    private function finalizeApplicant(Applicant $applicant)
+    {
+        // TODO: Implementar la lógica para la aprobación final
+        // Esto incluirá la lógica de negocio completa de los criterios del programa
+        $isApproved = true; // Lógica de negocio
+        
         if ($isApproved) {
             $group = $this->groupAssignmentService->assignApplicantToGroup($applicant);
-            $applicant->save(); // Guarda el applicant con el group_id asignado
-
-            $responseMessage = "¡Felicidades! Has sido pre-aprobado para el programa de Casas de Esperanza y asignado al " . $group->name . ". Pronto nos comunicaremos contigo para los siguientes pasos.";
-            $groupData = [
+            $applicant->update([
+                'is_approved' => true,
+                'process_status' => 'completed',
                 'group_id' => $group->id,
-                'group_name' => $group->name,
-            ];
+            ]);
         } else {
-            $responseMessage = "Gracias por tu interés en Casas de Esperanza. Lamentablemente, no cumples con todos los requisitos del programa debido a: " . $rejectionReason;
+            $applicant->update([
+                'is_approved' => false,
+                'process_status' => 'rejected',
+                'rejection_reason' => 'No cumple con todos los requisitos finales.',
+            ]);
+        }
+    }
+
+    public function getNextQuestion(string $chat_id)
+    {
+        $applicant = Applicant::where('chat_id', $chat_id)
+                                ->where('process_status', 'in_progress')
+                                ->first();
+
+        if (!$applicant) {
+            return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'], 404);
         }
 
-        // 4. Actualizar Estado de Procesos
-        $partialApplicant->update(['is_completed' => true]);
-        $conversation->update([
-            'current_process' => null,
-            'process_id' => null,
-            'process_status' => 'completed'
+        $currentStage = $applicant->currentStage;
+        $currentQuestion = $applicant->currentQuestion;
+        $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
+
+        if (!$nextQuestion) {
+            // La IA debe decidir la aprobación de la etapa
+            return response()->json([
+                'status' => 'waiting_for_ai_approval',
+                'stage_id' => $currentStage->id,
+                'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
+            ]);
+        } else {
+            // ... (resto de la lógica para avanzar a la siguiente pregunta de la misma etapa)
+            $applicant->update(['current_question_id' => $nextQuestion->id]);
+            
+            return response()->json([
+                'status' => 'next_question',
+                'question' => $nextQuestion,
+                'next_question_text' => $nextQuestion->question_text,
+                'validation_rules' => $nextQuestion->validation_rules,
+            ]);
+        }
+    }
+
+    // Nuevo método para recibir la decisión de la IA desde n8n
+    public function handleStageApproval(Request $request)
+    {
+        $validated = $request->validate([
+            'chat_id' => 'required|string|exists:applicants,chat_id',
+            'stage_id' => 'required|integer|exists:stages,id',
+            'is_approved' => 'required|boolean',
+            'rejection_reason' => 'nullable|string',
         ]);
 
-        // 5. Generar Respuesta Final para n8n
-        return response()->json(array_merge([
-            'status' => 'success',
-            'message' => $responseMessage,
-            'applicant_id' => $applicant->id,
-            'is_approved' => $isApproved,
-        ], $groupData ?? []));
+        $applicant = Applicant::where('chat_id', $validated['chat_id'])
+                                ->where('process_status', 'in_progress')
+                                ->firstOrFail();
+
+        // Verificamos que la decisión sea para la etapa actual del solicitante
+        if ($applicant->current_stage_id != $validated['stage_id']) {
+            return response()->json(['error' => 'La decisión de la IA no corresponde a la etapa actual del solicitante.'], 400);
+        }
+
+        if ($validated['is_approved']) {
+            // Si la IA aprobó, avanzamos a la siguiente etapa o finalizamos el proceso
+            $nextStage = Stage::where('order', '>', $applicant->currentStage->order)->orderBy('order')->first();
+
+            if ($nextStage) {
+                // Avanzamos a la siguiente etapa
+                $firstQuestionOfNextStage = $nextStage->questions()->orderBy('order')->first();
+                $applicant->update([
+                    'current_stage_id' => $nextStage->id,
+                    'current_question_id' => $firstQuestionOfNextStage->id,
+                ]);
+                return response()->json([
+                    'status' => 'stage_approved',
+                    'message' => 'Has pasado a la siguiente etapa.',
+                    'next_question' => $firstQuestionOfNextStage,
+                ]);
+            } else {
+                // Fin del proceso, aprobación final
+                $this->finalizeApplicant($applicant);
+                return response()->json([
+                    'status' => 'process_completed',
+                    'applicant_id' => $applicant->id,
+                    'is_approved' => $applicant->is_approved,
+                    'message' => $applicant->is_approved ? '¡Felicidades, has sido aprobado!' : $applicant->rejection_reason,
+                ]);
+            }
+        } else {
+            // Si la IA rechazó, actualizamos el estado del solicitante
+            $applicant->update([
+                'process_status' => 'rejected',
+                'is_approved' => false,
+                'rejection_reason' => $validated['rejection_reason'],
+            ]);
+            return response()->json([
+                'status' => 'stage_rejected',
+                'message' => $validated['rejection_reason'],
+                'applicant_id' => $applicant->id,
+            ]);
+        }
+    }
+
+    public function getStageDataForAi(string $chat_id)
+    {
+        $applicant = Applicant::where('chat_id', $chat_id)
+                            ->where('process_status', 'in_progress')
+                            ->firstOrFail();
+
+        $currentStage = $applicant->currentStage;
+        
+        // Obtenemos todas las preguntas y respuestas de la etapa actual
+        $stageData = [
+            'stage_id' => $currentStage->id,
+            'stage_name' => $currentStage->name,
+            'approval_criteria' => $currentStage->approval_criteria,
+            'questions' => []
+        ];
+
+        $questionsInStage = $currentStage->questions()->get();
+        
+        foreach ($questionsInStage as $question) {
+            $userResponse = $applicant->responses()->where('question_id', $question->id)->first();
+            
+            $stageData['questions'][] = [
+                'question_key' => $question->key,
+                'question_text' => $question->question_text,
+                'user_response' => $userResponse ? $userResponse->user_response : 'Sin respuesta',
+                'approval_criteria' => $question->approval_criteria
+            ];
+        }
+
+        return response()->json($stageData);
     }
 }

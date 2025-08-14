@@ -6,35 +6,50 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Message;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Applicant extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'curp',
+        'chat_id',
+        'current_stage_id',
+        'current_question_id',
+        'process_status',
         'is_approved',
         'rejection_reason',
         'group_id',
-        'final_evaluation_data',
-        'conversation_id',
+        'evaluation_data',
     ];
 
     protected $casts = [
         'is_approved' => 'boolean',
-        'final_evaluation_data' => 'json',
+        'evaluation_data' => 'json',
     ];
 
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
     }
-
-    public function conversation(): BelongsTo
+    
+    public function currentStage(): BelongsTo
     {
-        return $this->belongsTo(Conversation::class);
+        return $this->belongsTo(Stage::class, 'current_stage_id');
     }
 
+    public function currentQuestion(): BelongsTo
+    {
+        return $this->belongsTo(Question::class, 'current_question_id');
+    }
 
+    public function conversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class, 'chat_id', 'chat_id');
+    }
+    
+    public function responses(): HasMany
+    {
+        return $this->hasMany(ApplicantQuestionResponse::class);
+    }
 }

@@ -16,12 +16,14 @@ Route::prefix('bot')->group(function () {
     Route::put('conversations/{conversation_id}', [BotController::class, 'updateConversation']);
     Route::get('messages/{conversation_id}', [BotController::class, 'getMessages']); // Para historial de Gemini
 
-    // Solicitantes Parciales (Proceso de Evaluación)
-    Route::post('partial-applicants', [BotController::class, 'createPartialApplicant']);
-    Route::get('partial-applicants/{conversation_id}', [BotController::class, 'getPartialApplicant']);
-    Route::put('partial-applicants/{partial_applicant_id}', [BotController::class, 'updatePartialApplicant']);
+    // Endpoints del Flujo de Solicitantes (Unificados y nuevos)
+    Route::post('applicants/start', [BotController::class, 'startEvaluation']);
+    Route::get('applicants/{chat_id}/next-question', [BotController::class, 'getNextQuestion']);
+    Route::post('applicants/{chat_id}/submit-answer', [BotController::class, 'submitAnswer']);
+    Route::put('applicants/{applicant_id}/update-manually', [BotController::class, 'updateManually']);
+    Route::post('applicants/stage-approval', [BotController::class, 'handleStageApproval']);
+    Route::get('applicants/{chat_id}/stage-data', [BotController::class, 'getStageDataForAi']);
 
     // Solicitantes Finales y Grupos (Lógica de Negocio Crítica)
     Route::post('applicants/evaluate-and-save', [BotController::class, 'evaluateAndSaveApplicant']);
 });
-
