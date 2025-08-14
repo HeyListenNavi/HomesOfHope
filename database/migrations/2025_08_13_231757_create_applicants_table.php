@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('applicants', function (Blueprint $table) {
             $table->id();
             $table->string('chat_id')->unique();
+            $table->string('curp')->unique()->nullable();
             $table->foreignId('current_stage_id')->nullable()->constrained('stages')->cascadeOnDelete();
             $table->foreignId('current_question_id')->nullable()->constrained('questions')->cascadeOnDelete();
             $table->string('process_status')->default('in_progress'); // in_progress, completed, rejected

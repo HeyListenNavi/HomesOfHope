@@ -13,11 +13,12 @@ class ApplicantFactory extends Factory
         $isApproved = $this->faker->boolean;
 
         return [
+            'chat_id' => $this->faker->unique()->numerify('##########'), 
             'curp' => $this->faker->unique()->bothify('????######??????##'),
             'is_approved' => $isApproved,
             'rejection_reason' => $isApproved ? null : $this->faker->sentence,
             'group_id' => $isApproved ? Group::factory() : null,
-            'final_evaluation_data' => [
+            'evaluation_data' => [
                 'curp' => $this->faker->bothify('????######??????##'),
                 'has_minor_children' => $this->faker->boolean,
                 'owns_land' => $this->faker->boolean,

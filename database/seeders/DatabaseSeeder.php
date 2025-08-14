@@ -15,13 +15,33 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crea 5 grupos
+        $groups = Group::factory(5)->create();
+
+        // Crea solicitantes aprobados y los asigna a grupos existentes
+        Applicant::factory(20)
+            ->state([
+                'is_approved' => true,
+                'rejection_reason' => null,
+                'group_id' => $groups->random()->id, // Asigna un grupo aleatorio de los 5 que creaste
+            ])
+            ->create();
+
+        // Crea solicitantes rechazados
+        Applicant::factory(10)
+            ->rejected() // Usaremos otro estado para los rechazados
+            ->create();
+
+        // El resto de tu seeder...
+        Conversation::factory(15)->create();
+        
         // Crea un usuario de ejemplo para Filament
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@admin.com',
             'password' => bcrypt('admin')
         ]);
-
+        
         $stage1 = Stage::create([
             'name' => 'ETAPA 1: Requisitos Básicos',
             'order' => 1,
