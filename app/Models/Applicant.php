@@ -22,6 +22,7 @@ class Applicant extends Model
         'rejection_reason',
         'group_id',
         'evaluation_data',
+        'confirmation_status',
     ];
 
     protected $casts = [

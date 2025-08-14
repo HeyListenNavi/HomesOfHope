@@ -17,36 +17,29 @@ class GroupAssignmentService
     public function assignApplicantToGroup(Applicant $applicant): Group
     {
         return DB::transaction(function () use ($applicant) {
-            // Buscamos un grupo con espacio disponible.
-            // lockForUpdate() es crucial aquí para evitar condiciones de carrera
-            // si múltiples solicitantes son procesados concurrentemente.
             $group = Group::where('current_members_count', '<', DB::raw('capacity'))
-                        ->orderBy('current_members_count', 'asc') // Prioriza grupos con menos miembros
-                        ->orderBy('id', 'asc') // Desempate por ID
-                        ->lockForUpdate() // Bloquea la fila para la actualización
+                        ->whereNotNull('date') // Solo grupos que ya tienen una fecha asignada
+                        ->orderBy('current_members_count', 'asc')
+                        ->orderBy('id', 'asc')
+                        ->lockForUpdate()
                         ->first();
 
-            // Si no hay ningún grupo con espacio, creamos uno nuevo.
             if (!$group) {
-                $lastGroup = Group::orderBy('id', 'desc')->first();
-                // Determina el número del siguiente grupo (ej. "Grupo 1", "Grupo 2", etc.)
-                $nextGroupNumber = $lastGroup ? (int) filter_var($lastGroup->name, FILTER_SANITIZE_NUMBER_INT) + 1 : 1;
-
+                // Si no hay grupos con espacio y fecha, puedes crear uno nuevo
+                // o manejarlo como un caso especial. Aquí, se crea uno sin fecha.
+                // La fecha se asignaría manualmente o mediante otro proceso.
                 $group = Group::create([
-                    'name' => 'Grupo ' . $nextGroupNumber,
-                    'capacity' => 25, // O la capacidad predeterminada que decidas
-                    'current_members_count' => 0 // Nuevo grupo inicia con 0 miembros
+                    'name' => 'Grupo ' . (Group::count() + 1),
+                    'capacity' => 25,
+                    'current_members_count' => 0,
+                    // 'date' => null, // <-- Inicialmente sin fecha
                 ]);
             }
 
-            // Asigna el ID del grupo al solicitante
             $applicant->group_id = $group->id;
-            // El applicant->save() se hará en el controlador después de este servicio
-
-            // Incrementa el contador de miembros del grupo.
-            // Usamos increment() directamente para que se maneje la base de datos de forma segura.
-            $group->increment('current_members_count');
-
+            $applicant->confirmation_status = 'pending'; // Estado inicial de espera
+            // Nota: no incrementamos el contador aquí.
+            
             return $group;
         });
     }

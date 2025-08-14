@@ -14,6 +14,7 @@ class Group extends Model
         'name',
         'capacity',
         'current_members_count',
+        'date',
     ];
 
     // Relación con los solicitantes del grupo

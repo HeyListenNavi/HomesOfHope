@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('rejection_reason')->nullable();
             $table->foreignId('group_id')->nullable()->constrained('groups')->cascadeOnDelete();
             $table->json('evaluation_data')->nullable();
+            $table->enum('confirmation_status', ['pending', 'confirmed', 'rejected'])->default('pending');
             $table->timestamps();
         });
     }
