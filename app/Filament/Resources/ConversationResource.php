@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\ApplicantResource\RelationManagers\ConversationMessagesRelationManager;
 use App\Filament\Resources\ConversationResource\Pages;
 use App\Filament\Resources\ConversationResource\RelationManagers;
+use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager as RelationManagersConversationMessagesRelationManager;
 use App\Models\Conversation;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +18,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ConversationResource extends Resource
 {
     protected static ?string $model = Conversation::class;
+  
+    protected static ?string $modelLabel = 'Conversación';
+
+    protected static ?string $pluralModelLabel = 'Conversaciones';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-bottom-center-text';
     protected static ?string $navigationGroup = 'Auditoría y Logs';
@@ -27,16 +33,21 @@ class ConversationResource extends Resource
                 Forms\Components\TextInput::make('chat_id')
                     ->required()
                     ->maxLength(255)
-                    ->readOnly(),
+                    ->readOnly()
+                    ->label('Número de Teléfono'),
                 Forms\Components\TextInput::make('user_name')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->label('Nombre'),
                 Forms\Components\TextInput::make('current_process')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->label('Proceso Actual'),
                 Forms\Components\TextInput::make('process_status')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->label('Estado del Proceso'),
                 Forms\Components\TextInput::make('process_id')
                     ->numeric()
-                    ->nullable(),
+                    ->nullable()
+                    ->label('Identificador del Proceso'),
             ]);
     }
 
@@ -46,31 +57,38 @@ class ConversationResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('user_name')
                     ->searchable()
-                    ->default('N/A'),
+                    ->default('N/A')
+                    ->label('Nombre'),
                 Tables\Columns\TextColumn::make('chat_id')
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Número de Teléfono'),
                 Tables\Columns\TextColumn::make('current_process')
                     ->searchable()
                     ->sortable()
                     ->badge()
                     ->color('warning')
+                    ->label('Proceso Actual')
                     ->default('General'),
                 Tables\Columns\TextColumn::make('process_status')
                     ->sortable()
                     ->badge()
                     ->color('info')
+                    ->label('Estado del Proceso')
                     ->default('N/A'),
                 Tables\Columns\TextColumn::make('process_id')
                     ->numeric()
                     ->sortable()
+                    ->label('Identificador del Proceso')
                     ->default('N/A'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
+                    ->label('Creado en')
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
+                    ->label('Actualizado en')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -90,7 +108,7 @@ class ConversationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagersConversationMessagesRelationManager::class,
         ];
     }
 

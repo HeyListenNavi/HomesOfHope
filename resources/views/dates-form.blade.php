@@ -23,7 +23,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-body text-foreground flex min-h-screen flex-col items-center p-6 lg:justify-center lg:p-8">
+<body class="bg-body text-foreground flex min-h-screen flex-col items-center p-6 justify-center lg:p-8">
     <div
         class="bg-glass container col-span-2 mx-auto my-8 flex max-w-6xl flex-col items-center justify-center gap-10 rounded-2xl px-4 py-12 shadow-2xl backdrop-blur-xl lg:px-24">
 
@@ -32,53 +32,14 @@
             alt="">
 
         <div class="flex flex-col items-center gap-1">
-            <h2 class="text-body-medium md:text-body-largefont-normal">Casas de Esperanza</h2>
-            <h1 class="text-headline-large md:text-display-medium text-center">¡Elige tu fecha de Entrevista!</h1>
+            <h1 class="text-headline-large md:text-display-medium text-center">¡Casas de Esperanza!</h1>
         </div>
 
-        <form action="" id="contact-form" method="POST" class="flex w-full flex-col gap-6 rounded-2xl px-4 py-6">
-            @csrf
-
-            @if ($errors->any())
-                <div class="text-red-500">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <x-form-input label="Introduce tu CURP" id="curp" name="curp" placeholder="ABCD012345HOPQRST6"
-                :required="true" value="{{ old('curp') }}"></x-form-input>
-
-
-            <label for="dates[]" class="text-body-small flex items-center gap-1">
-                Fechas Disponibles
-            </label>
-            <fieldset class="grid gap-4">
-                <x-form-input label="Fecha 1" id="date1" name="dates[]" type="radio"></x-form-input>
-
-                <x-form-input label="Fecha 2" id="date2" name="dates[]" type="radio"></x-form-input>
-
-                <x-form-input label="Fecha 3" id="date3" name="dates[]" type="radio"></x-form-input>
-
-                <x-form-input label="Fecha 4" id="date4" name="dates[]" type="radio"></x-form-input>
-
-                <x-form-input label="Fecha 5" id="date5" name="dates[]" type="radio"></x-form-input>
-
-                <x-form-input label="Fecha 6" id="date6" name="dates[]" type="radio"></x-form-input>
-
-                <x-form-input label="Fecha 7" id="date7" name="dates[]" type="radio"></x-form-input>
-            </fieldset>
-
-            <!-- Botón de Envío -->
-            <x-button class="text-label-large self-end" type="submit">
-                <span>Elegir Fecha</span>
-                <x-bx-arrow-up-right></x-bx-arrow-up-right>
-            </x-button>
-        </form>
-
+        @if (session('error'))
+            <div class="text-red-800 font-bold">
+                <p>{{ session('error') }}</p>
+            </div>
+        @endif
     </div>
 </body>
 
