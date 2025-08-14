@@ -219,7 +219,7 @@ class DatabaseSeeder extends Seeder
             // Madre
             [
                 'key' => 'nombre_madre',
-                'question_text' => '¿Cuál es el nombre de la madre?',
+                'question_text' => 'Ahora se pediran los datos de la madre, si las preguntas no aplican puedes responder unicamente "No Aplica"\n\n¿Cuál es el nombre de la madre?',
                 'validation_rules' => ['tipo' => 'texto'],
                 'approval_criteria' => null,
                 'order' => 1,
@@ -284,7 +284,7 @@ class DatabaseSeeder extends Seeder
             // Padre
             [
                 'key' => 'nombre_padre',
-                'question_text' => '¿Cuál es el nombre del padre?',
+                'question_text' => 'Ahora los datos del padre, si las preguntas no aplican puedes responder unicamente "No Aplica"\n\n¿Cuál es el nombre del padre?',
                 'validation_rules' => ['tipo' => 'texto'],
                 'approval_criteria' => null,
                 'order' => 10,
