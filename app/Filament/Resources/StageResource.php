@@ -34,8 +34,7 @@ class StageResource extends Resource
                             ->label('Regla')
                             ->options([
                                 'requerido' => 'Requerido',
-                                'numerico' => 'Numérico',
-                                'correo_electronico' => 'Correo Electrónico',
+                                'tipo' => 'Tipo',
                                 'minimo' => 'Mínimo',
                                 'maximo' => 'Máximo',
                                 'tamano' => 'Tamaño',
