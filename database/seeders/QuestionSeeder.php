@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use App\Models\Group;
+use App\Models\Question;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class GroupSeeder extends Seeder
+class QuestionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Group::factory()->count(10)->create();
+        Question::factory()->count(10)->create();
     }
 }

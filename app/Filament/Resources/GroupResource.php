@@ -7,6 +7,7 @@ use App\Filament\Resources\GroupResource\RelationManagers;
 use App\Models\Group;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -17,6 +18,10 @@ class GroupResource extends Resource
 {
     protected static ?string $model = Group::class;
 
+    protected static ?string $modelLabel = 'Grupo';
+
+    protected static ?string $pluralModelLabel = 'Grupos';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -25,16 +30,24 @@ class GroupResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->label('Nombre')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('capacity')
                     ->required()
                     ->numeric()
+                    ->label('Capacidad')
                     ->default(25)
-                    ->maxValue(100), // Ejemplo de validación
+                    ->minValue(fn (Get $get) => $get('current_members_count') ?? 0),
                 Forms\Components\TextInput::make('current_members_count')
                     ->numeric()
-                    ->readOnly() // Este campo no debería ser editable manualmente
+                    ->label('Aplicantes en el Grupo')
+                    ->disabled()
                     ->default(0),
+                Forms\Components\DatePicker::make('date')
+                    ->format('d/m/Y')
+                    ->native(false)
+                    ->minDate(now())
+                    ->required(),
             ]);
     }
 
@@ -44,19 +57,28 @@ class GroupResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
+                    ->label('Nombre')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('capacity')
                     ->numeric()
+                    ->label('Capacidad')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('current_members_count')
                     ->numeric()
+                    ->label('Aplicantes en el Grupo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('date')
+                    ->date()
+                    ->label('Fecha de Entrevista')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
+                    ->label('Creado en')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
+                    ->label('Actualizado en')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

@@ -17,6 +17,10 @@ class MessageResource extends Resource
 {
     protected static ?string $model = Message::class;
 
+    protected static ?string $modelLabel = 'Mensaje';
+
+    protected static ?string $pluralModelLabel = 'Mensajes';
+
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?string $navigationGroup = 'Auditoría y Logs';
 
@@ -26,16 +30,32 @@ class MessageResource extends Resource
             ->schema([
                 Forms\Components\Select::make('conversation_id')
                     ->relationship('conversation', 'chat_id')
+                    ->label('Número de Teléfono')
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('chat_id')
+                            ->required()
+                            ->maxLength(255)
+                            ->readOnly()
+                            ->label('Número de Teléfono'),
+                        Forms\Components\TextInput::make('user_name')
+                            ->maxLength(255)
+                            ->label('Nombre'),
+                    ])
                     ->required(),
-                Forms\Components\TextInput::make('phone')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('role')
-                    ->required()
-                    ->maxLength(20),
+                Forms\Components\Select::make('role')
+                    ->label('Rol')
+                    ->options([
+                        'user' => 'Usuario',
+                        'assistant' => 'Bot',
+                    ])
+                    ->required(),
                 Forms\Components\TextInput::make('name')
+                    ->label('Nombre')
                     ->maxLength(255),
                 Forms\Components\Textarea::make('message')
+                    ->label('Mensaje')
                     ->required()
                     ->columnSpanFull(),
             ]);
@@ -46,31 +66,42 @@ class MessageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('conversation.chat_id')
+                    ->label('Número de Teléfono')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
+                    ->label('Número de Teléfono')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('role')
+                    ->label('Rol')
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'user' => 'Usuario',
+                        'assistant' => 'Bot',
+                    })
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'user' => 'success',
                         'assistant' => 'info',
                         default => 'secondary',
                     })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('message')
+                    ->label('Mensaje')
                     ->searchable()
                     ->limit(50),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
+                    ->label('Creado en')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
+                    ->label('Actualizado en')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

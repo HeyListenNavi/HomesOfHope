@@ -17,9 +17,10 @@ class GroupFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Grupo ' . $this->faker->unique()->numberBetween(1, 100),
+            'name' => 'Grupo ' . $this->faker->unique()->numberBetween(1, 1000),
             'capacity' => 25,
             'current_members_count' => $this->faker->numberBetween(0, 25),
+            'date' => $this->faker->dateTimeBetween('+0 days', '+2 years'),
         ];
     }
 }

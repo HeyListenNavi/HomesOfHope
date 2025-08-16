@@ -17,10 +17,9 @@ class ConversationFactory extends Factory
     public function definition(): array
     {
         return [
-            'chat_id' => $this->faker->unique()->phoneNumber,
-            'current_process' => null,
-            'process_status' => null,
-            'process_id' => null,
+            'chat_id' => $this->faker->unique()->numerify('##########'),
+            'current_process' => $this->faker->randomElement(['applicant_process', 'review_process']),
+            'process_status' => $this->faker->randomElement(['in_progress', 'completed', 'pending', 'rejected']),
             'user_name' => $this->faker->name,
         ];
     }
