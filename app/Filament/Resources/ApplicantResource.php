@@ -3,8 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ApplicantResource\Pages;
+use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantConversationRelationManager;
 use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantMessagesRelationManager;
 use App\Filament\Resources\ApplicantResource\RelationManagers\ConversationMessagesRelationManager;
+use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager as RelationManagersConversationMessagesRelationManager;
 use App\Models\Applicant;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -70,7 +72,7 @@ class ApplicantResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ApplicantMessagesRelationManager::class,
+            ApplicantConversationRelationManager::class,
         ];
     }
 
