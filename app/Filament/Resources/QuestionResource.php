@@ -28,7 +28,6 @@ class QuestionResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('stage_id')->relationship('stage', 'name')->required()->label('Etapa'),
-                Forms\Components\TextInput::make('key')->required()->unique(ignoreRecord: true)->label('Clave única'),
                 Forms\Components\Textarea::make('question_text')->required()->label('Pregunta'),
                 Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->label('Orden de la pregunta')->unique(
                     table: 'questions',
@@ -39,7 +38,31 @@ class QuestionResource extends Resource
                     },
                 ),
                 Forms\Components\KeyValue::make('validation_rules')->label('Reglas de Validación'),
-                Forms\Components\KeyValue::make('approval_criteria')->label('Criterios de Aprobación'),
+                Forms\Components\Repeater::make('approval_criteria')
+                    ->schema([
+                        Forms\Components\Select::make('rule')
+                            ->label('Regla')
+                            ->options([
+                                'requerido' => 'Requerido',
+                                'tipo' => 'Tipo',
+                                'minimo' => 'Mínimo',
+                                'maximo' => 'Máximo',
+                                'tamano' => 'Tamaño',
+                                'entre' => 'En (valores separados por comas)',
+                                'aceptado' => 'Aceptado',
+                                'otro' => 'Otro'
+                            ])
+                            ->searchable()
+                            ->required()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('value')
+                            ->label('Valor')
+                            ->columnSpan(1),
+                    ])
+                    ->label('Criterios de Aprobación')
+                    ->columns(2)
+                    ->collapsible()
+                    ->columnSpanFull(),
             ]);
     }
 
