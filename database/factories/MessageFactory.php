@@ -18,7 +18,7 @@ class MessageFactory extends Factory
     public function definition(): array
     {
         return [
-            'conversation_id' => Conversation::factory(),
+            'conversation_id' => Conversation::inRandomOrder()->first(),
             'phone' => $this->faker->phoneNumber,
             'message' => $this->faker->sentence,
             'role' => $this->faker->randomElement(['user', 'assistant']),
