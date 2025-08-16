@@ -7,6 +7,7 @@ use App\Filament\Resources\GroupResource\RelationManagers;
 use App\Models\Group;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -36,11 +37,11 @@ class GroupResource extends Resource
                     ->numeric()
                     ->label('Capacidad')
                     ->default(25)
-                    ->maxValue(100), // Ejemplo de validación
+                    ->minValue(fn (Get $get) => $get('current_members_count') ?? 0),
                 Forms\Components\TextInput::make('current_members_count')
                     ->numeric()
                     ->label('Aplicantes en el Grupo')
-                    ->readOnly() // Este campo no debería ser editable manualmente
+                    ->disabled()
                     ->default(0),
             ]);
     }
