@@ -43,6 +43,11 @@ class GroupResource extends Resource
                     ->label('Aplicantes en el Grupo')
                     ->disabled()
                     ->default(0),
+                Forms\Components\DatePicker::make('date')
+                    ->format('d/m/Y')
+                    ->native(false)
+                    ->minDate(now())
+                    ->required(),
             ]);
     }
 
@@ -61,6 +66,10 @@ class GroupResource extends Resource
                 Tables\Columns\TextColumn::make('current_members_count')
                     ->numeric()
                     ->label('Aplicantes en el Grupo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('date')
+                    ->date()
+                    ->label('Fecha de Entrevista')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
