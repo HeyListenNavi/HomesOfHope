@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\ConversationResource\RelationManagers;
+namespace App\Filament\Resources\ApplicantResource\RelationManagers;
 
+use App\Models\Message;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -10,25 +11,25 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class ConversationMessagesRelationManager extends RelationManager
+class ApplicantConversationRelationManager extends RelationManager
 {
-    protected static string $relationship = 'messages';
+    protected static string $relationship = 'conversation';
 
-    protected static ?string $recordTitleAttribute = 'message';
+    protected static ?string $model = Message::class;
 
-    public function form(Form $form): Form
+    protected static ?string $title = 'Mensajes de la Conversación';
+    public function getTableQuery(): Builder
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('message')
-                    ->required()
-                    ->maxLength(255),
-            ]);
+        $applicant = $this->ownerRecord;
+
+        return $applicant->conversation->messages()->getQuery();
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
+            ->recordTitleAttribute('message')
             ->columns([
                 Tables\Columns\TextColumn::make('message')
                     ->label('Mensaje')
@@ -46,22 +47,10 @@ class ConversationMessagesRelationManager extends RelationManager
                     })
                     ->searchable(),
             ])
-            ->filters([
-                //
-            ])
-            ->headerActions([
-                // Tables\Actions\CreateAction::make(),
-            ])
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
-            ->defaultSort('created_at', 'desc');
+            ]);
     }
 }
