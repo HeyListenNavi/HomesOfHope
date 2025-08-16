@@ -22,6 +22,7 @@ class ConversationMessagesRelationManager extends RelationManager
             ->schema([
                 Forms\Components\TextInput::make('message')
                     ->required()
+                    ->columnSpanFull()
                     ->maxLength(255),
             ]);
     }
@@ -38,6 +39,10 @@ class ConversationMessagesRelationManager extends RelationManager
                     ->description(fn($record) => $record->created_at->diffForHumans(), position: 'below'),
                 Tables\Columns\TextColumn::make('role')
                     ->label('Rol')
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'user' => 'Usuario',
+                        'assistant' => 'Bot',
+                    })
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'user' => 'success',
