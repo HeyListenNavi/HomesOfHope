@@ -30,7 +30,7 @@ class QuestionResource extends Resource
                 Forms\Components\Select::make('stage_id')->relationship('stage', 'name')->required()->label('Etapa'),
                 Forms\Components\TextInput::make('key')->required()->unique(ignoreRecord: true)->label('Clave única'),
                 Forms\Components\Textarea::make('question_text')->required()->label('Pregunta'),
-                Forms\Components\TextInput::make('order')->required()->numeric()->gt(0)->label('Orden de la pregunta')->unique(
+                Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->label('Orden de la pregunta')->unique(
                     table: 'questions',
                     column: 'order',
                     ignoreRecord: true,

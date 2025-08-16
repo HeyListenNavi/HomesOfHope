@@ -26,7 +26,7 @@ class StageResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')->required()->label('Nombre'),
-                Forms\Components\TextInput::make('order')->required()->numeric()->gt(0)->unique(ignoreRecord: true)->label('Número de Etapa'),
+                Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->unique(ignoreRecord: true)->label('Número de Etapa'),
                 Forms\Components\Textarea::make('rejection_message')->label('Mensaje de Rechazo'),
                 Forms\Components\Repeater::make('approval_criteria')
                     ->schema([
