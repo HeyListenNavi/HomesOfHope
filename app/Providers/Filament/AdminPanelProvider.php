@@ -19,7 +19,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Filament\Widgets\ApplicantChart; 
+use App\Filament\Widgets\ApplicantChart;
+use App\Filament\Widgets\ApplicantsList;
 use App\Filament\Widgets\TotalApplicantsChart;
 use Spatie\Color\Hex;
 
@@ -42,8 +43,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                ApplicantsOverview::class,
                 ApplicantChart::class,
                 TotalApplicantsChart::class,
+                ApplicantsList::class,
             ])
             ->middleware([
                 EncryptCookies::class,
