@@ -28,31 +28,6 @@ class StageResource extends Resource
                 Forms\Components\TextInput::make('name')->required()->label('Nombre'),
                 Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->unique(ignoreRecord: true)->label('Número de Etapa'),
                 Forms\Components\Textarea::make('rejection_message')->label('Mensaje de Rechazo'),
-                Forms\Components\Repeater::make('approval_criteria')
-                    ->schema([
-                        Forms\Components\Select::make('rule')
-                            ->label('Regla')
-                            ->options([
-                                'requerido' => 'Requerido',
-                                'tipo' => 'Tipo',
-                                'minimo' => 'Mínimo',
-                                'maximo' => 'Máximo',
-                                'tamano' => 'Tamaño',
-                                'entre' => 'En (valores separados por comas)',
-                                'aceptado' => 'Aceptado',
-                                'otro' => 'Otro'
-                            ])
-                            ->searchable()
-                            ->required()
-                            ->columnSpan(1),
-                        Forms\Components\TextInput::make('value')
-                            ->label('Valor')
-                            ->columnSpan(1),
-                    ])
-                    ->label('Criterios de Aprobación')
-                    ->columns(2)
-                    ->collapsible()
-                    ->columnSpanFull(),
                 Forms\Components\Repeater::make('questions')
                     ->relationship('questions')
                     ->schema([
@@ -74,7 +49,7 @@ class StageResource extends Resource
                             ->minValue(1)
                             ->label('Orden de la pregunta'),
                     ])
-                    ->label('Añadir Preguntas')
+                    ->label('Preguntas')
                     ->columns(2)
                     ->collapsible()
                     ->columnSpanFull()
