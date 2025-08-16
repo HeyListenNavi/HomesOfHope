@@ -44,10 +44,6 @@ class ConversationResource extends Resource
                 Forms\Components\TextInput::make('process_status')
                     ->maxLength(255)
                     ->label('Estado del Proceso'),
-                Forms\Components\TextInput::make('process_id')
-                    ->numeric()
-                    ->nullable()
-                    ->label('Identificador del Proceso'),
             ]);
     }
 
@@ -74,11 +70,6 @@ class ConversationResource extends Resource
                     ->badge()
                     ->color('info')
                     ->label('Estado del Proceso')
-                    ->default('N/A'),
-                Tables\Columns\TextColumn::make('process_id')
-                    ->numeric()
-                    ->sortable()
-                    ->label('Identificador del Proceso')
                     ->default('N/A'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
