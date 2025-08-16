@@ -9,6 +9,8 @@ use Flowframe\Trend\TrendValue;
 
 class ApplicantChart extends ChartWidget
 {
+    protected static ?int $sort = 3;
+
     protected static ?string $heading = 'Solicitantes Aprobados';
 
     protected function getData(): array
@@ -25,10 +27,11 @@ class ApplicantChart extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'Solicitantes aprobados por mes',
-                    'data' => $data->map(fn (TrendValue $value) => $value->aggregate),
+                    'data' => $data->map(fn(TrendValue $value) => $value->aggregate),
+                    'fill' => true,
                 ],
             ],
-            'labels' => $data->map(fn (TrendValue $value) => $value->date),
+            'labels' => $data->map(fn(TrendValue $value) => $value->date),
         ];
     }
 
