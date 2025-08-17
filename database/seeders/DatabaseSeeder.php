@@ -82,16 +82,7 @@ class DatabaseSeeder extends Seeder
                     [
                         'rule' => 'approve_if',
                         'operator' => 'contains',
-                        'value' => 'Tijuana'
-                    ],
-                    [
-                        'rule' => 'approve_if',
-                        'operator' => 'contains',
-                        'value' => 'Rosarito'
-                    ],
-                    [
-                        'rule' => 'reject_if',
-                        'operator' => 'is_anything_else',
+                        'value' => 'Tijuana o Rosarito'
                     ],
                 ],
                 'order' => 4,

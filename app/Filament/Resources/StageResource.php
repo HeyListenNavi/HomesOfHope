@@ -35,15 +35,15 @@ class StageResource extends Resource
                             ->required()
                             ->numeric()
                             ->minValue(1)
-                            ->label('Orden de la pregunta'),
+                            ->label('Número de pregunta'),
                         Forms\Components\Textarea::make('question_text')
                             ->required()
-                            ->label('Texto de la pregunta')
-                            ->columnSpan(4)
+                            ->label('Pregunta')
+                            ->columnSpan(3)
                             ->autosize(),
                     ])
                     ->label('Preguntas')
-                    ->columns(6)
+                    ->columns(4)
                     ->collapsible()
                     ->columnSpanFull()
                     ->orderColumn('order')
@@ -55,7 +55,7 @@ class StageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Nombre'),
-                Tables\Columns\TextColumn::make('order')->sortable()->label('Orden de la Etapa'),
+                Tables\Columns\TextColumn::make('order')->sortable()->label('Número de Etapa'),
             ])
             ->filters([
                 //

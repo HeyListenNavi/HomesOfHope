@@ -19,8 +19,16 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
         return $form
             ->schema([
                 Forms\Components\TextInput::make('question_text_snapshot')
+                    ->label('Pregunta')
+                    ->columnSpanFull()
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextArea::make('user_response')
+                    ->label('Respuesta')
+                    ->columnSpanFull()
+                    ->rows(5)
+                    ->autosize()
+                    ->required(),
             ]);
     }
 
@@ -34,6 +42,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('user_response')
                     ->label('Respuesta')
             ])
+            ->defaultGroup('question.stage.name')
             ->filters([
                 //
             ])

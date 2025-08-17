@@ -53,10 +53,13 @@ class MessageResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre')
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('message')
                     ->label('Mensaje')
                     ->required()
+                    ->rows(5)
+                    ->autosize()
                     ->columnSpanFull(),
             ]);
     }

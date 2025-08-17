@@ -28,7 +28,7 @@ class ApplicantResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Toggle::make('is_approved')->label('¿Aprobado?')->nullable()->columnSpanFull()->inline(false)->onColor('primary')->offColor('danger'),
-                Forms\Components\TextInput::make('chat_id')->required()->readOnly()->label('Número de Teléfono'),
+                Forms\Components\TextInput::make('chat_id')->required()->label('Número de Teléfono'),
                 Forms\Components\Select::make('current_stage_id')->relationship('currentStage', 'name')->required()->label('Etapa Actual')->native(false),
                 Forms\Components\Select::make('current_question_id')->relationship('currentQuestion', 'question_text')->required()->label('Pregunta')->native(false),
                 Forms\Components\Select::make('process_status')->options([

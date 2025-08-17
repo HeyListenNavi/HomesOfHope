@@ -27,8 +27,7 @@ class QuestionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('stage_id')->relationship('stage', 'name')->required()->label('Etapa'),
-                Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->label('Orden de la pregunta')->unique(
+                Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->label('Número de pregunta')->unique(
                     table: 'questions',
                     column: 'order',
                     ignoreRecord: true,
@@ -36,8 +35,10 @@ class QuestionResource extends Resource
                         return $rule->where('stage_id', $get('stage_id'));
                     },
                 ),
+                Forms\Components\Select::make('stage_id')->relationship('stage', 'name')->required()->label('Etapa')->columnSpan(3),
                 Forms\Components\Textarea::make('question_text')->required()->label('Pregunta')->columnSpanFull()->rows(5)->autosize(),
                 Forms\Components\Repeater::make('approval_criteria')
+                    ->hint('Recuerda que todas para que aprueben la pregunta todas las reglas deben cumplirse')
                     ->schema([
                         Forms\Components\Select::make('rule')
                             ->label('Regla')
@@ -59,7 +60,6 @@ class QuestionResource extends Resource
                                     'does_not_contain' => 'no contiene',
                                     'is_empty' => 'está vacío',
                                     'is_not_empty' => 'no está vacío',
-                                    'is_anything_else' => 'es cualquier otra cosa'
                                 ],
                                 'Números' => [
                                     'is_equal_to' => 'es igual a',
@@ -93,7 +93,8 @@ class QuestionResource extends Resource
                     ->columns(3)
                     ->collapsible()
                     ->columnSpanFull(),
-            ]);
+            ])
+            ->columns(4);
     }
 
     public static function table(Table $table): Table
@@ -102,7 +103,7 @@ class QuestionResource extends Resource
             ->columns([
                 TextColumn::make('question_text')->limit(50)->searchable()->label('Pregunta'),
                 TextColumn::make('key')->searchable()->label('Clave única'),
-                TextColumn::make('order')->label('Orden de la pregunta'),
+                TextColumn::make('order')->label('Número de pregunta'),
                 TextColumn::make('stage.name')->toggleable(isToggledHiddenByDefault: true)->label('Etapa'),
             ])
             ->filters([
