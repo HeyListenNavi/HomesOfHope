@@ -165,7 +165,7 @@ class DatabaseSeeder extends Seeder
                     [
                         'rule' => 'human_if',
                         'operator' => 'is_before',
-                        'value' => 'hace 3 meses'
+                        'value' => 'han pasado mas de 3 meses'
                     ],
                 ],
                 'order' => 11,
