@@ -4,9 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantConversationRelationManager;
-use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantMessagesRelationManager;
-use App\Filament\Resources\ApplicantResource\RelationManagers\ConversationMessagesRelationManager;
-use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager as RelationManagersConversationMessagesRelationManager;
+use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantQuestionResponseRelationManager;
 use App\Models\Applicant;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -29,6 +27,7 @@ class ApplicantResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Toggle::make('is_approved')->label('¿Aprobado?')->nullable()->columnSpanFull()->inline(false)->onColor('primary')->offColor('danger'),
                 Forms\Components\TextInput::make('chat_id')->required()->readOnly()->label('Número de Teléfono'),
                 Forms\Components\Select::make('current_stage_id')->relationship('currentStage', 'name')->required()->label('Etapa Actual')->native(false),
                 Forms\Components\Select::make('current_question_id')->relationship('currentQuestion', 'question_text')->required()->label('Pregunta')->native(false),
@@ -38,9 +37,7 @@ class ApplicantResource extends Resource
                     'rejected' => 'Rechazado',
                     'approved' => 'Aprobado',
                 ])->required()->label('Estado del Proceso')->native(false),
-                Forms\Components\Toggle::make('is_approved')->label('¿Aprobado?')->nullable(),
-                Forms\Components\Textarea::make('rejection_reason')->nullable()->label('Razon de Descalificación'),
-                Forms\Components\KeyValue::make('evaluation_data')->label('Respuestas del Solicitante'),
+                Forms\Components\Textarea::make('rejection_reason')->nullable()->label('Razon de Descalificación')->columnSpanFull()->rows(10)->autosize(),
             ]);
     }
 
@@ -72,6 +69,7 @@ class ApplicantResource extends Resource
     public static function getRelations(): array
     {
         return [
+            ApplicantQuestionResponseRelationManager::class,
             ApplicantConversationRelationManager::class,
         ];
     }
