@@ -47,8 +47,9 @@ class GroupResource extends Resource
                     ->format('d/m/Y')
                     ->native(false)
                     ->minDate(now())
+                    ->columnSpanFull()
                     ->required(),
-            ]);
+            ])->columns(3);
     }
 
     public static function table(Table $table): Table
