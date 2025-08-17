@@ -25,36 +25,29 @@ class StageResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')->required()->label('Nombre'),
                 Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->unique(ignoreRecord: true)->label('Número de Etapa'),
-                Forms\Components\Textarea::make('rejection_message')->label('Mensaje de Rechazo'),
+                Forms\Components\TextInput::make('name')->required()->label('Nombre')->columnSpan(3),
+                Forms\Components\Textarea::make('rejection_message')->label('Mensaje de Rechazo')->rows(5)->autosize()->columnSpanFull(),
                 Forms\Components\Repeater::make('questions')
                     ->relationship('questions')
                     ->schema([
-                        Forms\Components\TextInput::make('key')
-                            ->required()
-                            ->label('Clave única')
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255)
-                            ->helperText('Una clave única para identificar esta pregunta, ej. "nombre_completo".'),
-
-                        Forms\Components\Textarea::make('question_text')
-                            ->required()
-                            ->label('Texto de la pregunta')
-                            ->rows(3),
-
                         Forms\Components\TextInput::make('order')
                             ->required()
                             ->numeric()
                             ->minValue(1)
-                            ->label('Orden de la pregunta'),
+                            ->label('Número de pregunta'),
+                        Forms\Components\Textarea::make('question_text')
+                            ->required()
+                            ->label('Pregunta')
+                            ->columnSpan(3)
+                            ->autosize(),
                     ])
                     ->label('Preguntas')
-                    ->columns(2)
+                    ->columns(4)
                     ->collapsible()
                     ->columnSpanFull()
                     ->orderColumn('order')
-            ]);
+            ])->columns(4);
     }
 
     public static function table(Table $table): Table
@@ -62,7 +55,7 @@ class StageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Nombre'),
-                Tables\Columns\TextColumn::make('order')->sortable()->label('Orden de la Etapa'),
+                Tables\Columns\TextColumn::make('order')->sortable()->label('Número de Etapa'),
             ])
             ->filters([
                 //

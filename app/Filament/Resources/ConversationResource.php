@@ -33,7 +33,6 @@ class ConversationResource extends Resource
                 Forms\Components\TextInput::make('chat_id')
                     ->required()
                     ->maxLength(255)
-                    ->readOnly()
                     ->label('Número de Teléfono'),
                 Forms\Components\TextInput::make('user_name')
                     ->maxLength(255)

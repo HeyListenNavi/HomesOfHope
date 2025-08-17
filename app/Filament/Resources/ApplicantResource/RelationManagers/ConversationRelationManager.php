@@ -23,6 +23,10 @@ class ApplicantConversationRelationManager extends RelationManager
     {
         $applicant = $this->ownerRecord;
 
+        if (! $applicant->conversation) {
+            return Message::query()->whereNull('id');
+        }
+
         return $applicant->conversation->messages()->getQuery();
     }
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ApplicantResource\Pages;
 
 use App\Filament\Resources\ApplicantResource;
+use App\Models\Conversation;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 

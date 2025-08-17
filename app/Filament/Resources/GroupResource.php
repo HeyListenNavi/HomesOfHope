@@ -44,11 +44,12 @@ class GroupResource extends Resource
                     ->disabled()
                     ->default(0),
                 Forms\Components\DatePicker::make('date')
-                    ->format('d/m/Y')
+                    ->format('Y-m-d')
                     ->native(false)
                     ->minDate(now())
+                    ->columnSpanFull()
                     ->required(),
-            ]);
+            ])->columns(3);
     }
 
     public static function table(Table $table): Table
