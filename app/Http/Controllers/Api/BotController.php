@@ -155,9 +155,6 @@ class BotController extends Controller
         $applicant = Applicant::where('chat_id', $chat_id)->where('process_status', 'in_progress')->firstOrFail();
         $question = Question::where('key', $validated['question_key'])->firstOrFail();
 
-        // Lógica de validación
-        $isCorrect = $this->validateResponse($question->validation_rules, $validated['user_response']);
-
         // Guarda la respuesta en el historial y en evaluation_data
         $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
                                             ->where('question_id', $question->id)
@@ -165,7 +162,6 @@ class BotController extends Controller
         if ($response) {
             $response->update([
                 'user_response' => $validated['user_response'],
-                'is_correct' => $isCorrect,
             ]);
         }
 
@@ -173,7 +169,7 @@ class BotController extends Controller
         $evaluationData[$validated['question_key']] = $validated['user_response'];
         $applicant->update(['evaluation_data' => $evaluationData]);
 
-        return response()->json(['status' => 'success', 'is_correct' => $isCorrect]);
+        return response()->json(['status' => 'success']);
     }
 
     public function updateManually(Request $request, int $applicant_id)
