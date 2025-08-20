@@ -11,9 +11,7 @@ return new class extends Migration
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('stage_id')->constrained()->cascadeOnDelete();
-            $table->string('key')->unique();
             $table->text('question_text');
-            $table->json('validation_rules')->nullable();
             $table->json('approval_criteria')->nullable();
             $table->integer('order');
             $table->timestamps();

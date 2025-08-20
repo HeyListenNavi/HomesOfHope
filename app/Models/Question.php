@@ -14,15 +14,12 @@ class Question extends Model
 
     protected $fillable = [
         'stage_id',
-        'key',
         'question_text',
-        'validation_rules',
         'approval_criteria',
         'order',
     ];
 
     protected $casts = [
-        'validation_rules' => 'json',
         'approval_criteria' => 'json',
     ];
 
@@ -39,21 +36,5 @@ class Question extends Model
     public function getRouteKeyName()
     {
         return 'key';
-    }
-
-    protected static function booted()
-    {
-        parent::boot();
-
-        static::creating(function ($question) {
-            $question->key = Str::slug($question->question_text);
-
-            $originalSlug = $question->key;
-            $count = 1;
-
-            while (static::where('key', $question->key)->exists()) {
-                $question->key = $originalSlug . '-' . $count++;
-            }
-        });
     }
 }

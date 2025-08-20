@@ -12,6 +12,7 @@ class Group extends Model
 
     protected $fillable = [
         'name',
+        "message",
         'capacity',
         'current_members_count',
         'date',

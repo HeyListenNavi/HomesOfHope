@@ -2,7 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\BotController;
+use App\Http\Controllers\Api\BotConversationController;
+use App\Http\Controllers\Api\BotMessageController;
+use App\Http\Controllers\Api\BotApplicantController;
+use App\Http\Controllers\Api\BotApplicantManualController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -10,20 +13,24 @@ Route::get('/user', function (Request $request) {
 
 // Rutas de API para el bot conversacional
 Route::prefix('bot')->group(function () {
-    // Mensajes y Conversaciones
-    Route::post('messages', [BotController::class, 'storeMessage']);
-    Route::get('conversations/{chat_id}', [BotController::class, 'getOrCreateConversation']);
-    Route::put('conversations/{conversation_id}', [BotController::class, 'updateConversation']);
-    Route::get('messages/{conversation_id}', [BotController::class, 'getMessages']); // Para historial de Gemini
 
-    // Endpoints del Flujo de Solicitantes (Unificados y nuevos)
-    Route::post('applicants/start', [BotController::class, 'startEvaluation']);
-    Route::get('applicants/{chat_id}/next-question', [BotController::class, 'getNextQuestion']);
-    Route::post('applicants/{chat_id}/submit-answer', [BotController::class, 'submitAnswer']);
-    Route::put('applicants/{applicant_id}/update-manually', [BotController::class, 'updateManually']);
-    Route::post('applicants/stage-approval', [BotController::class, 'handleStageApproval']);
-    Route::get('applicants/{chat_id}/stage-data', [BotController::class, 'getStageDataForAi']);
+    // Rutas para mensajes
+    Route::post('messages', [BotMessageController::class, 'storeMessage']);
+    Route::get('messages/{conversationId}', [BotMessageController::class, 'getMessages']);
 
-    // Solicitantes Finales y Grupos (Lógica de Negocio Crítica)
-    Route::post('applicants/evaluate-and-save', [BotController::class, 'evaluateAndSaveApplicant']);
+    // Rutas para conversaciones
+    Route::get('conversations/{chatId}', [BotConversationController::class, 'getOrCreateConversation']);
+    Route::put('conversations/{conversationId}', [BotConversationController::class, 'updateConversation']);
+
+    // Rutas para el flujo del solicitante a través del bot
+    Route::prefix('applicants')->group(function () {
+        Route::post('start', [BotApplicantController::class, 'startEvaluation']);
+        Route::get('{chatId}/next-question', [BotApplicantController::class, 'getNextQuestion']);
+        Route::post('{chatId}/submit-answer', [BotApplicantController::class, 'submitAnswer']);
+        Route::post('stage-approval', [BotApplicantController::class, 'handleStageApproval']);
+        Route::get('{chatId}/stage-data', [BotApplicantController::class, 'getStageDataForAi']);
+    });
+
+    // Ruta para actualizaciones manuales (ej. desde un panel de administración)
+    Route::put('applicants/{applicantId}/update-manually', [BotApplicantManualController::class, 'updateManually']);
 });

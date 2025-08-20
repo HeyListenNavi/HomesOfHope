@@ -19,9 +19,7 @@ class QuestionFactory extends Factory
     {
         return [
             'stage_id' => Stage::inRandomOrder()->first()->id,
-            'key' => $this->faker->unique()->word,
             'question_text' => $this->faker->sentence,
-            'validation_rules' => ['required', 'string'],
             'approval_criteria' => [
                 $this->faker->word => $this->faker->word
             ],

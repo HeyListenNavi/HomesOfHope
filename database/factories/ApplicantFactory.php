@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\Question;
 use App\Models\Stage;
@@ -12,50 +11,94 @@ class ApplicantFactory extends Factory
 {
     public function definition(): array
     {
-        $isApproved = $this->faker->randomElement([null, true, false]);
-
+        $processStatus = $this->faker->randomElement(['in_progress', 'approved', 'rejected', 'requires_revision', 'canceled']);
+        
         return [
-            'chat_id' => $this->faker->unique()->randomElement(
-                Conversation::pluck('chat_id')->toArray()
-            ),
+            // Se usa el chat_id de una conversación existente.
+            // Asegúrate de que existan registros en la tabla 'conversations' antes de ejecutar el seeder.
+            'chat_id' => $this->faker->unique()->numberBetween(1000000000, 9999999999),
+            
             'curp' => $this->faker->unique()->bothify('????######??????##'),
-            'current_stage_id' => $isApproved == true ? Stage::latest('order')->first() : Stage::inRandomOrder()->first(),
-            'current_question_id' => $isApproved == true ? Question::latest('order')->first() : Question::inRandomOrder()->first(),
-            'process_status' => match ($isApproved) {
-                true => 'approved',
-                false => 'rejected',
-                default => $this->faker->randomElement(['completed', 'in_progress'])
-            },
-            'is_approved' => $isApproved,
-            'rejection_reason' => $isApproved == false ? $this->faker->sentence : null,
-            'group_id' => $isApproved == true ? Group::inRandomOrder()->first() : null,
-            'evaluation_data' => [
-                'curp' => $this->faker->bothify('????######??????##'),
-                'has_minor_children' => $this->faker->boolean,
-                'owns_land' => $this->faker->boolean,
-                'land_size_meters' => $this->faker->numberBetween(1, 100),
-            ],
-            'confirmation_status' => $this->faker->randomElement(['pending', 'confirmed'])
+            
+            // Los campos 'current_stage_id' y 'current_question_id' pueden ser nulos o referenciar registros existentes.
+            'current_stage_id' => $this->faker->boolean(70) ? Stage::inRandomOrder()->first() : null,
+            'current_question_id' => $this->faker->boolean(70) ? Question::inRandomOrder()->first() : null,
+            
+            'process_status' => $processStatus,
+            
+            // El motivo de rechazo solo se genera si el estado es 'rejected'.
+            'rejection_reason' => $processStatus === 'rejected' ? $this->faker->sentence : null,
+            
+            // Se asigna un grupo solo si el estado es 'approved'.
+            'group_id' => $processStatus === 'approved' ? Group::inRandomOrder()->first() : null,
+            
+            // El estado de confirmación puede ser 'pending' o 'confirmed' por defecto.
+            'confirmation_status' => $this->faker->randomElement(['pending', 'confirmed']),
         ];
     }
 
-    // Método para crear un solicitante aprobado
+    /**
+     * Define un estado para crear un solicitante aprobado.
+     */
     public function approved(): static
     {
         return $this->state(fn(array $attributes) => [
-            'is_approved' => true,
+            'process_status' => 'approved',
             'rejection_reason' => null,
             'group_id' => Group::factory(),
+            'confirmation_status' => 'confirmed',
         ]);
     }
 
-    // Método para crear un solicitante rechazado
+    /**
+     * Define un estado para crear un solicitante rechazado.
+     */
     public function rejected(): static
     {
         return $this->state(fn(array $attributes) => [
-            'is_approved' => false,
+            'process_status' => 'rejected',
             'rejection_reason' => $this->faker->sentence,
             'group_id' => null,
+            'confirmation_status' => 'canceled',
+        ]);
+    }
+
+    /**
+     * Define un estado para crear un solicitante en progreso.
+     */
+    public function inProgress(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'process_status' => 'in_progress',
+            'rejection_reason' => null,
+            'group_id' => null,
+            'confirmation_status' => 'pending',
+        ]);
+    }
+
+    /**
+     * Define un estado para crear un solicitante que requiere revisión.
+     */
+    public function requiresRevision(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'process_status' => 'requires_revision',
+            'rejection_reason' => null,
+            'group_id' => null,
+            'confirmation_status' => 'pending',
+        ]);
+    }
+
+    /**
+     * Define un estado para crear un solicitante cancelado.
+     */
+    public function canceled(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'process_status' => 'canceled',
+            'rejection_reason' => null,
+            'group_id' => null,
+            'confirmation_status' => 'canceled',
         ]);
     }
 }

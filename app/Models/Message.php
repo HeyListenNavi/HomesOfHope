@@ -13,9 +13,9 @@ class Message extends Model
     protected $fillable = [
         'conversation_id',
         'phone',
+        'name',
         'message',
         'role',
-        'name',
     ];
 
     // Relación con la conversación a la que pertenece el mensaje

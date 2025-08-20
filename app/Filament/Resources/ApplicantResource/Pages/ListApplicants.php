@@ -28,15 +28,23 @@ class ListApplicants extends ListRecords
 
             'aprobados' => Tab::make('Aprobados')
                 ->icon('heroicon-o-check-circle')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('is_approved', true)),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('process_status', 'approved')),
 
             'rechazados' => Tab::make('Rechazados')
                 ->icon('heroicon-o-x-circle') 
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('is_approved', false)),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('process_status', 'rejected')),
 
-            'en_proceso' => Tab::make('En Proceso')
+            'en_proceso' => Tab::make('En Progreso')
                 ->icon('heroicon-o-arrow-path')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('process_status', 'in_progress')),
+
+            'requiere_revision' => Tab::make('Requiere Revision')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('process_status', 'requires_revision')),
+            
+            'canceled' => Tab::make('Cancelado')
+                ->icon('lucide-ban')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('process_status', 'canceled')),
         ];
     }
 }

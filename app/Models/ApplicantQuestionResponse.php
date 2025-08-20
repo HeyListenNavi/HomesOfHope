@@ -15,11 +15,7 @@ class ApplicantQuestionResponse extends Model
         'question_id',
         'question_text_snapshot',
         'user_response',
-        'is_correct',
-    ];
-
-    protected $casts = [
-        'is_correct' => 'boolean',
+        "ai_decision"
     ];
 
     public function applicant(): BelongsTo

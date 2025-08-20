@@ -14,12 +14,10 @@ return new class extends Migration
             $table->string('curp')->unique()->nullable();
             $table->foreignId('current_stage_id')->nullable()->constrained('stages')->cascadeOnDelete();
             $table->foreignId('current_question_id')->nullable()->constrained('questions')->cascadeOnDelete();
-            $table->string('process_status')->default('in_progress'); // in_progress, completed, rejected
-            $table->boolean('is_approved')->nullable();
+            $table->enum('process_status', ['in_progress', 'approved', 'rejected', 'requires_revision', 'canceled'])->default('in_progress');
             $table->text('rejection_reason')->nullable();
             $table->foreignId('group_id')->nullable()->constrained('groups')->cascadeOnDelete();
-            $table->json('evaluation_data')->nullable();
-            $table->enum('confirmation_status', ['pending', 'confirmed', 'rejected'])->default('pending');
+            $table->enum('confirmation_status', ['pending', 'confirmed', 'canceled'])->default('pending');
             $table->timestamps();
         });
     }

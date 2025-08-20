@@ -17,16 +17,16 @@ class ApplicantsOverview extends BaseWidget
                 ->description('Número total en el sistema')
                 ->descriptionIcon('heroicon-m-user-group'),
 
-            Stat::make('En Proceso', Applicant::whereNull('is_approved')->count())
+            Stat::make('En Proceso', Applicant::where("process_status", 'in_progress')->count() )
                 ->description('Solicitantes en proceso')
                 ->descriptionIcon('heroicon-m-clock'),
 
-            Stat::make('Aprobados', Applicant::where('is_approved', true)->count())
+            Stat::make('Aprobados', Applicant::where("process_status", 'in_progress')->count() )
                 ->description('Solicitantes aceptados')
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('primary'),
 
-            Stat::make('Rechazados', Applicant::where('is_approved', false)->count())
+            Stat::make('Rechazados', Applicant::where("process_status", 'in_progress')->count())
                 ->description('Solicitantes rechazados')
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->color('danger'),

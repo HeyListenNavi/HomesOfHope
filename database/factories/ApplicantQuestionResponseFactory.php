@@ -25,7 +25,7 @@ class ApplicantQuestionResponseFactory extends Factory
             'question_id' => $question->id,
             'question_text_snapshot' => $question->question_text,
             'user_response' => $this->faker->word,
-            'is_correct' => $this->faker->boolean,
+            'ai_decision' => $this->faker->boolean,
         ];
     }
 }

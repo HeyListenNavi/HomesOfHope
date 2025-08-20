@@ -12,6 +12,8 @@ use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+
 
 class ApplicantResource extends Resource
 {
@@ -27,7 +29,6 @@ class ApplicantResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Toggle::make('is_approved')->label('¿Aprobado?')->nullable()->columnSpanFull()->inline(false)->onColor('primary')->offColor('danger'),
                 Forms\Components\TextInput::make('chat_id')->required()->label('Número de Teléfono'),
                 Forms\Components\Select::make('current_stage_id')->relationship('currentStage', 'name')->required()->label('Etapa Actual')->native(false),
                 Forms\Components\Select::make('current_question_id')->relationship('currentQuestion', 'question_text')->required()->label('Pregunta')->native(false),
@@ -53,7 +54,22 @@ class ApplicantResource extends Resource
                     'rejected' => 'Rechazado',
                     'approved' => 'Aprobado',
                 ])->label('Estado del Proceso'),
-                Tables\Columns\IconColumn::make('is_approved')->boolean()->label('Aprobado'),
+                IconColumn::make('process_status')
+                    ->label('Estado')
+                    ->icon(fn (string $state): string => match ($state) {
+                        'in_progress' => 'heroicon-o-arrow-path', 
+                        'approved' => 'heroicon-o-check-circle', 
+                        'rejected' => 'heroicon-o-x-circle', 
+                        'requires_revision' => 'heroicon-o-exclamation-triangle', 
+                        "canceled" => "lucide-ban",
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'in_progress' => 'info',
+                        'approved' => 'success',
+                        'rejected' => 'danger',
+                        'requires_revision' => 'warning',
+                        "canceled" => "gray",
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

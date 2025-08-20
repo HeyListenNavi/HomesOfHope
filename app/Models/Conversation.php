@@ -13,10 +13,10 @@ class Conversation extends Model
 
     protected $fillable = [
         'chat_id',
-        'current_process',
-        'process_status',
-        'process_id',
         'user_name',
+        'current_process',
+        'process_id',
+        'process_status',
     ];
 
     // Relación con los mensajes de la conversación

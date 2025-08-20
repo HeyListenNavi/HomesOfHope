@@ -25,11 +25,11 @@ class ApplicantsList extends BaseWidget
                 Tables\Columns\TextColumn::make('currentStage.name')->label('Etapa Actual'),
                 Tables\Columns\SelectColumn::make('process_status')->options([
                     'in_progress' => 'En Progreso',
-                    'completed' => 'Completado',
-                    'rejected' => 'Rechazado',
                     'approved' => 'Aprobado',
+                    'rejected' => 'Rechazado',
+                    "requires_revision" => "Requiere revision",
+                    "canceled" => "Cancelado"
                 ])->label('Estado del Proceso'),
-                Tables\Columns\IconColumn::make('is_approved')->boolean()->label('Aprobado'),
             ])
             ->paginated([5]);
     }

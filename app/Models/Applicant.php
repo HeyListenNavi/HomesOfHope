@@ -21,13 +21,11 @@ class Applicant extends Model
         'is_approved',
         'rejection_reason',
         'group_id',
-        'evaluation_data',
         'confirmation_status',
     ];
 
     protected $casts = [
         'is_approved' => 'boolean',
-        'evaluation_data' => 'json',
     ];
 
     public function group(): BelongsTo

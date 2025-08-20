@@ -6,18 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('stages', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('order');
-            $table->json('approval_criteria')->nullable();
+            $table->integer('order')->unique();
+            $table->text('starting_message')->nullable();
+            $table->text('approval_message')->nullable();
             $table->text('rejection_message')->nullable();
+            $table->text('requires_evaluatio_message')->nullable();
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('stages');

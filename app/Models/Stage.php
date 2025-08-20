@@ -13,8 +13,10 @@ class Stage extends Model
     protected $fillable = [
         'name',
         'order',
-        'approval_criteria',
+        "starting_message",
+        'approval_message',
         'rejection_message',
+        'requires_evaluatio_message'
     ];
 
     protected $casts = [

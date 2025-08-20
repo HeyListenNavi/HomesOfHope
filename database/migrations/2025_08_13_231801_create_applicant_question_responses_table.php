@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('question_id')->constrained()->cascadeOnDelete();
             $table->text('question_text_snapshot');
             $table->text('user_response')->nullable();
-            $table->boolean('is_correct')->nullable();
+            $table->boolean('ai_decision')->nullable();
             $table->timestamps();
         });
     }
