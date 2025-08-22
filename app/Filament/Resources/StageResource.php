@@ -6,7 +6,6 @@ use App\Filament\Resources\StageResource\Pages;
 use App\Models\Stage;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables;
@@ -14,48 +13,127 @@ use Filament\Tables;
 class StageResource extends Resource
 {
     protected static ?string $model = Stage::class;
-
     protected static ?string $modelLabel = 'Etapa';
-
     protected static ?string $pluralModelLabel = 'Etapas';
-
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('order')->required()->numeric()->minValue(1)->unique(ignoreRecord: true)->label('Número de Etapa'),
-                Forms\Components\TextInput::make('name')->required()->label('Nombre')->columnSpan(3),
-                Forms\Components\Textarea::make('rejection_message')->label('Mensaje de Rechazo')->rows(5)->autosize()->columnSpanFull(),
-                Forms\Components\Repeater::make('questions')
-                    ->relationship('questions')
+                // Sección para la información principal de la etapa
+                Forms\Components\Section::make('Información Principal')
+                    ->description('Define el nombre y el orden de la etapa en el proceso.')
                     ->schema([
                         Forms\Components\TextInput::make('order')
                             ->required()
                             ->numeric()
                             ->minValue(1)
-                            ->label('Número de pregunta'),
-                        Forms\Components\Textarea::make('question_text')
+                            ->unique(ignoreRecord: true)
+                            ->label('Número de Etapa'),
+                        Forms\Components\TextInput::make('name')
                             ->required()
-                            ->label('Pregunta')
-                            ->columnSpan(3)
-                            ->autosize(),
-                    ])
-                    ->label('Preguntas')
-                    ->columns(4)
-                    ->collapsible()
-                    ->columnSpanFull()
-                    ->orderColumn('order')
-            ])->columns(4);
+                            ->label('Nombre')
+                            ->columnSpan(2),
+                    ])->columns(3),
+
+                // Usamos Tabs para organizar los diferentes mensajes y ahorrar espacio vertical
+                Forms\Components\Section::make('Mensajes Automatizados')
+                    ->description('Configura los mensajes que se mostrarán en diferentes momentos de la etapa.')
+                    ->schema([
+                        Forms\Components\Tabs::make('Mensajes')->tabs([
+                            Forms\Components\Tabs\Tab::make('Mensaje Inicial')
+                                ->icon('heroicon-o-chat-bubble-left-right')
+                                ->schema([
+                                    Forms\Components\Textarea::make('starting_message')
+                                        ->label('Mensaje al iniciar la etapa')
+                                        ->helperText('Este mensaje se muestra al usuario cuando comienza esta etapa.')
+                                        ->rows(5)
+                                        ->autosize(),
+                                ]),
+                            Forms\Components\Tabs\Tab::make('Mensaje de Aprobación')
+                                ->icon('heroicon-o-check-circle')
+                                ->schema([
+                                    Forms\Components\Textarea::make('approval_message')
+                                        ->label('Mensaje de aprobación de la etapa')
+                                        ->helperText('Este mensaje se muestra si la etapa es aprobada.')
+                                        ->rows(5)
+                                        ->autosize(),
+                                ]),
+                            Forms\Components\Tabs\Tab::make('Mensaje de Rechazo')
+                                ->icon('heroicon-o-x-circle')
+                                ->schema([
+                                    Forms\Components\Textarea::make('rejection_message')
+                                        ->label('Mensaje de rechazo de la etapa')
+                                        ->helperText('Este mensaje se muestra si la etapa es rechazada.')
+                                        ->rows(5)
+                                        ->autosize(),
+                                ]),
+                            Forms\Components\Tabs\Tab::make('Mensaje de Evaluación')
+                                ->icon('heroicon-o-magnifying-glass-circle')
+                                ->schema([
+                                    Forms\Components\Textarea::make('requires_evaluatio_message')
+                                        ->label('Mensaje para solicitar evaluación')
+                                        ->helperText('Este mensaje se muestra cuando se necesita una evaluación manual.')
+                                        ->rows(5)
+                                        ->autosize(),
+                                ]),
+                        ]),
+                    ])->collapsible(),
+
+                // Sección para los criterios de aprobación (campo JSON)
+                Forms\Components\Section::make('Criterios de Aprobación')
+                    ->description('Define los criterios necesarios para aprobar esta etapa. Estos son datos estructurados en formato clave-valor.')
+                    ->schema([
+                        Forms\Components\KeyValue::make('approval_criteria')
+                            ->label('Criterios de Aprobación')
+                            ->keyLabel('Criterio')
+                            ->valueLabel('Valor Requerido')
+                            ->reorderable(),
+                    ])->collapsible(),
+                
+                // El Repeater para las preguntas, ahora dentro de su propia sección
+                Forms\Components\Section::make('Preguntas de la Etapa')
+                    ->description('Añade, elimina y reordena las preguntas que conformarán esta etapa.')
+                    ->schema([
+                        Forms\Components\Repeater::make('questions')
+                            ->relationship('questions')
+                            ->schema([
+                                Forms\Components\TextInput::make('order')
+                                    ->required()
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->label('Número de pregunta'),
+                                Forms\Components\Textarea::make('question_text')
+                                    ->required()
+                                    ->label('Texto de la Pregunta')
+                                    ->columnSpan(3)
+                                    ->autosize(),
+                            ])
+                            ->label('Preguntas')
+                            ->columns(4)
+                            ->collapsible()
+                            ->orderColumn('order') // Permite reordenar arrastrando y soltando
+                            ->defaultItems(1) // Inicia con un item por defecto
+                            ->addActionLabel('Añadir Pregunta'),
+                    ])->collapsible(),
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Nombre'),
-                Tables\Columns\TextColumn::make('order')->sortable()->label('Número de Etapa'),
+                Tables\Columns\TextColumn::make('order')
+                    ->sortable()
+                    ->label('Número de Etapa'),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->label('Nombre'),
+                Tables\Columns\TextColumn::make('questions_count')
+                    ->counts('questions')
+                    ->label('Nº Preguntas')
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -68,7 +146,7 @@ class StageResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->reorderable('order')
+            ->reorderable('order') // Habilita el reordenamiento en la tabla
             ->defaultSort('order', 'asc');
     }
 

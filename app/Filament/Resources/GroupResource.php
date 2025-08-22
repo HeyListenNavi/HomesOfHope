@@ -49,7 +49,11 @@ class GroupResource extends Resource
                     ->minDate(now())
                     ->columnSpanFull()
                     ->required(),
-            ])->columns(3);
+                Forms\Components\Textarea::make("message")
+                    ->columnSpan(2)
+                    ->label("Mensaje para el grupo")
+                    ->rows(10),
+            ])->columns(2);
     }
 
     public static function table(Table $table): Table
