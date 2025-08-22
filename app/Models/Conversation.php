@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Conversation extends Model
 {
@@ -32,5 +33,10 @@ class Conversation extends Model
     public function processable(): MorphTo
     {
         return $this->morphTo('processable', 'current_process', 'process_id');
+    }
+
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class);
     }
 }

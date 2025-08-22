@@ -32,9 +32,4 @@ class Question extends Model
     {
         return $this->hasMany(ApplicantQuestionResponse::class);
     }
-
-    public function getRouteKeyName()
-    {
-        return 'key';
-    }
 }
