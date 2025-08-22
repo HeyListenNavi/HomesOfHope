@@ -80,17 +80,6 @@ class StageResource extends Resource
                                 ]),
                         ]),
                     ])->collapsible(),
-
-                // Sección para los criterios de aprobación (campo JSON)
-                Forms\Components\Section::make('Criterios de Aprobación')
-                    ->description('Define los criterios necesarios para aprobar esta etapa. Estos son datos estructurados en formato clave-valor.')
-                    ->schema([
-                        Forms\Components\KeyValue::make('approval_criteria')
-                            ->label('Criterios de Aprobación')
-                            ->keyLabel('Criterio')
-                            ->valueLabel('Valor Requerido')
-                            ->reorderable(),
-                    ])->collapsible(),
                 
                 // El Repeater para las preguntas, ahora dentro de su propia sección
                 Forms\Components\Section::make('Preguntas de la Etapa')
