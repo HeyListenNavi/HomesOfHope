@@ -13,6 +13,8 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+
 
 
 /**
@@ -86,26 +88,36 @@ class BotApplicantController extends Controller
     public function submitAnswer(Request $request, string $chatId)
     {
         $validated = $request->validate([
-            'question_key' => 'required|string',
+            'question_id' => 'required|integer|exists:questions,id',
             'user_response' => 'required|string',
+            'ai_decision' => ['required', 'string', Rule::in(['valid', 'not_valid', 'requires_supervision'])],
         ]);
 
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->firstOrFail();
-        $question = Question::where('key', $validated['question_key'])->firstOrFail();
+                             ->where('process_status', 'in_progress')
+                             ->firstOrFail();
 
-        // Guarda la respuesta en el historial
-        $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
-                                             ->where('question_id', $question->id)
-                                             ->first();
-        if ($response) {
-            $response->update([
-                'user_response' => $validated['user_response'],
-            ]);
+        $question = Question::find($validated['question_id']);
+        if (!$question) {
+            return response()->json(['error' => 'La pregunta no fue encontrada.'], 404);
         }
 
-        return response()->json(['status' => 'success']);
+        ApplicantQuestionResponse::updateOrCreate(
+            [
+                'applicant_id' => $applicant->id,
+                'question_id' => $question->id,
+            ],
+            [
+                'question_text_snapshot' => $question->question_text,
+                'user_response' => $validated['user_response'],
+                'ai_decision' => $validated['ai_decision'],
+            ]
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.'
+        ]);
     }
 
     /**
@@ -129,9 +141,9 @@ class BotApplicantController extends Controller
         $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
 
         if (!$nextQuestion) {
-            // La IA debe decidir la aprobación de la etapa
+            // Se debe decidir la aprobación de la etapa
             return response()->json([
-                'status' => 'waiting_for_ai_approval',
+                'status' => 'waiting_for_approval',
                 'stage_id' => $currentStage->id,
                 'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
             ]);
@@ -159,26 +171,42 @@ class BotApplicantController extends Controller
     {
         $validated = $request->validate([
             'chat_id' => 'required|string|exists:applicants,chat_id',
-            'stage_id' => 'required|integer|exists:stages,id',
-            'is_approved' => 'required|boolean',
-            'rejection_reason' => 'nullable|string',
         ]);
 
         $applicant = Applicant::where('chat_id', $validated['chat_id'])
-                              ->where('process_status', 'in_progress')
-                              ->firstOrFail();
+                             ->where('process_status', 'in_progress')
+                             ->firstOrFail();
 
-        // Verificamos que la decisión sea para la etapa actual del solicitante
-        if ($applicant->current_stage_id != $validated['stage_id']) {
-            return response()->json(['error' => 'La decisión de la IA no corresponde a la etapa actual del solicitante.'], 400);
-        }
+        $responses = $applicant->responses()
+                               ->whereIn('question_id', $applicant->currentStage->questions->pluck('id'))
+                               ->get();
 
-        if ($validated['is_approved']) {
-            // Si la IA aprobó, avanzamos a la siguiente etapa o finalizamos el proceso
+        $rejectionFound = $responses->contains('ai_decision', 'not_valid');
+        $supervisionNeeded = $responses->contains('ai_decision', 'requires_supervision');
+
+        if ($rejectionFound) {
+            $applicant->update([
+                'process_status' => 'rejected',
+                'rejection_reason' => $applicant->currentStage->rejection_message ?? 'Rechazado automáticamente por no cumplir con los criterios de la etapa.'
+            ]);
+            return response()->json([
+                'status' => 'stage_rejected',
+                'message' => $applicant->currentStage->rejection_message ?? 'Tu solicitud ha sido rechazada.',
+                'applicant_id' => $applicant->id,
+            ]);
+        } elseif ($supervisionNeeded) {
+            $applicant->update([
+                'process_status' => 'requires_supervision',
+            ]);
+            return response()->json([
+                'status' => 'requires_supervision',
+                'message' => $applicant->currentStage->requires_evaluatio_message ?? 'Tu solicitud requiere supervisión humana.',
+                'applicant_id' => $applicant->id,
+            ]);
+        } else {
             $nextStage = Stage::where('order', '>', $applicant->currentStage->order)->orderBy('order')->first();
 
             if ($nextStage) {
-                // Avanzamos a la siguiente etapa
                 $firstQuestionOfNextStage = $nextStage->questions()->orderBy('order')->first();
                 $applicant->update([
                     'current_stage_id' => $nextStage->id,
@@ -186,29 +214,20 @@ class BotApplicantController extends Controller
                 ]);
                 return response()->json([
                     'status' => 'stage_approved',
-                    'message' => 'Has pasado a la siguiente etapa.',
+                    'message' => $applicant->currentStage->approval_message ?? 'Has pasado a la siguiente etapa.',
                     'next_question' => $firstQuestionOfNextStage,
                 ]);
             } else {
-                // Fin del proceso, aprobación final
-                $this->finalizeApplicant($applicant, true);
+                $applicant->update([
+                    'process_status' => 'approved',
+                    'is_approved' => true,
+                ]);
                 return response()->json([
                     'status' => 'process_completed',
                     'applicant_id' => $applicant->id,
                     'message' => '¡Felicidades, has sido aprobado!',
                 ]);
             }
-        } else {
-            // Si la IA rechazó, actualizamos el estado del solicitante
-            $applicant->update([
-                'process_status' => 'rejected',
-                'rejection_reason' => $validated['rejection_reason'],
-            ]);
-            return response()->json([
-                'status' => 'stage_rejected',
-                'message' => $validated['rejection_reason'],
-                'applicant_id' => $applicant->id,
-            ]);
         }
     }
 
