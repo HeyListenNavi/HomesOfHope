@@ -14,7 +14,9 @@ class Applicant extends Model
 
     protected $fillable = [
         'chat_id',
+        "applicant_name",
         'curp',
+        "gender",
         'current_stage_id',
         'current_question_id',
         'process_status',

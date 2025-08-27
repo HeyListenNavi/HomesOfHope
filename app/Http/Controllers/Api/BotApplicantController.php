@@ -275,34 +275,76 @@ class BotApplicantController extends Controller
     public function aplicantCurrentStatus( $chatId ){
         $applicant = Applicant::where("chat_id", $chatId)->first();
 
-        response()->json([
-            "currentStage" => $applicant->current_stage_id,
-            "currentQuestion" => $applicant->current_question_id
+        if (!$applicant) {
+            return response()->json(['error' => 'Solicitante no encontrado.'], 404);
+        }
+
+        return response()->json([
+            "current_stage" => $applicant->current_stage_id,
+            "current_question" => $applicant->current_question_id
         ]);
     }
 
-    public function sendInitialData( Request $request ){
-        $validator = Validator::make($request->all(), [
-            "chatId" => "string|required",
-            "applicantName" => "string|required",
-            "curp" => "string|required",
-            "gender" => "string|required",
-        ]);
+    public function currentStageQuestions( $stageId ){
+        $stage = Stage::find($stageId);
 
-        if( $validator->fails() ){
-            return Response()->json("not valid data");
+        if (!$stage) {
+            return response()->json(['error' => 'Etapa no encontrada.'], 404);
         }
 
-        $validated = $validator->validate();
-    
-        $applicant = Applicant::where("chat_id", $validated["chatId"] )->first();
+        $questions = $stage->questions;
+
+        return response()->json($questions);
+    }
+
+    public function sendInitialData( Request $request ){
+        $validated = $request->validate([
+            "chat_id" => "required|string",
+            "applicant_name" => "required|string",
+            "curp" => "required|string",
+            "gender" => "required|string",
+        ]);
+
+        $applicant = Applicant::where("chat_id", $validated["chat_id"])->first();
+
+        if (!$applicant) {
+            return response()->json(['error' => 'Solicitante no encontrado.'], 404);
+        }
 
         $applicant->update([
             "curp" => $validated["curp"],
-            "applicant_name" => $validated["applicantName"],
-            "gender" => $validated["gender"];
+            "applicant_name" => $validated["applicant_name"], // Corregido
+            "gender" => $validated["gender"],
+        ]);
+        
+        return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);
+    }
+
+    public function updateAnswer( Request $request ){
+        $request->validate([
+            'chat_id' => 'required|integer',
+            'question_id' => 'required|integer',
+            'new_response' => 'required|string',
         ]);
 
+        $applicant = Applicant::where('chat_id', $request->input('chat_id'))->first();
+
+        if (!$applicant) {
+            return response()->json(['error' => 'No se encontró al solicitante con ese chat_id.'], 404);
+        }
+
+        $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
+                                             ->where('question_id', $request->input('question_id'))
+                                             ->first();
+
+        if (!$response) {
+            return response()->json(['error' => 'No se encontró una respuesta para esa pregunta.'], 404);
+        }
+
+        $response->user_response = $request->input('new_response');
+        $response->save();
+
+        return response()->json(['message' => 'Respuesta actualizada exitosamente.'], 200);
     }
 }
  

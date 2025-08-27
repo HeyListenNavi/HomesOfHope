@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BotConversationController;
 use App\Http\Controllers\Api\BotMessageController;
 use App\Http\Controllers\Api\BotApplicantController;
 use App\Http\Controllers\Api\BotApplicantManualController;
+use App\Http\Controllers\Api\BotController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -30,9 +31,12 @@ Route::prefix('bot')->group(function () {
         Route::post('stage-approval', [BotApplicantController::class, 'handleStageApproval']);
         Route::get('{chatId}/stage-data', [BotApplicantController::class, 'getStageDataForAi']);
 
-        Route::get("(chatId}/aplicant-current-status", [BotApplicantController::class, "aplicantCurrentStatus"]);
-        Route::get("{chatID/current-stage-questions", [BotApplicantController::class, "currentStageQuestions"]);
-        Route::post("send-initial-data"), [BotApplicantController::class, "sendInitialData"]);
+        //Nuevos endpoints
+        Route::get("aplicant-status/{chatId}", [BotApplicantController::class, "aplicantCurrentStatus"]);
+        Route::get("current-stage-questions/{stageId}", [BotApplicantController::class, "currentStageQuestions"]);
+        Route::put("update-answer", [BotApplicantController::class, "updateAnswer"]);
+        Route::post("send-initial-data", [BotApplicantController::class, "sendInitialData"]);
+
     });
 
     // Ruta para actualizaciones manuales (ej. desde un panel de administración)
