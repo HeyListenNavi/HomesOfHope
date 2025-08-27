@@ -8,8 +8,12 @@ use App\Models\Stage;
 use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
 use App\Services\GroupAssignmentService;
+use finfo;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+
 
 /**
  * Clase controladora para gestionar el flujo de evaluación de los solicitantes a través del bot.
@@ -267,4 +271,38 @@ class BotApplicantController extends Controller
             ]);
         }
     }
+
+    public function aplicantCurrentStatus( $chatId ){
+        $applicant = Applicant::where("chat_id", $chatId)->first();
+
+        response()->json([
+            "currentStage" => $applicant->current_stage_id,
+            "currentQuestion" => $applicant->current_question_id
+        ]);
+    }
+
+    public function sendInitialData( Request $request ){
+        $validator = Validator::make($request->all(), [
+            "chatId" => "string|required",
+            "applicantName" => "string|required",
+            "curp" => "string|required",
+            "gender" => "string|required",
+        ]);
+
+        if( $validator->fails() ){
+            return Response()->json("not valid data");
+        }
+
+        $validated = $validator->validate();
+    
+        $applicant = Applicant::where("chat_id", $validated["chatId"] )->first();
+
+        $applicant->update([
+            "curp" => $validated["curp"],
+            "applicant_name" => $validated["applicantName"],
+            "gender" => $validated["gender"];
+        ]);
+
+    }
 }
+ 

@@ -29,6 +29,10 @@ Route::prefix('bot')->group(function () {
         Route::post('{chatId}/submit-answer', [BotApplicantController::class, 'submitAnswer']);
         Route::post('stage-approval', [BotApplicantController::class, 'handleStageApproval']);
         Route::get('{chatId}/stage-data', [BotApplicantController::class, 'getStageDataForAi']);
+
+        Route::get("(chatId}/aplicant-current-status", [BotApplicantController::class, "aplicantCurrentStatus"]);
+        Route::get("{chatID/current-stage-questions", [BotApplicantController::class, "currentStageQuestions"]);
+        Route::post("send-initial-data"), [BotApplicantController::class, "sendInitialData"]);
     });
 
     // Ruta para actualizaciones manuales (ej. desde un panel de administración)
