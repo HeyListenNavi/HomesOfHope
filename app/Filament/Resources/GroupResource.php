@@ -103,7 +103,7 @@ class GroupResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ApplicantsRelationManager::class,
         ];
     }
 
