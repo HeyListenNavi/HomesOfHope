@@ -34,5 +34,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'evolution' => [
+        'key' => env('EVOLUTION_KEY'),
+        'url' => env('EVOLUTION_URL')
+    ]
 ];
