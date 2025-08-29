@@ -25,17 +25,10 @@ class StageResource extends Resource
                 Forms\Components\Section::make('Información Principal')
                     ->description('Define el nombre y el orden de la etapa en el proceso.')
                     ->schema([
-                        Forms\Components\TextInput::make('order')
-                            ->required()
-                            ->numeric()
-                            ->minValue(1)
-                            ->unique(ignoreRecord: true)
-                            ->label('Número de Etapa'),
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->label('Nombre')
-                            ->columnSpan(2),
-                    ])->columns(3),
+                    ])->columns(1),
 
                 // Usamos Tabs para organizar los diferentes mensajes y ahorrar espacio vertical
                 Forms\Components\Section::make('Mensajes Automatizados')
@@ -88,19 +81,13 @@ class StageResource extends Resource
                         Forms\Components\Repeater::make('questions')
                             ->relationship('questions')
                             ->schema([
-                                Forms\Components\TextInput::make('order')
-                                    ->required()
-                                    ->numeric()
-                                    ->minValue(1)
-                                    ->label('Número de pregunta'),
                                 Forms\Components\Textarea::make('question_text')
                                     ->required()
                                     ->label('Texto de la Pregunta')
-                                    ->columnSpan(3)
                                     ->autosize(),
                             ])
                             ->label('Preguntas')
-                            ->columns(4)
+                            ->columns(1)
                             ->collapsible()
                             ->orderColumn('order') // Permite reordenar arrastrando y soltando
                             ->defaultItems(1) // Inicia con un item por defecto
@@ -114,8 +101,7 @@ class StageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('order')
-                    ->sortable()
-                    ->label('Número de Etapa'),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->label('Nombre'),

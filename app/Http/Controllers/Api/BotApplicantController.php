@@ -8,12 +8,9 @@ use App\Models\Stage;
 use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
 use App\Services\GroupAssignmentService;
-use finfo;
-use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Services\EvolutionApiNotificationService;
 
 
 
@@ -220,12 +217,16 @@ class BotApplicantController extends Controller
             } else {
                 $applicant->update([
                     'process_status' => 'approved',
-                    'is_approved' => true,
+                    'confirmation_status' => 'pending', 
                 ]);
+
+                $notificationService = new EvolutionApiNotificationService();
+                $notificationService->sendGroupSelectionLink($applicant);
+
                 return response()->json([
                     'status' => 'process_completed',
                     'applicant_id' => $applicant->id,
-                    'message' => '¡Felicidades, has sido aprobado!',
+                    'message' => '¡Felicidades, has sido aprobado(a)! Revisa tu WhatsApp para seleccionar un grupo.',
                 ]);
             }
         }
@@ -266,29 +267,6 @@ class BotApplicantController extends Controller
         }
 
         return response()->json($stageData);
-    }
-    
-    /**
-     * Finaliza el proceso de un solicitante, ya sea aprobándolo o rechazándolo.
-     *
-     * @param \App\Models\Applicant $applicant
-     * @param bool $isApproved
-     * @return void
-     */
-    private function finalizeApplicant(Applicant $applicant, bool $isApproved)
-    {
-        if ($isApproved) {
-            $group = $this->groupAssignmentService->assignApplicantToGroup($applicant);
-            $applicant->update([
-                'process_status' => 'approved',
-                'group_id' => $group->id,
-            ]);
-        } else {
-            $applicant->update([
-                'process_status' => 'rejected',
-                'rejection_reason' => 'No cumple con los requisitos finales.',
-            ]);
-        }
     }
 
     public function aplicantCurrentStatus( $chatId ){

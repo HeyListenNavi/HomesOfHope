@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('stage_id')->constrained()->cascadeOnDelete();
             $table->text('question_text');
             $table->json('approval_criteria')->nullable();
-            $table->integer('order');
+            $table->integer('order')->nullable();
             $table->timestamps();
         });
     }
