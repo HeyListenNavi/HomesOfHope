@@ -23,7 +23,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->columnSpanFull()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextArea::make('user_response')
+                Forms\Components\Textarea::make('user_response')
                     ->label('Respuesta')
                     ->columnSpanFull()
                     ->rows(5)
