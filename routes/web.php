@@ -2,16 +2,22 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\BotController;
-use App\Http\Controllers\ConfirmationController;
+use App\Http\Controllers\GroupSelectionController;
 
 
 Route::get('/', function() {
     return view('dates-form');
 });
 
+Route::get('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'showSelectionForm'])
+    ->name('group.selection.form');
+    //->middleware('signed'); // <-- Middleware que valida la firma de la URL
 
-// Rutas para la confirmación
-Route::get('/confirm/{applicant}', [ConfirmationController::class, 'showForm'])->name('confirmation.form');
-Route::post('/confirm/{applicant}', [ConfirmationController::class, 'confirmGroup'])->name('confirmation.confirm');
-Route::get('/confirmation/success', [ConfirmationController::class, 'showSuccess'])->name('confirmation.success');
+Route::post('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'assignToGroup'])
+    ->name('group.selection.assign');
+
+Route::get('/seleccion/confirmado', [GroupSelectionController::class, 'showSuccess'])
+    ->name('selection.success');
+
+Route::get('/seleccion/enlace-invalido', [GroupSelectionController::class, 'showInvalidLink'])
+    ->name('selection.invalid');

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stages', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('order')->unique();
+            $table->integer('order')->nullable();
             $table->text('starting_message')->nullable();
             $table->text('approval_message')->nullable();
             $table->text('rejection_message')->nullable();

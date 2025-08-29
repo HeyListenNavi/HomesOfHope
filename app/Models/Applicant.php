@@ -20,7 +20,6 @@ class Applicant extends Model
         'current_stage_id',
         'current_question_id',
         'process_status',
-        'is_approved',
         'rejection_reason',
         'group_id',
         'confirmation_status',

@@ -29,14 +29,20 @@ class ApplicantResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('applicant_name')->required()->label('Nombre'),
+                Forms\Components\TextInput::make('curp')->required()->label('CURP'),
+                Forms\Components\TextInput::make('group_id')->required()->label('Grupo'),
+
+
                 Forms\Components\TextInput::make('chat_id')->required()->label('Número de Teléfono'),
                 Forms\Components\Select::make('current_stage_id')->relationship('currentStage', 'name')->required()->label('Etapa Actual')->native(false),
                 Forms\Components\Select::make('current_question_id')->relationship('currentQuestion', 'question_text')->required()->label('Pregunta')->native(false),
                 Forms\Components\Select::make('process_status')->options([
                     'in_progress' => 'En Progreso',
-                    'completed' => 'Completado',
-                    'rejected' => 'Rechazado',
                     'approved' => 'Aprobado',
+                    'rejected' => 'Rechazado',
+                    "requires_revision" => "Requiere Revision",
+                    "canceled" => "Cancelado",
                 ])->required()->label('Estado del Proceso')->native(false),
                 Forms\Components\Textarea::make('rejection_reason')->nullable()->label('Razon de Descalificación')->columnSpanFull()->rows(10)->autosize(),
             ]);
@@ -50,9 +56,10 @@ class ApplicantResource extends Resource
                 TextColumn::make('currentStage.name')->label('Etapa Actual'),
                 Tables\Columns\SelectColumn::make('process_status')->options([
                     'in_progress' => 'En Progreso',
-                    'completed' => 'Completado',
-                    'rejected' => 'Rechazado',
                     'approved' => 'Aprobado',
+                    'rejected' => 'Rechazado',
+                    "requires_revision" => "Requiere Revision",
+                    "canceled" => "Cancelado",
                 ])->label('Estado del Proceso'),
                 IconColumn::make('process_status')
                     ->label('Estado')

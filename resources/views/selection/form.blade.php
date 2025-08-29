@@ -42,29 +42,33 @@
         @endif
 
 
-        <p class="mb-4">Hola {{ $applicant->name ?? 'solicitante' }}, su lugar ha sido aprobado.</p>
+        <p class="mb-4">Hola {{ $applicant->applicant_name ?? 'solicitante' }}, selecciona la fecha para su entrevista que mejor se acomode a su horario.</p>
 
-        <p class="mb-4">Se le ha asignado al <strong>{{ $currentGroup->name }}</strong>, con fecha programada para el
-            <strong>{{ \Carbon\Carbon::parse($currentGroup->date)->format('d/m/Y') }}</strong>.
-        </p>
-
-        <form action="{{ route('confirmation.confirm', $applicant) }}" method="POST">
+        <form action="{{ route('group.selection.assign', $applicant) }}" method="POST">
             @csrf
 
             <div class="mb-6">
-                <label for="new_group_id" class="mb-2 block font-bold">
+                <label for="group_id" class="mb-2 block font-bold">
                     Si lo desea, puede elegir otra fecha disponible:
                 </label>
-                <select name="new_group_id" id="new_group_id"
-                    class="mt-1 block w-full rounded border border-gray-300 p-2">
-                    <option value="{{ $currentGroup->id }}">Mantener mi grupo actual
-                        ({{ \Carbon\Carbon::parse($currentGroup->date)->format('d/m/Y') }})</option>
+                <select name="group_id" id="group_id"
+                    class="mt-1 block w-full rounded border border-gray-300 p-2 text-black">
                     @foreach ($availableGroups as $group)
                         <option value="{{ $group->id }}">
                             {{ $group->name }} ({{ \Carbon\Carbon::parse($group->date)->format('d/m/Y') }})
                         </option>
                     @endforeach
                 </select>
+
+                @if ($errors->any())
+                    <div class="text-red-800 font-bold">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
 
             <x-button class="text-label-large mx-auto" type="submit">
