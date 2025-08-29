@@ -30,7 +30,7 @@ class ApplicantSeeder extends Seeder
                         'question_id' => $question->id,
                         'question_text_snapshot' => $question->question_text,
                         'user_response' => fake()->sentence(5),
-                        'ai_decision' => fake()->boolean,
+                        'ai_decision' => fake()->randomElement(['valid', 'not_valid', 'requires_supervision']),
                     ]);
                 }
             });

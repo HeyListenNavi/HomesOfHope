@@ -19,6 +19,10 @@ class ApplicantFactory extends Factory
             'chat_id' => $this->faker->unique()->numberBetween(1000000000, 9999999999),
             
             'curp' => $this->faker->unique()->bothify('????######??????##'),
+
+            "applicant_name" => fake()->name(),
+
+            "gender" => fake()->randomElement(["man", "woman"]),
             
             // Los campos 'current_stage_id' y 'current_question_id' pueden ser nulos o referenciar registros existentes.
             'current_stage_id' => $this->faker->boolean(70) ? Stage::inRandomOrder()->first() : null,
