@@ -33,58 +33,101 @@ class HomesofHopeSeeder extends Seeder
             'password' => bcrypt('V8l4d2s0'),
         ]);
 
-        // Stages & Questions
-        $stage1 = Stage::create([
-            'name' => 'ETAPA 1: Requisitos Básicos',
+        $stage0 = Stage::create([
+            'name' => 'Etapa 0: Pre-Requisitos',
             'order' => 1,
+            'rejection_message' => 'Una disculpa, solo la persona interesada puede firmar el aviso de privacidad.',
+            'requires_evaluatio_message' => 'El equipo de Casas de Esperanza revisará tu información y se pondrá en contacto contigo pronto.',
         ]);
-        $stage2 = Stage::create([
-            'name' => 'ETAPA 2: Información General',
+        
+        $stage1 = Stage::create([
+            'name' => 'Etapa 1: Requisitos Básicos',
             'order' => 2,
+            'starting_message' => '¡Gracias por confirmar! Vamos a iniciar el proceso de aplicación. Si tienes alguna duda, puedes preguntar en cualquier momento.',
+            'rejection_message' => 'Lamentablemente, no cumples con los requisitos básicos para continuar con el proceso. El equipo de Casas de Esperanza será notificado para revisar tu información.',
+            'requires_evaluatio_message' => 'El equipo de Casas de Esperanza evaluará tu información y se pondrá en contacto contigo para continuar el proceso.',
         ]);
-        $stage3 = Stage::create([
-            'name' => 'ETAPA 3: Información Detallada de la Familia',
+        
+        $stage2 = Stage::create([
+            'name' => 'Etapa 2: Información General',
             'order' => 3,
+            'starting_message' => 'Te recordamos que estás interactuando con un asistente virtual. Te acompañaré en este proceso y pasaremos a las siguientes preguntas. Si en algún momento necesitas pausar, no te preocupes, puedes regresar y continuar cuando gustes.',
+        ]);
+        
+        $stage3 = Stage::create([
+            'name' => 'Etapa 3: Información Detallada de la Familia',
+            'order' => 4,
+            'starting_message' => '¡Ya estamos más cerca de terminar! La siguiente parte puede tomar entre 5 y 10 minutos. Si tienes tiempo ahora, podemos empezar; si necesitas pausar, puedes continuar después sin problema.',
+            'approval_message' => '¡Perfecto! Has finalizado el proceso de entrevista. Hemos recopilado tus datos y serán guardados de manera segura.',
         ]);
 
-        // Questions for Stage 1
+        $stage0->questions()->createMany([
+            [
+                'question_text' => 'Para comenzar, ¿me confirma que usted es la persona que desea aplicar para una casa?',
+                'order' => 1,
+                'approval_criteria' => [
+                    [
+                        'rule' => 'reject_if',
+                        'operator' => 'is_not',
+                        'value' => 'la persona que quiere aplicar'
+                    ],
+                ],
+            ],
+            [
+                'question_text' => 'Al aceptar este documento, usted otorga su consentimiento a “Juventud Con Una Misión (JUCUM) A.C.” para el uso y divulgación de la información aquí proporcionada, declarando bajo protesta de decir verdad que los datos son correctos. Asimismo, en caso de recibir la ayuda solicitada, usted deslinda a dicha asociación de toda responsabilidad civil, laboral o penal, tanto durante como después de la construcción, por cualquier incidente que pudiera afectar la integridad física o personal propia, de terceros y/o por pérdidas materiales. ¿Está de acuerdo?',
+                'order' => 2,
+                'approval_criteria' => [
+                    [
+                        'rule' => 'reject_if',
+                        'operator' => 'is',
+                        'value' => 'no esta de acuerdo o da una confirmacion'
+                    ]
+                ]
+            ]
+        ]);
+
         $stage1->questions()->createMany([
             [
-                'question_text' => '¿Cuál es su nombre completo?',
+                'question_text' => 'Perfecto, ahora cuénteme, ¿tiene hijos menores de 16 años que vivan actualmente con usted?',
                 'order' => 1,
-            ],
-            [
-                'question_text' => '¿Cuál es su CURP?',
-                'order' => 2,
-            ],
-            [
-                'question_text' => '¿Tienes hijos menores de 16 años y que estén viviendo contigo?',
                 'approval_criteria' => [
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is_less_than',
                         'value' => '1 hijo'
                     ],
+                    [
+                        'rule' => 'human_if',
+                        'operator' => 'is',
+                        'value' => 'personas menores pero no hijos'
+                    ]
                 ],
-                'order' => 3,
             ],
             [
-                'question_text' => '¿En qué ciudad se encuentra tu terreno?',
+                'question_text' => 'Gracias. ¿En qué ciudad está ubicado su terreno?',
+                'order' => 2,
                 'approval_criteria' => [
                     [
-                        'rule' => 'approve_if',
-                        'operator' => 'contains',
+                        'rule' => 'reject_if',
+                        'operator' => 'does_not_contain',
                         'value' => 'Tijuana o Rosarito'
                     ],
                 ],
+            ],
+            [
+                'question_text' => '¿Y en qué colonia se encuentra exactamente su terreno?',
+                'order' => 3,
+                'approval_criteria' => [
+                    [
+                        'rule' => 'reject_if',
+                        'operator' => 'contains',
+                        'value' => '10 de Mayo, La Presa, Cañón Cordero3 de Octubre, Lago Sur, Constitucion,Altiplano, Las Abejas, Fracc. Vista Azul,Alamar, Las Alondras, La Mision,Aleman, Las Fuentes, Lucio Blanco,Altamira, Las Torres, Misión del Mar 1ra. y 2da. Secc,Amparo Sanchez, Leandro Valle, Poliducto,Anabel, Libertad, Riviera San Carlos ,Anexa del Rio, Linda Vista, Angeles del Pacifico, Loma Bonita, Azcona, Lomas de la Presa, Azteca, Lomas de Tlatelolco, Bonilla , Lomas del Encinal, Buena Vista, Lomas del Matamoros, Buenos Aires  , Lomas del Refugio, Camino Verde, Lomas del Valle, Campestre Murua, Lomas Taurinas, Campos, Lomas Virreyes, Cañadas del Florido, Lopez Leyva, Cañon de la Pedrera, Los Altos, Cañon de la Raza, Los Venados, Cañon del Padre, Maclovio Rojas, Cañón del Sainz, Madero Sur, Cañon el Salado, Manantial, Cañon Miramar, Marbella, Cañon Palmas, Mariano Matamoros, Castillo Centro, Mexico, Cerro Colorado, Milenio 2000, Chapultepec, Morelos, Chihuahua, Nido de las Aguilas, Chosa, Niños Heroes, Ciudad Jardin, Nueva Aurora, Colinas de Baja California, Nueva Aurora, Colinas de Elyahu, Nueva Tijuana, Colinas de la Mesa, Nuevo Milenio, Colinas de la Presa, Obrera, Colonia del Rio, Ojo de Agua, Corona del Mar, Orizaba, Costa Dorada, Osuna Millan, Cuesta Blanca, Otay, Del Rio, Panteon, Delicias 1, 2, 3, Paseos del Florido, Durango, Pedregal de Santa Julia, Ejido Francisco Villa, Planicie, Ejido Javier Rojo Gómez, Poblado Ejido Matamoros, Ejido Matamoros, Pontevedra, El Dorado, Porticos de San Antonio, El Encino, Praderas de la Mesa, El Florido (1, 2,3, y 4 secció), Presa Rodriguez, El Lago, Presidentes , El Laurel, Puerta del Sol, El Niño, Rancho 3 Piedras, El Pipila, Rancho el Encinal, El Ranchito, Real de San Francisco, El Refugio, Reforma, El Rosario, Ribera del Bosque, El Rubi, Rio Vista, El Tecolote, Roma, El Valle, Rubio, Emiliano Zapata, San Angel, Emperadores, San Luis, Estrella del Pacifico, San Pablo, Fausto Gonzales, Sanchez Taboada, Flores Magon, Soler, Fraccionamiento Valle Dorado, Tecnologico, Francisco Villa, Terrazas de San Antonio, Generacion 2000, Terrazas Del Valle, Granjas Buenos Aires, Tomas Aquino, Granjas Division del Norte, Urbivillas del Prado , Granjas Familiares del Matamoros, Valle Bonito, Granjas Familiares la Nueva Esperanza de Otay, Valle de las Palmas, Granjas Familiares Unidas, Valle Imperial, Granjas Princesas del Sol, Valle Verde, Hacienda las Delicias, Valle Vista, Lomas del Encinal, Venustiano Carranza, Milenio 2000, Verona Residencial, Nueva Aurora , Villa del Alamo, Nuevo Milenio, Villa Floresta, Osuna Millan, Villa Fontana, Pedregal de Santa Julia, Villa Urrutia, Porticos de San Antonio, Villas de Baja California, San Angel, Villas del campo, Terrazas de San Antonio, Villas del Campo, Valle Imperial, Villas del Sol, Valle Verde, Viñedos Casa Blanca, Venustiano Carranza, Vista Alamar, Villas del campo, Vista de Palmillas, Granjas Princesas del Sol, Vista del Valle, Guaycura, Xochimilco Solidaridad, Guerrero, Zona Centro, Hacienda las Delicias, Zona Norte, La Cuestecita, Zone Este, La Esperanza, La Libertad, La Morita'
+                    ]
+                ]
+            ],
+            [
+                'question_text' => '¿Cuánto tiempo lleva con este terreno?',
                 'order' => 4,
-            ],
-            [
-                'question_text' => '¿En qué colonia se encuentra tu terreno?',
-                'order' => 5,
-            ],
-            [
-                'question_text' => '¿Cuánto tiempo tienes con este terreno?',
                 'approval_criteria' => [
                     [
                         'rule' => 'reject_if',
@@ -92,14 +135,18 @@ class HomesofHopeSeeder extends Seeder
                         'value' => '1 año o 12 meses'
                     ],
                 ],
+            ],
+            [
+                'question_text' => '¿En qué mes y año dio su primera mensualidad del terreno?',
+                'order' => 5,
+            ],
+            [
+                'question_text' => '¿Cuál es su estado civil?',
                 'order' => 6,
             ],
             [
-                'question_text' => '¿En qué mes y año dio su primera mensualidad?',
-                'order' => 7,
-            ],
-            [
                 'question_text' => '¿A nombre de quién o quiénes está el contrato?',
+                'order' => 7,
                 'approval_criteria' => [
                     [
                         'rule' => 'approve_if',
@@ -127,10 +174,10 @@ class HomesofHopeSeeder extends Seeder
                         'value' => 'esta a nombre de una tercera persona que esta incluida en el contrato'
                     ],
                 ],
-                'order' => 8,
             ],
             [
-                'question_text' => '¿Cuál es el costo total del terreno y el enganche que diste?',
+                'question_text' => '¿Cuál es el costo total del terreno?',
+                'order' => 8,
                 'approval_criteria' => [
                     [
                         'rule' => 'human_if',
@@ -138,14 +185,25 @@ class HomesofHopeSeeder extends Seeder
                         'value' => 'pago el terrreno hace menos de 4 años'
                     ],
                 ],
-                'order' => 9,
             ],
             [
-                'question_text' => '¿Cuánto pagas por el terreno cada mes?',
+                'question_text' => '¿Cuánto dio de enganche por el terreno?',
+                'order' => 9,
+                'approval_criteria' => [
+                    [
+                        'rule' => 'human_if',
+                        'operator' => 'is',
+                        'value' => 'pago el terrreno hace menos de 4 años'
+                    ],
+                ],
+            ],
+            [
+                'question_text' => '¿Cuánto paga por el terreno cada mes?',
                 'order' => 10,
             ],
             [
-                'question_text' => '¿Cuál fue la fecha de tu último pago del terreno?',
+                'question_text' => '¿Cuál fue la fecha exacta de su último pago del terreno?',
+                'order' => 11,
                 'approval_criteria' => [
                     [
                         'rule' => 'human_if',
@@ -153,10 +211,10 @@ class HomesofHopeSeeder extends Seeder
                         'value' => 'han pasado mas de 3 meses'
                     ],
                 ],
-                'order' => 11,
             ],
             [
-                'question_text' => '¿Estás al corriente con tus pagos mensuales?',
+                'question_text' => '¿Está al corriente con los pagos de su terreno?',
+                'order' => 12,
                 'approval_criteria' => [
                     [
                         'rule' => 'reject_if',
@@ -169,55 +227,38 @@ class HomesofHopeSeeder extends Seeder
                         'value' => 'debe mas de 3 pagos'
                     ],
                 ],
-                'order' => 12,
             ],
             [
-                'question_text' => '¿Vives en tu terreno?',
+                'question_text' => 'Por último en esta sección, ¿Vive en su terreno o en la misma colonia?',
                 'order' => 13,
-            ],
-            [
-                'question_text' => '¿Viven en la misma colonia de donde está tu terreno?',
-                'order' => 14,
-            ],
-            [
-                'question_text' => '¿Cuál es el estado civil de los padres?',
-                'order' => 15,
+                'approval_criteria' => [
+                    [
+                        'rule' => 'reject_if',
+                        'operator' => 'is',
+                        'value' => 'la respuesta es no'
+                    ]
+                ]
             ],
         ]);
 
-        // Questions for Stage 2
         $stage2->questions()->createMany([
             [
-                'question_text' => '¿Tus hijos están yendo a la escuela?',
+                'question_text' => 'Ahora hablemos de sus hijos. ¿Ellos están asistiendo a la escuela actualmente?',
                 'order' => 1,
             ],
             [
-                'question_text' => '¿Qué grado están cursando?',
+                'question_text' => '¿Qué grado están cursando cada uno de sus hijos?',
                 'order' => 2,
             ],
             [
-                'question_text' => '¿Alguno de tus hijos tiene alguna necesidad especial?',
+                'question_text' => '¿Alguno de sus hijos tiene alguna necesidad especial que debamos considerar?',
                 'order' => 3,
-            ],
-            [
-                'question_text' => '¿Cuánto te costó tu terreno?',
-                'order' => 4,
-            ],
-            [
-                'question_text' => '¿Lo sigues pagando?',
-                'order' => 5,
-            ],
-            [
-                'question_text' => '¿Cuánto has pagado?',
-                'order' => 6,
             ],
         ]);
 
-        // Questions for Stage 3
         $stage3->questions()->createMany([
-            // Madre
             [
-                'question_text' => '¿Cuál es el nombre de la madre?',
+                'question_text' => 'Pasemos a información personal. ¿Me puede decir su nombre, por favor?',
                 'order' => 1,
             ],
             [
@@ -241,96 +282,84 @@ class HomesofHopeSeeder extends Seeder
                 'order' => 6,
             ],
             [
-                'question_text' => '¿Está esperando un bebé?',
+                'question_text' => '¿Está esperando un bebé? si es asi ¿Cuánto tiempo de gestación tiene?',
                 'order' => 7,
             ],
             [
-                'question_text' => 'Si la respuesta es sí: ¿Cuánto tiempo de gestación tiene?',
+                'question_text' => '¿Tiene visa para los Estados Unidos?',
                 'order' => 8,
             ],
             [
-                'question_text' => '¿Usted ha sido deportada recientemente de los Estados Unidos?',
+                'question_text' => '¿Le han deportado recientemente de los Estados Unidos?',
                 'order' => 9,
             ],
 
-            // Padre
             [
-                'question_text' => '¿Cuál es el nombre del padre?',
+                'question_text' => '¿Cuál es el nombre de su pareja?',
                 'order' => 10,
             ],
             [
-                'question_text' => '¿Cuál es su edad?',
+                'question_text' => '¿Cuál es la edad de su pareja?',
                 'order' => 11,
             ],
             [
-                'question_text' => '¿De qué país y estado es?',
+                'question_text' => '¿De qué país y estado es su pareja?',
                 'order' => 12,
             ],
             [
-                'question_text' => '¿Hasta qué grado fue a la escuela?',
+                'question_text' => '¿Hasta qué grado fue a la escuela su pareja?',
                 'order' => 13,
             ],
             [
-                'question_text' => '¿En qué trabaja actualmente?',
+                'question_text' => '¿En qué trabaja actualmente su pareja?',
                 'order' => 14,
             ],
             [
-                'question_text' => '¿Cuál es su salario semanal?',
+                'question_text' => '¿Cuál es el salario semanal de su pareja?',
                 'order' => 15,
             ],
             [
-                'question_text' => '¿Usted tiene visa para los Estados Unidos?',
+                'question_text' => '¿Su pareja tiene visa para los Estados Unidos?',
                 'order' => 16,
             ],
             [
-                'question_text' => '¿Usted ha sido deportado recientemente de los Estados Unidos?',
+                'question_text' => '¿Han deportado recientemente de los Estados Unidos a su pareja?',
                 'order' => 17,
             ],
-
-            // Hijos
             [
-                'question_text' => 'Por favor, dame el nombre y fecha de nacimiento de cada hijo/a.',
+                'question_text' => 'Por favor, dame el nombre y fecha de nacimiento de cada uno de tus hijos',
                 'order' => 18,
             ],
             [
-                'question_text' => 'Para cada hijo/a: ¿De qué país es?',
+                'question_text' => '¿De qué país son tus hijos?',
                 'order' => 19,
             ],
             [
-                'question_text' => '¿Tus hijos están yendo a la escuela? Si es así, indica el grado o grados que cursan.',
-                'order' => 18,
-            ],
-            [
-                'question_text' => '¿Tus hijos son residentes o tienen visa para los Estados Unidos?',
-                'order' => 19,
-            ],
-
-            // Otros miembros
-            [
-                'question_text' => '¿Quiénes más vivirían en la casa de esperanza si se les llega a construir?',
+                'question_text' => '¿Sus hijos asisten a la escuela? Si es así, ¿en qué grado está cada uno?',
                 'order' => 20,
             ],
             [
-                'question_text' => 'Dime su nombre, edad y relación con la familia.',
+                'question_text' => '¿Sus hijos son residentes o tienen visa para los Estados Unidos?',
                 'order' => 21,
             ],
 
-            // Problemas adicionales
             [
-                'question_text' => '¿Existen problemas de adicción en la familia? Si es así, ¿cuáles?',
+                'question_text' => '¿Quiénes más vivirían en la casa de esperanza si se les llega a construir? Por favor, dígame su nombre, edad y relación con ustedes',
                 'order' => 22,
             ],
             [
-                'question_text' => '¿Alguien de la familia habla algún dialecto?',
+                'question_text' => '¿Existen problemas de adicción en la familia? Si es así, ¿cuáles?',
                 'order' => 23,
             ],
-
-            // Coordenadas
             [
-                'question_text' => 'Deberás enviar las coorderadas de tu terreno.',
+                'question_text' => '¿Alguien de su familia habla algún dialecto?',
                 'order' => 24,
             ],
+
+            [
+                'question_text' => 'Por último, ¿me puede enviar las coordenadas de su terreno? Aquí hay un enlace de cómo hacerlo: https://ejemplo.com/',
+                'order' => 25,
+            ],
         ]);
-        Conversation::factory()->count(100)->create();
     }
 }
