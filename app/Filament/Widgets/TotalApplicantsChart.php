@@ -3,13 +3,14 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Applicant;
+use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
 
 class TotalApplicantsChart extends ChartWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected static ?string $heading = 'Total de Solicitantes por Mes';
 

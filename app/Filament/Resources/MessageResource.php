@@ -28,39 +28,43 @@ class MessageResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('conversation_id')
-                    ->relationship('conversation', 'chat_id')
-                    ->label('Número de Teléfono')
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('chat_id')
+                Forms\Components\Section::make('Conversación')
+                    ->description('Selecciona la conversación a la que pertenece el mensaje.')
+                    ->schema([
+                        Forms\Components\Select::make('conversation_id')
+                            ->relationship('conversation', 'chat_id')
+                            ->label('Número de Teléfono')
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('chat_id')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->readOnly()
+                                    ->label('Número de Teléfono'),
+                                Forms\Components\TextInput::make('user_name')
+                                    ->maxLength(255)
+                                    ->label('Nombre'),
+                            ])
+                            ->required(),
+                    ]),
+                Forms\Components\Section::make('Detalles del Mensaje')
+                    ->description('Completa la información del mensaje enviado o recibido.')
+                    ->schema([
+                        Forms\Components\Select::make('role')
+                            ->label('Rol')
+                            ->options([
+                                'user' => 'Usuario',
+                                'assistant' => 'Bot',
+                            ])
+                            ->required(),
+                        Forms\Components\Textarea::make('message')
+                            ->label('Mensaje')
                             ->required()
-                            ->maxLength(255)
-                            ->readOnly()
-                            ->label('Número de Teléfono'),
-                        Forms\Components\TextInput::make('user_name')
-                            ->maxLength(255)
-                            ->label('Nombre'),
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('role')
-                    ->label('Rol')
-                    ->options([
-                        'user' => 'Usuario',
-                        'assistant' => 'Bot',
-                    ])
-                    ->required(),
-                Forms\Components\TextInput::make('name')
-                    ->label('Nombre')
-                    ->maxLength(255)
-                    ->columnSpanFull(),
-                Forms\Components\Textarea::make('message')
-                    ->label('Mensaje')
-                    ->required()
-                    ->rows(5)
-                    ->autosize()
-                    ->columnSpanFull(),
+                            ->rows(5)
+                            ->autosize()
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
