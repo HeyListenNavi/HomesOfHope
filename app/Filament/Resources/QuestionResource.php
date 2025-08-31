@@ -102,7 +102,6 @@ class QuestionResource extends Resource
             ->columns([
                 TextColumn::make('question_text')->limit(50)->searchable()->label('Pregunta'),
                 TextColumn::make('key')->searchable()->label('Clave única'),
-                TextColumn::make('order')->label('Número de pregunta'),
                 TextColumn::make('stage.name')->toggleable(isToggledHiddenByDefault: true)->label('Etapa'),
             ])
             ->filters([

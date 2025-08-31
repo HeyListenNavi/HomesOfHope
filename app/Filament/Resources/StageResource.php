@@ -101,7 +101,8 @@ class StageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('order')
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Orden'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->label('Nombre'),
