@@ -33,11 +33,12 @@ class ApplicantResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Datos Personales')
                     ->description('Completa la información básica del aplicante.')
-                    ->columns(3)
+                    ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('applicant_name')->required()->label('Nombre Completo'),
                         Forms\Components\TextInput::make('curp')->required()->label('CURP'),
-                        Forms\Components\TextInput::make('chat_id')->required()->label('Número de Teléfono'),
+			Forms\Components\TextInput::make('chat_id')->required()->label('Número de Teléfono'),
+			Forms\Components\TextInput::make('gender')->required()->label('Genero'),
                     ]),
                 Forms\Components\Section::make('Grupo y Proceso')
                     ->description('Selecciona el grupo y el estado actual del proceso.')
