@@ -28,32 +28,41 @@ class GroupResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->label('Nombre')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('capacity')
-                    ->required()
-                    ->numeric()
-                    ->label('Capacidad')
-                    ->default(25)
-                    ->minValue(fn (Get $get) => $get('current_members_count') ?? 0),
-                Forms\Components\TextInput::make('current_members_count')
-                    ->numeric()
-                    ->label('Aplicantes en el Grupo')
-                    ->disabled()
-                    ->default(0),
-                Forms\Components\DatePicker::make('date')
-                    ->format('Y-m-d')
-                    ->native(false)
-                    ->minDate(now())
-                    ->columnSpanFull()
-                    ->required(),
-                Forms\Components\Textarea::make("message")
-                    ->columnSpan(2)
-                    ->label("Mensaje para el grupo")
-                    ->rows(10),
-            ])->columns(2);
+                Forms\Components\Section::make('Datos del Grupo')
+                    ->columns(2)
+                    ->description('Completa la información principal del grupo y configura su capacidad y fecha de entrevista.')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->label('Nombre del Grupo')
+                            ->maxLength(255),
+                        Forms\Components\DateTimePicker::make('date')
+                            ->seconds(false)
+                            ->native(false)
+                            ->minDate(now())
+                            ->required()
+                            ->label('Fecha de Entrevista'),
+                        Forms\Components\TextInput::make('capacity')
+                            ->required()
+                            ->numeric()
+                            ->label('Capacidad Máxima')
+                            ->default(25)
+                            ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
+                        Forms\Components\TextInput::make('current_members_count')
+                            ->numeric()
+                            ->label('Aplicantes en el Grupo')
+                            ->disabled()
+                            ->default(0),
+                    ]),
+                Forms\Components\Section::make('Mensaje para los Aplicantes')
+                    ->description('Redacta un mensaje personalizado que será mostrado a los miembros del grupo.')
+                    ->schema([
+                        Forms\Components\Textarea::make("message")
+                            ->columnSpan(2)
+                            ->hiddenLabel()
+                            ->rows(10),
+                    ]),
+            ]);
     }
 
     public static function table(Table $table): Table

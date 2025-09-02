@@ -4,39 +4,45 @@ namespace App\Filament\Widgets;
 
 use App\Models\Applicant;
 use Filament\Widgets\ChartWidget;
-use Flowframe\Trend\Trend;
-use Flowframe\Trend\TrendValue;
 
 class ApplicantChart extends ChartWidget
 {
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 2;
 
-    protected static ?string $heading = 'Solicitantes Aprobados';
+    protected static ?string $maxHeight = '240px';
+
+    protected static ?string $heading = 'Distribución de tipos de solicitantes';
 
     protected function getData(): array
     {
-        $data = Trend::model(Applicant::class)
-            ->between(
-                start: now()->startOfYear(),
-                end: now()->endOfYear(),
-            )
-            ->perMonth()
-            ->count();
+        $statuses = [
+            'Aprobados' => Applicant::where('process_status', 'approved')->count(),
+            'En Proceso' => Applicant::where('process_status', 'in_progress')->count(),
+            'Rechazados' => Applicant::where('process_status', 'rejected')->count(),
+            'Requiere Revisión' => Applicant::where('process_status', 'requires_revision')->count(),
+            'Cancelados' => Applicant::where('process_status', 'canceled')->count(),
+        ];
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Solicitantes aprobados por mes',
-                    'data' => $data->map(fn(TrendValue $value) => $value->aggregate),
-                    'fill' => true,
+                    'label' => 'Solicitantes',
+                    'data' => array_values($statuses),
+                    'backgroundColor' => [
+                        '#61b346',
+                        '#7fcf6a', 
+                        '#4a8f36',
+                        '#a3e08c',
+                        '#356a1f', 
+                    ],
                 ],
             ],
-            'labels' => $data->map(fn(TrendValue $value) => $value->date),
+            'labels' => array_keys($statuses),
         ];
     }
 
     protected function getType(): string
     {
-        return 'line';
+        return 'pie';
     }
 }

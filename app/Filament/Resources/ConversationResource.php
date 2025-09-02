@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ConversationResource extends Resource
 {
     protected static ?string $model = Conversation::class;
-  
+
     protected static ?string $modelLabel = 'Conversación';
 
     protected static ?string $pluralModelLabel = 'Conversaciones';
@@ -30,19 +30,29 @@ class ConversationResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('chat_id')
-                    ->required()
-                    ->maxLength(255)
-                    ->label('Número de Teléfono'),
-                Forms\Components\TextInput::make('user_name')
-                    ->maxLength(255)
-                    ->label('Nombre'),
-                Forms\Components\TextInput::make('current_process')
-                    ->maxLength(255)
-                    ->label('Proceso Actual'),
-                Forms\Components\TextInput::make('process_status')
-                    ->maxLength(255)
-                    ->label('Estado del Proceso'),
+                Forms\Components\Section::make('Datos de la Conversación')
+                    ->description('Información principal de la conversación con el solicitante.')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('chat_id')
+                            ->required()
+                            ->maxLength(255)
+                            ->label('Número de Teléfono'),
+                        Forms\Components\TextInput::make('user_name')
+                            ->maxLength(255)
+                            ->label('Nombre'),
+                    ]),
+                Forms\Components\Section::make('Estado y Proceso')
+                    ->description('Consulta el proceso y estado actual de la conversación.')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('current_process')
+                            ->disabled()
+                            ->label('Proceso Actual'),
+                        Forms\Components\TextInput::make('process_status')
+                            ->disabled()
+                            ->label('Estado del Proceso'),
+                    ]),
             ]);
     }
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText("message")->nullable();
             $table->integer('capacity')->default(50);
             $table->integer('current_members_count')->default(0);
-            $table->date('date')->nullable();
+            $table->dateTime('date')->nullable();
             $table->timestamps();
         });
     }
