@@ -36,8 +36,8 @@ class GroupResource extends Resource
                             ->required()
                             ->label('Nombre del Grupo')
                             ->maxLength(255),
-                        Forms\Components\DatePicker::make('date')
-                            ->format('Y-m-d')
+                        Forms\Components\DateTimePicker::make('date')
+                            ->seconds(false)
                             ->native(false)
                             ->minDate(now())
                             ->required()
