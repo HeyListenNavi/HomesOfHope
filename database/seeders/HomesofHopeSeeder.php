@@ -289,52 +289,52 @@ class HomesofHopeSeeder extends Seeder
                 'order' => 10,
             ],
             [
-                'question_text' => '¿Cuál es la edad de su pareja?',
+                'question_text' => '¿Cuál es su edad?',
                 'order' => 11,
             ],
             [
-                'question_text' => '¿Cuál es su edad?',
+                'question_text' => '¿Dónde nació (estado y país)?',
                 'order' => 12,
             ],
             [
-                'question_text' => '¿Hasta qué grado fue a la escuela su pareja?',
+                'question_text' => '¿Cuál es el nivel de estudios de tu pareja?',
                 'order' => 13,
             ],
             [
-                'question_text' => '¿En qué trabaja actualmente su pareja?',
+                'question_text' => '¿Trabaja actualmente, en qué?',
                 'order' => 14,
             ],
             [
-                'question_text' => '¿Cuál es el salario semanal de su pareja?',
+                'question_text' => '¿Cuánto gana a la semana?',
                 'order' => 15,
             ],
             [
-                'question_text' => '¿Su pareja tiene visa para los Estados Unidos?',
+                'question_text' => '¿Tiene visa para los Estados Unidos?',
                 'order' => 16,
             ],
             [
-                'question_text' => '¿Han deportado recientemente de los Estados Unidos a su pareja?',
+                'question_text' => 'A tu pareja, ¿la han deportado recientemente de los Estados Unidos?',
                 'order' => 17,
             ],
             [
-                'question_text' => 'Por favor, dame el nombre y fecha de nacimiento de cada uno de tus hijos',
+                'question_text' => 'Me puedes dar el nombre y fecha de nacimiento de cada uno de tus hijos',
                 'order' => 18,
             ],
             [
-                'question_text' => '¿De qué país son tus hijos?',
+                'question_text' => '¿En que país nacieron tus hijos?',
                 'order' => 19,
             ],
             [
-                'question_text' => '¿Sus hijos asisten a la escuela? Si es así, ¿en qué grado está cada uno?',
+                'question_text' => '¿Tus hijos estudian? Si es así, ¿en qué grado está cada uno?',
                 'order' => 20,
             ],
             [
-                'question_text' => '¿Sus hijos son residentes o tienen visa para los Estados Unidos?',
+                'question_text' => '¿Tus hijos son residentes o tienen visa para los Estados Unidos?',
                 'order' => 21,
             ],
 
             [
-                'question_text' => '¿Quiénes más vivirían en la casa de esperanza si se les llega a construir? Por favor, dígame su nombre, edad y relación con ustedes',
+                'question_text' => 'Si se les llega a construir, ¿quiénes más vivirían en la casa de esperanza? Por favor, dame sus nombres, edades y relación con ustedes',
                 'order' => 22,
             ],
             [
@@ -342,12 +342,12 @@ class HomesofHopeSeeder extends Seeder
                 'order' => 23,
             ],
             [
-                'question_text' => '¿Alguien de su familia habla algún dialecto?',
+                'question_text' => '¿Alguien en la familia habla algún dialecto?, ¿cuál?',
                 'order' => 24,
             ],
 
             [
-                'question_text' => 'Por último, ¿me puede enviar las coordenadas de su terreno? Aquí hay un enlace de cómo hacerlo: https://ejemplo.com/',
+                'question_text' => 'Por último, ¿puedes enviar las coordenadas del terreno? Aquí hay un enlace de cómo hacerlo: https://ejemplo.com/',
                 'order' => 25,
             ],
         ]);
