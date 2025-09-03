@@ -193,7 +193,7 @@ class BotApplicantController extends Controller
             ]);
         } elseif ($supervisionNeeded) {
             $applicant->update([
-                'process_status' => 'requires_supervision',
+                'process_status' => 'requires_revision',
             ]);
             return response()->json([
                 'status' => 'requires_supervision',
