@@ -147,7 +147,7 @@ class BotApplicantController extends Controller
         } else {
             // Avanza a la siguiente pregunta de la misma etapa
             $applicant->update(['current_question_id' => $nextQuestion->id]);
-            
+
             return response()->json([
                 'status' => 'next_question',
                 'question' => $nextQuestion,
@@ -217,7 +217,7 @@ class BotApplicantController extends Controller
             } else {
                 $applicant->update([
                     'process_status' => 'approved',
-                    'confirmation_status' => 'pending', 
+                    'confirmation_status' => 'pending',
                 ]);
 
                 $notificationService = new EvolutionApiNotificationService();
@@ -245,7 +245,7 @@ class BotApplicantController extends Controller
                               ->firstOrFail();
 
         $currentStage = $applicant->currentStage;
-        
+
         $stageData = [
             'stage_id' => $currentStage->id,
             'stage_name' => $currentStage->name,
@@ -254,10 +254,10 @@ class BotApplicantController extends Controller
         ];
 
         $questionsInStage = $currentStage->questions()->get();
-        
+
         foreach ($questionsInStage as $question) {
             $userResponse = $applicant->responses()->where('question_id', $question->id)->first();
-            
+
             $stageData['questions'][] = [
                 'question_key' => $question->key,
                 'question_text' => $question->question_text,
@@ -269,7 +269,7 @@ class BotApplicantController extends Controller
         return response()->json($stageData);
     }
 
-    public function aplicantCurrentStatus( $chatId ){
+    public function applicantCurrentStatus( $chatId ){
         $applicant = Applicant::where("chat_id", $chatId)->first();
 
         if (!$applicant) {
@@ -317,7 +317,7 @@ class BotApplicantController extends Controller
             "applicant_name" => $validated["applicant_name"], // Corregido
             "gender" => $validated["gender"],
         ]);
-        
+
         return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);
     }
 
@@ -348,4 +348,4 @@ class BotApplicantController extends Controller
         return response()->json(['message' => 'Respuesta actualizada exitosamente.'], 200);
     }
 }
- 
+
