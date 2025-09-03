@@ -88,7 +88,7 @@ class HomesofHopeSeeder extends Seeder
 
         $stage1->questions()->createMany([
             [
-                'question_text' => 'Perfecto, ahora cuénteme, ¿tiene hijos menores de 16 años que vivan actualmente con usted?',
+                'question_text' => 'Perfecto, ahora cuéntame, ¿tienes hijos menores de 16 años que vivan actualmente contigo?',
                 'order' => 1,
                 'approval_criteria' => [
                     [
@@ -104,7 +104,7 @@ class HomesofHopeSeeder extends Seeder
                 ],
             ],
             [
-                'question_text' => 'Gracias. ¿En qué ciudad está ubicado su terreno?',
+                'question_text' => 'Gracias. ¿En qué ciudad está ubicado tu terreno?',
                 'order' => 2,
                 'approval_criteria' => [
                     [
@@ -115,7 +115,7 @@ class HomesofHopeSeeder extends Seeder
                 ],
             ],
             [
-                'question_text' => '¿Y en qué colonia se encuentra exactamente su terreno?',
+                'question_text' => '¿Y en qué colonia se encuentra exactamente tu terreno?',
                 'order' => 3,
                 'approval_criteria' => [
                     [
@@ -126,7 +126,7 @@ class HomesofHopeSeeder extends Seeder
                 ]
             ],
             [
-                'question_text' => '¿Cuánto tiempo lleva con este terreno?',
+                'question_text' => '¿Cuánto tiempo llevas con este terreno?',
                 'order' => 4,
                 'approval_criteria' => [
                     [
@@ -137,15 +137,15 @@ class HomesofHopeSeeder extends Seeder
                 ],
             ],
             [
-                'question_text' => '¿En qué mes y año dio su primera mensualidad del terreno?',
+                'question_text' => '¿En qué mes y año diste la primera mensualidad de tu terreno?',
                 'order' => 5,
             ],
             [
-                'question_text' => '¿Cuál es su estado civil?',
+                'question_text' => '¿Cuál es tu estado civil?',
                 'order' => 6,
             ],
             [
-                'question_text' => '¿A nombre de quién o quiénes está el contrato?',
+                'question_text' => '¿A nombre de quién(es) está el contrato?',
                 'order' => 7,
                 'approval_criteria' => [
                     [
@@ -176,34 +176,24 @@ class HomesofHopeSeeder extends Seeder
                 ],
             ],
             [
-                'question_text' => '¿Cuál es el costo total del terreno?',
+                'question_text' => '¿Cuál fue el costo total del terreno?',
                 'order' => 8,
-                'approval_criteria' => [
-                    [
-                        'rule' => 'human_if',
-                        'operator' => 'is',
-                        'value' => 'pago el terrreno hace menos de 4 años'
-                    ],
-                ],
             ],
             [
-                'question_text' => '¿Cuánto dio de enganche por el terreno?',
+                'question_text' => '¿Cuánto diste de enganche por el terreno?',
                 'order' => 9,
-                'approval_criteria' => [
-                    [
-                        'rule' => 'human_if',
-                        'operator' => 'is',
-                        'value' => 'pago el terrreno hace menos de 4 años'
-                    ],
-                ],
             ],
             [
-                'question_text' => '¿Cuánto paga por el terreno cada mes?',
+                'question_text' => '¿Cuánto pagas de mensualidad por el terreno?',
                 'order' => 10,
             ],
             [
-                'question_text' => '¿Cuál fue la fecha exacta de su último pago del terreno?',
+                'question_text' => '¿El precio es en Pesos Mexicanos o Dolares?',
                 'order' => 11,
+            ],
+            [
+                'question_text' => '¿En qué fecha diste la última mensualidad del terreno?',
+                'order' => 12,
                 'approval_criteria' => [
                     [
                         'rule' => 'human_if',
@@ -213,8 +203,8 @@ class HomesofHopeSeeder extends Seeder
                 ],
             ],
             [
-                'question_text' => '¿Está al corriente con los pagos de su terreno?',
-                'order' => 12,
+                'question_text' => '¿Estás al corriente en tus mensualidades del terreno?',
+                'order' => 13,
                 'approval_criteria' => [
                     [
                         'rule' => 'reject_if',
@@ -229,8 +219,8 @@ class HomesofHopeSeeder extends Seeder
                 ],
             ],
             [
-                'question_text' => 'Por último en esta sección, ¿Vive en su terreno o en la misma colonia?',
-                'order' => 13,
+                'question_text' => 'Por último en esta sección, ¿Vives en tu terreno o en la misma colonia?',
+                'order' => 14,
                 'approval_criteria' => [
                     [
                         'rule' => 'reject_if',
@@ -243,108 +233,108 @@ class HomesofHopeSeeder extends Seeder
 
         $stage2->questions()->createMany([
             [
-                'question_text' => 'Ahora hablemos de sus hijos. ¿Ellos están asistiendo a la escuela actualmente?',
+                'question_text' => 'Ahora hablemos de tus hijos. ¿Asisten a la escuela actualmente?',
                 'order' => 1,
             ],
             [
-                'question_text' => '¿Qué grado están cursando cada uno de sus hijos?',
+                'question_text' => '¿En qué grado está cada uno de ellos?',
                 'order' => 2,
             ],
             [
-                'question_text' => '¿Alguno de sus hijos tiene alguna necesidad especial que debamos considerar?',
+                'question_text' => '¿Alguno de ellos tiene alguna necesidad especial?',
                 'order' => 3,
             ],
         ]);
 
         $stage3->questions()->createMany([
             [
-                'question_text' => 'Pasemos a información personal. ¿Me puede decir su nombre, por favor?',
+                'question_text' => 'Pasemos a tu información personal. ¿Me puedes decir tu nombre, por favor?',
                 'order' => 1,
             ],
             [
-                'question_text' => '¿Cuál es su edad?',
+                'question_text' => '¿Cuál es tu edad?',
                 'order' => 2,
             ],
             [
-                'question_text' => '¿De qué país y estado es?',
+                'question_text' => '¿En que estado y país naciste?',
                 'order' => 3,
             ],
             [
-                'question_text' => '¿Hasta qué grado fue a la escuela?',
+                'question_text' => '¿Hasta qué grado estuviste en la escuela?',
                 'order' => 4,
             ],
             [
-                'question_text' => '¿En qué trabaja actualmente?',
+                'question_text' => '¿En qué trabajas actualmente?',
                 'order' => 5,
             ],
             [
-                'question_text' => '¿Cuál es su salario semanal?',
+                'question_text' => '¿Cuánto ganas a la semana?',
                 'order' => 6,
             ],
             [
-                'question_text' => '¿Está esperando un bebé? si es asi ¿Cuánto tiempo de gestación tiene?',
+                'question_text' => '¿Estás esperando un bebé? de ser así , ¿cuántos meses tienes?',
                 'order' => 7,
             ],
             [
-                'question_text' => '¿Tiene visa para los Estados Unidos?',
+                'question_text' => '¿Tienes visa para los Estados Unidos?',
                 'order' => 8,
             ],
             [
-                'question_text' => '¿Le han deportado recientemente de los Estados Unidos?',
+                'question_text' => '¿Recientemente, fuiste deportado de los Estados Unidos?',
                 'order' => 9,
             ],
 
             [
-                'question_text' => '¿Cuál es el nombre de su pareja?',
+                'question_text' => '¿Tienes pareja?, ¿cuál es su nombre?',
                 'order' => 10,
             ],
             [
-                'question_text' => '¿Cuál es la edad de su pareja?',
+                'question_text' => '¿Cuál es su edad?',
                 'order' => 11,
             ],
             [
-                'question_text' => '¿De qué país y estado es su pareja?',
+                'question_text' => '¿Dónde nació (estado y país)?',
                 'order' => 12,
             ],
             [
-                'question_text' => '¿Hasta qué grado fue a la escuela su pareja?',
+                'question_text' => '¿Cuál es el nivel de estudios de tu pareja?',
                 'order' => 13,
             ],
             [
-                'question_text' => '¿En qué trabaja actualmente su pareja?',
+                'question_text' => '¿Trabaja actualmente, en qué?',
                 'order' => 14,
             ],
             [
-                'question_text' => '¿Cuál es el salario semanal de su pareja?',
+                'question_text' => '¿Cuánto gana a la semana?',
                 'order' => 15,
             ],
             [
-                'question_text' => '¿Su pareja tiene visa para los Estados Unidos?',
+                'question_text' => '¿Tiene visa para los Estados Unidos?',
                 'order' => 16,
             ],
             [
-                'question_text' => '¿Han deportado recientemente de los Estados Unidos a su pareja?',
+                'question_text' => 'A tu pareja, ¿la han deportado recientemente de los Estados Unidos?',
                 'order' => 17,
             ],
             [
-                'question_text' => 'Por favor, dame el nombre y fecha de nacimiento de cada uno de tus hijos',
+                'question_text' => 'Me puedes dar el nombre y fecha de nacimiento de cada uno de tus hijos',
                 'order' => 18,
             ],
             [
-                'question_text' => '¿De qué país son tus hijos?',
+                'question_text' => '¿En que país nacieron tus hijos?',
                 'order' => 19,
             ],
             [
-                'question_text' => '¿Sus hijos asisten a la escuela? Si es así, ¿en qué grado está cada uno?',
+                'question_text' => '¿Tus hijos estudian? Si es así, ¿en qué grado está cada uno?',
                 'order' => 20,
             ],
             [
-                'question_text' => '¿Sus hijos son residentes o tienen visa para los Estados Unidos?',
+                'question_text' => '¿Tus hijos son residentes o tienen visa para los Estados Unidos?',
                 'order' => 21,
             ],
 
             [
-                'question_text' => '¿Quiénes más vivirían en la casa de esperanza si se les llega a construir? Por favor, dígame su nombre, edad y relación con ustedes',
+                'question_text' => 'Si se les llega a construir, ¿quiénes más vivirían en la casa de esperanza? Por favor, dame sus nombres, edades y relación con ustedes',
                 'order' => 22,
             ],
             [
@@ -352,12 +342,12 @@ class HomesofHopeSeeder extends Seeder
                 'order' => 23,
             ],
             [
-                'question_text' => '¿Alguien de su familia habla algún dialecto?',
+                'question_text' => '¿Alguien en la familia habla algún dialecto?, ¿cuál?',
                 'order' => 24,
             ],
 
             [
-                'question_text' => 'Por último, ¿me puede enviar las coordenadas de su terreno? Aquí hay un enlace de cómo hacerlo: https://ejemplo.com/',
+                'question_text' => 'Por último, ¿puedes enviar las coordenadas del terreno? Aquí hay un enlace de cómo hacerlo: https://ejemplo.com/',
                 'order' => 25,
             ],
         ]);

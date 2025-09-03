@@ -278,7 +278,11 @@ class BotApplicantController extends Controller
 
         return response()->json([
             "current_stage" => $applicant->current_stage_id,
-            "current_question" => $applicant->current_question_id
+            "current_question" => [
+                "question_id" => $applicant->currentQuestion()->id,
+                "question_text" => $applicant->currentQuestion()->question_text,
+                "question_criteria" => $applicant->currentQuestion()->approval_criteria,
+            ],
         ]);
     }
 
