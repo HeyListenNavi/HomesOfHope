@@ -80,7 +80,7 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'no esta de acuerdo o da una confirmacion'
+                        'value' => 'no esta de acuerdo'
                     ]
                 ]
             ]
