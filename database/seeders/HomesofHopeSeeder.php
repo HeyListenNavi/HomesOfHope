@@ -36,6 +36,7 @@ class HomesofHopeSeeder extends Seeder
         $stage0 = Stage::create([
             'name' => 'Etapa 0: Pre-Requisitos',
             'order' => 1,
+            'approval_message' => '¡Gracias por confirmar! Vamos a iniciar el proceso de aplicación. Si tienes alguna duda, puedes preguntar en cualquier momento.',
             'rejection_message' => 'Una disculpa, solo la persona interesada puede firmar el aviso de privacidad.',
             'requires_evaluatio_message' => 'El equipo de Casas de Esperanza revisará tu información y se pondrá en contacto contigo pronto.',
         ]);
@@ -43,7 +44,7 @@ class HomesofHopeSeeder extends Seeder
         $stage1 = Stage::create([
             'name' => 'Etapa 1: Requisitos Básicos',
             'order' => 2,
-            'starting_message' => '¡Gracias por confirmar! Vamos a iniciar el proceso de aplicación. Si tienes alguna duda, puedes preguntar en cualquier momento.',
+            'approval_message' => 'Te recordamos que estás interactuando con un asistente virtual. Te acompañaré en este proceso y pasaremos a las siguientes preguntas. Si en algún momento necesitas pausar, no te preocupes, puedes regresar y continuar cuando gustes.',
             'rejection_message' => 'Lamentablemente, no cumples con los requisitos básicos para continuar con el proceso. El equipo de Casas de Esperanza será notificado para revisar tu información.',
             'requires_evaluatio_message' => 'El equipo de Casas de Esperanza evaluará tu información y se pondrá en contacto contigo para continuar el proceso.',
         ]);
@@ -51,13 +52,12 @@ class HomesofHopeSeeder extends Seeder
         $stage2 = Stage::create([
             'name' => 'Etapa 2: Información General',
             'order' => 3,
-            'starting_message' => 'Te recordamos que estás interactuando con un asistente virtual. Te acompañaré en este proceso y pasaremos a las siguientes preguntas. Si en algún momento necesitas pausar, no te preocupes, puedes regresar y continuar cuando gustes.',
+            'approval_message' => '¡Ya estamos más cerca de terminar! La siguiente parte puede tomar entre 5 y 10 minutos. Si tienes tiempo ahora, podemos empezar; si necesitas pausar, puedes continuar después sin problema.',
         ]);
         
         $stage3 = Stage::create([
             'name' => 'Etapa 3: Información Detallada de la Familia',
             'order' => 4,
-            'starting_message' => '¡Ya estamos más cerca de terminar! La siguiente parte puede tomar entre 5 y 10 minutos. Si tienes tiempo ahora, podemos empezar; si necesitas pausar, puedes continuar después sin problema.',
             'approval_message' => '¡Perfecto! Has finalizado el proceso de entrevista. Hemos recopilado tus datos y serán guardados de manera segura.',
         ]);
 
