@@ -37,12 +37,55 @@ class EvolutionApiNotificationService
             ['applicant' => $applicant->id] // Usamos el ID para seguridad
         );
 
-        $recipientId = $applicant->chat_id;
         $message = "¡Felicidades, {$applicant->applicant_name}! Has sido aprobado(a) en el proceso. 🎉\n\n";
         $message .= "Para continuar, por favor elige la fecha y grupo para tu entrevista, haciendo clic en el siguiente enlace:\n\n";
         $message .= $selectionUrl . "\n\n";
         $message .= "Este enlace es personal y expirará en 3 días. ¡No lo compartas!";
 
+        return $this->sendText($applicant->chat_id, $message);
+    }
+
+    /**
+     * Envía la pregunta actual al aplicante.
+     *
+     * @param Applicant $applicant
+     * @return bool
+     */
+    public function sendCurrentQuestion(Applicant $applicant): bool
+    {
+        $currentQuestion = $applicant->currentQuestion;
+
+        if (!$currentQuestion) {
+            Log::warning("No hay una pregunta actual para el aplicante con chat_id {$applicant->chat_id}.");
+            return false;
+        }
+
+        $message = $currentQuestion->question_text;
+
+        return $this->sendText($applicant->chat_id, $message);
+    }
+
+    /**
+     * Envía un mensaje de texto personalizado a un aplicante.
+     *
+     * @param Applicant $applicant
+     * @param string $message
+     * @return bool
+     */
+    public function sendCustomMessage(Applicant $applicant, string $message): bool
+    {
+        return $this->sendText($applicant->chat_id, $message);
+    }
+
+    /**
+     * Método auxiliar privado para manejar la lógica de la llamada a la API.
+     *
+     * @param string $recipientId
+     * @param string $message
+     * @return bool
+     */
+    protected function sendText(string $recipientId, string $message): bool
+    {
         try {
             $response = Http::post("{$this->apiUrl}/message/sendText/{$recipientId}", [
                 'number' => $recipientId,
@@ -52,11 +95,11 @@ class EvolutionApiNotificationService
             ]);
 
             if ($response->successful()) {
-                Log::info("Enlace de selección de grupo enviado a {$recipientId}.");
+                Log::info("Mensaje de texto enviado a {$recipientId}.");
                 return true;
             }
 
-            Log::error("Error al enviar enlace de selección a {$recipientId}: " . $response->body());
+            Log::error("Error al enviar mensaje a {$recipientId}: " . $response->body());
             return false;
 
         } catch (\Exception $e) {
