@@ -44,92 +44,141 @@ class ApplicantResource extends Resource
 			Forms\Components\TextInput::make('chat_id')->required()->label('Número de Teléfono'),
 			Forms\Components\TextInput::make('gender')->required()->label('Genero'),
                     ]),
-                Forms\Components\Section::make('Grupo y Proceso')
-                    ->description('Selecciona el grupo y el estado actual del proceso.')
-                    ->columns(2)
-                    ->schema([
-                        Forms\Components\Select::make('process_status')->options([
-                            'in_progress' => 'En Progreso',
-                            'approved' => 'Aprobado',
-                            'rejected' => 'Rechazado',
-                            "requires_revision" => "Requiere Revisión",
-                            "canceled" => "Cancelado",
-                        ])
+            Forms\Components\Section::make('Grupo y Proceso')
+                ->description('Selecciona el grupo y el estado actual del proceso.')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\Select::make('process_status')->options([
+                        'in_progress' => 'En Progreso',
+                        'approved' => 'Aprobado',
+                        'rejected' => 'Rechazado',
+                        "requires_revision" => "Requiere Revisión",
+                        "canceled" => "Cancelado",
+                    ])
+                    ->required()
+                    ->label('Estado del Proceso')
+                    ->live()
+                    ->native(false),
+                    Forms\Components\Select::make('group_id')
+                        ->relationship('group', 'name')
+                        ->label('Grupo')
+                        ->disabled(function (Get $get) {
+                            return $get('process_status') != 'approved';
+                        }),
+                ]),
+            Forms\Components\Section::make('Etapa y Pregunta Actual')
+                ->description('Indica la etapa y la pregunta en la que se encuentra el aplicante.')
+                ->schema([
+                    Forms\Components\Select::make('current_stage_id')
+                        ->relationship('currentStage', 'name')
                         ->required()
-                        ->label('Estado del Proceso')
+                        ->label('Etapa Actual')
+                        ->native(false)
                         ->live()
-                        ->native(false),
-                        Forms\Components\Select::make('group_id')
-                            ->relationship('group', 'name')
-                            ->label('Grupo')
-                            ->disabled(function (Get $get) {
-                                return $get('process_status') != 'approved';
-                            }),
-                    ]),
-                Forms\Components\Section::make('Etapa y Pregunta Actual')
-                    ->description('Indica la etapa y la pregunta en la que se encuentra el aplicante.')
-                    ->schema([
-                        Forms\Components\Select::make('current_stage_id')
-                            ->relationship('currentStage', 'name')
-                            ->required()
-                            ->label('Etapa Actual')
-                            ->native(false)
-                            ->live()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('current_question_id', null);
-                            }),
-                        Forms\Components\Select::make('current_question_id')
-                            ->label('Pregunta Actual')
-                            ->required()
-                            ->native(false)
-                            ->options(function (Get $get) {
-                                $stageId = $get('current_stage_id');
-                                if (!$stageId) {
-                                    return [];
-                                }
-                                return Question::where('stage_id', $stageId)
-                                    ->pluck('question_text', 'id')
-                                    ->toArray();
-                            })
-                    ]),
-                Forms\Components\Section::make('Motivo de Descalificación')
-                    ->description('La razón por la que el aplicante ha sido rechazado.')
-                    ->hidden(function (Get $get) {
-                        $status = $get('process_status');
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            $set('current_question_id', null);
+                        }),
+                    Forms\Components\Select::make('current_question_id')
+                        ->label('Pregunta Actual')
+                        ->required()
+                        ->native(false)
+                        ->options(function (Get $get) {
+                            $stageId = $get('current_stage_id');
+                            if (!$stageId) {
+                                return [];
+                            }
+                            return Question::where('stage_id', $stageId)
+                                ->pluck('question_text', 'id')
+                                ->toArray();
+                        })
+                ]),
+            Forms\Components\Section::make('Motivo de Descalificación')
+                ->description('La razón por la que el aplicante ha sido rechazado.')
+                ->hidden(function (Get $get) {
+                    $status = $get('process_status');
 
-                        if ($status == 'rejected') {
-                            return false;
-                        }
+                    if ($status == 'rejected') {
+                        return false;
+                    }
 
-                        if ($status == 'requires_revision') {
-                            return false;
-                        }
+                    if ($status == 'requires_revision') {
+                        return false;
+                    }
 
-                        return true;
-                    })
-                    ->schema([
-                        Forms\Components\Textarea::make('rejection_reason')->nullable()->label('Razón de Descalificación')->columnSpanFull()->rows(10)->autosize(),
-                    ]),
-                    Actions::make([
-                        Action::make('approveStage')
-                            ->label("Aprobar etapa")
-                            ->requiresConfirmation()
-                            ->modalHeading('Pasar a la siguiente etapa')
-                            ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.")
-                            ->modalSubmitActionLabel('Sí, aprobar!')
-                            ->action(function (Applicant $record) {
-                                ApplicantActions::approveStage($record);
-                            }),
-                        Action::make('restartApplicant')
-                            ->label("Reiniciar")
-                            ->color('danger')
-                            ->requiresConfirmation()
-                            ->modalHeading('Reiniciar proceso del aplicante')
-                            ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.")
-                            ->action(function (Applicant $record) {
-                                ApplicantActions::resetApplicant($record);
-                            }),
-                    ]),
+                    return true;
+                })
+                ->schema([
+                    Forms\Components\Textarea::make('rejection_reason')->nullable()->label('Razón de Descalificación')->columnSpanFull()->rows(10)->autosize(),
+                ]),
+                Actions::make([
+                    // Botón para aprobar una etapa y pasar a la siguiente
+                    Action::make('approveStage')
+                        ->label("Aprobar etapa")
+                        ->icon('heroicon-o-check-circle') 
+                        ->requiresConfirmation()
+                        ->modalHeading('Pasar a la siguiente etapa')
+                        ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.")
+                        ->modalSubmitActionLabel('Sí, aprobar!')
+                        ->action(fn (Applicant $record) => ApplicantActions::approveStage($record)),
+
+                    // Botón para aprobar al aplicante de forma definitiva
+                    Action::make('approveFinal')
+                        ->label("Aprobar definitivamente")
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Aprobar aplicante')
+                        ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?")
+                        ->action(fn (Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
+
+                    // --- Botón de mensaje personalizado 
+                    Action::make('sendCustomMessage')
+                        ->label("Enviar mensaje personalizado")
+                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                        ->form([
+                            Forms\Components\Textarea::make('message')
+                                ->label('Mensaje')
+                                ->required()
+                                ->rows(5)
+                                ->placeholder('Escribe tu mensaje aquí...'),
+                        ])
+                        ->modalHeading('Enviar mensaje personalizado')
+                        ->action(function (array $data, Applicant $record) {
+                            ApplicantActions::sendCustomMessage($record, $data['message']);
+                        }),
+
+                    // Botón para reenviar la pregunta actual
+                    Action::make('resendQuestion')
+                        ->label("Reenviar pregunta actual")
+                        ->icon('heroicon-o-question-mark-circle')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reenviar pregunta')
+                        ->modalDescription('¿Estás seguro de reenviar la pregunta actual a este aplicante?')
+                        ->action(fn (Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
+                    
+                    // Botón para reenviar el enlace de selección de grupo
+                    Action::make('resendGroupLink')
+                        ->label("Reenviar enlace de grupo")
+                        ->icon('heroicon-o-link')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reenviar enlace de grupo')
+                        ->modalDescription('¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?')
+                        ->action(fn (Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
+                    
+                    // Botón para reiniciar el proceso del aplicante
+                    Action::make('restartApplicant')
+                        ->label("Reiniciar")
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reiniciar proceso del aplicante')
+                        ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.")
+                        ->action(fn (Applicant $record) => ApplicantActions::resetApplicant($record)),
+                ])
+                ->fullWidth()
+                ->columnSpan(2),
             ]);
     }
 
