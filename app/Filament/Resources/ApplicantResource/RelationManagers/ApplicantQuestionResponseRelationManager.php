@@ -64,7 +64,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->label('Decisión IA')
                     ->icon(fn(string $state): string => match ($state) {
                         'valid' => 'heroicon-o-check-circle',
-                        'requires_human_revision' => 'heroicon-o-exclamation-triangle',
+                        'requires_revision' => 'heroicon-o-exclamation-triangle',
                         'not_valid' => 'heroicon-o-x-circle',
                         default => 'heroicon-o-question-mark-circle',
                     })
