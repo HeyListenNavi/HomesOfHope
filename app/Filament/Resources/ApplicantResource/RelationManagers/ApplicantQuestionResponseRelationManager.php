@@ -29,7 +29,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->rows(5)
                     ->autosize()
 		    ->required(),
-	    	Forms\Componets\Textarea::make('ai_explanation')
+	    	Forms\Components\Textarea::make('ai_explanation')
 		    ->label('Análisis generado por la IA')
 	    	    ->columnSpanFull()
 	    	    ->rows(5)
