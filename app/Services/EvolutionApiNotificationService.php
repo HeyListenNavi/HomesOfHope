@@ -65,8 +65,8 @@ class EvolutionApiNotificationService
                 'Content-Type' => 'application/json',
             ])->post($url, [
                 'number' => $recipientId,
-                'options' => ['delay' => 1200],
-                'textMessage' => ['text' => $message],
+                'delay' => 1200,
+                'text' => $message,
             ]);
 
             if ($response->successful()) {
