@@ -109,7 +109,7 @@ class BotApplicantController extends Controller
                 'question_text_snapshot' => $question->question_text,
                 'user_response' => $validated['user_response'],
                 'ai_decision' => $validated['ai_decision'],
-                'ai_explanation' => $validated['ai_explanation'],
+                'ai_decision_reason' => $validated['ai_explanation'],
             ]
         );
 
