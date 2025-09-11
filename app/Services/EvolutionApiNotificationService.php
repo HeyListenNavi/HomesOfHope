@@ -7,34 +7,25 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
-/**
- * Servicio simple para enviar notificaciones a través de Evolution API.
- */
 class EvolutionApiNotificationService
 {
     protected string $apiUrl;
     protected string $apiKey;
+    protected string $instance;
 
     public function __construct()
     {
-        // Asegúrate de tener estas variables en tu archivo .env
-        // y en config/services.php
         $this->apiUrl = config('services.evolution.url');
         $this->apiKey = config('services.evolution.key');
+        $this->instance = config('services.evolution.instance');
     }
 
-    /**
-     * Envía un mensaje al aplicante con un enlace para que elija su grupo.
-     *
-     * @param Applicant $applicant
-     * @return bool
-     */
     public function sendGroupSelectionLink(Applicant $applicant): bool
     {
         $selectionUrl = URL::temporarySignedRoute(
-            'group.selection.form', // Nombre de la ruta que crearemos más adelante
-            now()->addDays(3),       // El enlace será válido por 3 días
-            ['applicant' => $applicant->id] // Usamos el ID para seguridad
+            'group.selection.form',
+            now()->addDays(3),
+            ['applicant' => $applicant->id]
         );
 
         $message = "¡Felicidades, {$applicant->applicant_name}! Has sido aprobado(a) en el proceso. 🎉\n\n";
@@ -45,12 +36,6 @@ class EvolutionApiNotificationService
         return $this->sendText($applicant->chat_id, $message);
     }
 
-    /**
-     * Envía la pregunta actual al aplicante.
-     *
-     * @param Applicant $applicant
-     * @return bool
-     */
     public function sendCurrentQuestion(Applicant $applicant): bool
     {
         $currentQuestion = $applicant->currentQuestion;
@@ -65,33 +50,23 @@ class EvolutionApiNotificationService
         return $this->sendText($applicant->chat_id, $message);
     }
 
-    /**
-     * Envía un mensaje de texto personalizado a un aplicante.
-     *
-     * @param Applicant $applicant
-     * @param string $message
-     * @return bool
-     */
     public function sendCustomMessage(Applicant $applicant, string $message): bool
     {
         return $this->sendText($applicant->chat_id, $message);
     }
 
-    /**
-     * Método auxiliar privado para manejar la lógica de la llamada a la API.
-     *
-     * @param string $recipientId
-     * @param string $message
-     * @return bool
-     */
     protected function sendText(string $recipientId, string $message): bool
     {
         try {
-            $response = Http::post("{$this->apiUrl}/message/sendText/{$recipientId}", [
+            $url = "{$this->apiUrl}/message/sendText/{$this->instance}";
+
+            $response = Http::withHeaders([
+                'apikey' => $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->post($url, [
                 'number' => $recipientId,
                 'options' => ['delay' => 1200],
                 'textMessage' => ['text' => $message],
-                'token' => $this->apiKey
             ]);
 
             if ($response->successful()) {

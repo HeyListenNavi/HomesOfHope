@@ -36,6 +36,7 @@ return [
     ],
     'evolution' => [
         'key' => env('EVOLUTION_KEY'),
-        'url' => env('EVOLUTION_URL')
+        'url' => env('EVOLUTION_URL'),
+        "instance" => env('EVOLUTION_INSTANCE'),
     ]
 ];
