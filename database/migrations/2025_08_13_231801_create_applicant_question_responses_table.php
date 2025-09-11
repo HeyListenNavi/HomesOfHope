@@ -15,7 +15,6 @@ return new class extends Migration
             $table->text('question_text_snapshot');
             $table->text('user_response')->nullable();
             $table->enum('ai_decision', ['valid', 'not_valid', 'requires_supervision'])->nullable(); 
-            $table->text("ai_decision_reason")->nullable();           
             $table->timestamps();
         });
     }
