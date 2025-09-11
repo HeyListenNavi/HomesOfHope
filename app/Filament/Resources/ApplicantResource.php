@@ -7,6 +7,7 @@ use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantConversat
 use App\Filament\Resources\ApplicantResource\RelationManagers\ApplicantQuestionResponseRelationManager;
 use App\Models\Applicant;
 use App\Models\Question;
+use App\Services\ApplicantActions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -15,6 +16,9 @@ use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Actions;
+
 
 
 class ApplicantResource extends Resource
@@ -105,6 +109,26 @@ class ApplicantResource extends Resource
                     })
                     ->schema([
                         Forms\Components\Textarea::make('rejection_reason')->nullable()->label('Razón de Descalificación')->columnSpanFull()->rows(10)->autosize(),
+                    ]),
+                    Actions::make([
+                        Action::make('approveStage')
+                            ->label("Aprobar etapa")
+                            ->requiresConfirmation()
+                            ->modalHeading('Pasar a la siguiente etapa')
+                            ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.")
+                            ->modalSubmitActionLabel('Sí, aprobar!')
+                            ->action(function (Applicant $record) {
+                                ApplicantActions::approveStage($record);
+                            }),
+                        Action::make('restartApplicant')
+                            ->label("Reiniciar")
+                            ->color('danger')
+                            ->requiresConfirmation()
+                            ->modalHeading('Reiniciar proceso del aplicante')
+                            ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.")
+                            ->action(function (Applicant $record) {
+                                ApplicantActions::resetApplicant($record);
+                            }),
                     ]),
             ]);
     }
