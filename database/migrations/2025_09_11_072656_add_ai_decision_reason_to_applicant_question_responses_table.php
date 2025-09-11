@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('applicant_question_responses', function (Blueprint $table) {
-		$table->text('ai_decision_reason');
+		$table->text('ai_decision_reason')->nullable();
         });
     }
 
