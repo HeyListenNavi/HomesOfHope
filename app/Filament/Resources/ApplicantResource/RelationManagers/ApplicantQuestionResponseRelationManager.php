@@ -28,7 +28,13 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->columnSpanFull()
                     ->rows(5)
                     ->autosize()
-                    ->required(),
+		    ->required(),
+	    	Forms\Componets\Textarea::make('ai_explanation')
+		    ->label('Análisis generado por la IA')
+	    	    ->columnSpanFull()
+	    	    ->rows(5)
+	            ->autosize()
+	            ->default('No hubo análisis, la respuesta fue aprobada'),
             ]);
     }
 
