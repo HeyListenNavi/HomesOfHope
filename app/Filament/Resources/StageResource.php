@@ -35,15 +35,6 @@ class StageResource extends Resource
                     ->description('Configura los mensajes que se mostrarán en diferentes momentos de la etapa.')
                     ->schema([
                         Forms\Components\Tabs::make('Mensajes')->tabs([
-                            Forms\Components\Tabs\Tab::make('Mensaje Inicial')
-                                ->icon('heroicon-o-chat-bubble-left-right')
-                                ->schema([
-                                    Forms\Components\Textarea::make('starting_message')
-                                        ->label('Mensaje al iniciar la etapa')
-                                        ->helperText('Este mensaje se muestra al usuario cuando comienza esta etapa.')
-                                        ->rows(5)
-                                        ->autosize(),
-                                ]),
                             Forms\Components\Tabs\Tab::make('Mensaje de Aprobación')
                                 ->icon('heroicon-o-check-circle')
                                 ->schema([

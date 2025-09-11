@@ -27,12 +27,12 @@ Route::prefix('bot')->group(function () {
     Route::prefix('applicants')->group(function () {
         Route::post('start', [BotApplicantController::class, 'startEvaluation']);
         Route::get('{chatId}/next-question', [BotApplicantController::class, 'getNextQuestion']);
-        //Route::post('{chatId}/submit-answer', [BotApplicantController::class, 'submitAnswer']); Estos endpoints ya existian Vero, pero 
+        //Route::post('{chatId}/submit-answer', [BotApplicantController::class, 'submitAnswer']); Estos endpoints ya existian Vero, pero
         //Route::post('stage-approval', [BotApplicantController::class, 'handleStageApproval']);  los puse abajo para que recuerdes que tienen algunas modificaciones, revisalas
         Route::get('{chatId}/stage-data', [BotApplicantController::class, 'getStageDataForAi']);
 
         //Nuevos endpoints
-        Route::get("aplicant-status/{chatId}", [BotApplicantController::class, "aplicantCurrentStatus"]);
+        Route::get("applicant-status/{chatId}", [BotApplicantController::class, "applicantCurrentStatus"]);
         Route::get("current-stage-questions/{stageId}", [BotApplicantController::class, "currentStageQuestions"]);
         Route::put("update-answer", [BotApplicantController::class, "updateAnswer"]);
         Route::post("send-initial-data", [BotApplicantController::class, "sendInitialData"]);
