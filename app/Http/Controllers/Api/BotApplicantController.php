@@ -88,11 +88,12 @@ class BotApplicantController extends Controller
             'question_id' => 'required|integer|exists:questions,id',
             'user_response' => 'required|string',
             'ai_decision' => ['required', 'string', Rule::in(['valid', 'not_valid', 'requires_supervision'])],
+            'ai_explanation' => 'nullable|string',
         ]);
 
         $applicant = Applicant::where('chat_id', $chatId)
-                             ->where('process_status', 'in_progress')
-                             ->firstOrFail();
+                              ->where('process_status', 'in_progress')
+                              ->firstOrFail();
 
         $question = Question::find($validated['question_id']);
         if (!$question) {
@@ -108,6 +109,7 @@ class BotApplicantController extends Controller
                 'question_text_snapshot' => $question->question_text,
                 'user_response' => $validated['user_response'],
                 'ai_decision' => $validated['ai_decision'],
+                'ai_explanation' => $validated['ai_explanation'],
             ]
         );
 
