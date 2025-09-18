@@ -43,8 +43,8 @@
             @endif
         </p>
 
-        <x-button class="text-label-large mx-auto" href="/">
-            <span>Volver a la página principal</span>
+        <x-button class="text-label-large mx-auto" href="{{ $whatsAppUrl }}">
+            <span>Volver </span>
             <x-bx-arrow-up-right></x-bx-arrow-up-right>
         </x-button>
     </div>
