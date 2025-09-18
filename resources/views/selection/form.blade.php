@@ -32,7 +32,7 @@
 
         <div class="flex flex-col items-center gap-1">
             <h2 class="text-body-medium md:text-body-largefont-normal">Casas de Esperanza</h2>
-            <h1 class="text-headline-large md:text-display-medium text-center">¡Confirma tu fecha de Entrevista!</h1>
+            <h1 class="text-headline-large md:text-display-medium text-center">¡Es momento de elegir tu entrevista!</h1>
         </div>
 
         @if (session('error'))
@@ -42,7 +42,7 @@
         @endif
 
 
-        <p class="mb-4">Hola {{ $applicant->applicant_name ?? 'solicitante' }}, selecciona la fecha para su entrevista que mejor se acomode a su horario.</p>
+        <p class="mb-4">Hola {{ $applicant->applicant_name ?? 'solicitante' }}, quí puedes escoger la fecha de tu entrevista personal. Solo selecciona la que mejor se acomode a tu horario entre las disponibles.</p>
 
         <form action="{{ route('group.selection.assign', $applicant) }}" method="POST">
             @csrf
