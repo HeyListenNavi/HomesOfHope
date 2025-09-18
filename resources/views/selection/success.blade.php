@@ -32,14 +32,14 @@
 
         <div class="flex flex-col items-center gap-1">
             <h2 class="text-body-medium md:text-body-largefont-normal">Casas de Esperanza</h2>
-            <h1 class="text-headline-large md:text-display-medium text-center">¡Confirmación Exitosa!</h1>
+            <h1 class="text-headline-large md:text-display-medium text-center">¡Registro completado con éxito! </h1>
         </div>
 
         <p>
             @if (session('success'))
                 {{ session('success') }}
             @else
-                Su solicitud ha sido procesada correctamente.
+                Tu información se guardó de manera segura y tu fecha de entrevista quedó confirmada. ¡Te esperamos!
             @endif
         </p>
 
