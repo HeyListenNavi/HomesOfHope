@@ -69,7 +69,7 @@ class GroupSelectionController extends Controller
             // Incrementamos el contador del grupo
             $group->increment('current_members_count');
 
-            return redirect()->route('selection.success')->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
+            return redirect()->route('selection.success')->with('success', 'Tu información se guardó de manera segura y tu fecha de entrevista quedó confirmada. ¡Te esperamos!');
         });
     }
 
