@@ -79,7 +79,7 @@ class GroupSelectionController extends Controller
     public function showSuccess()
     {
         $number = config('services.evolution.number');
-        $whatsAppUrl = "https://wa.me/{$number}"
+        $whatsAppUrl = "https://wa.me/{$number}";
         return view('selection.success', compact('whatsAppUrl'));
     }
 
