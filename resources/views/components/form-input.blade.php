@@ -1,4 +1,4 @@
-@props(['label', 'id', 'name' => $id, 'placeholder' => '', 'required' => false, 'type' => 'text'])
+@props(['label' => '', 'id', 'name' => $id, 'placeholder' => '', 'required' => false, 'type' => 'text'])
 
 <fieldset class="{{ in_array($type, ['checkbox', 'radio']) ? 'flex items-center gap-2' : 'flex flex-col gap-4' }}">
     @if (in_array($type, ['checkbox', 'radio']))
@@ -14,7 +14,7 @@
                     'value' => $label,
                     'required' => $required,
                 ]) }} />
-            {{ $label }}
+            {{ $slot }}
         </label>
     @elseif ($type === 'textarea')
         <label for="{{ $id }}" class="text-body-small">

@@ -23,7 +23,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-body text-foreground flex min-h-screen flex-col items-center p-6 justify-center lg:p-8">
+<body class="bg-body text-foreground flex min-h-screen flex-col items-center justify-center p-6 lg:p-8">
     <div
         class="bg-glass container col-span-2 mx-auto my-8 flex max-w-6xl flex-col items-center justify-center gap-10 rounded-2xl px-4 py-12 shadow-2xl backdrop-blur-xl lg:px-24">
         <img class="w-64 rounded-full"
@@ -36,40 +36,41 @@
         </div>
 
         @if (session('error'))
-            <div class="text-red-800 font-bold">
+            <div class="font-bold text-red-800">
                 <p>{{ session('error') }}</p>
             </div>
         @endif
 
 
-        <p class="mb-4">Hola {{ $applicant->applicant_name ?? 'solicitante' }}, quí puedes escoger la fecha de tu entrevista personal. Solo selecciona la que mejor se acomode a tu horario entre las disponibles.</p>
+        <p class="mb-4">Hola {{ $applicant->applicant_name ?? 'solicitante' }}, aquí puedes escoger la fecha de tu
+            entrevista personal. Solo selecciona la que mejor se acomode a tu horario entre las disponibles.</p>
 
-        <form action="{{ route('group.selection.assign', $applicant) }}" method="POST">
+        <form action="{{ route('group.selection.assign', $applicant) }}" method="POST" class="w-full">
             @csrf
 
-            <div class="mb-6">
-                <label for="group_id" class="mb-2 block font-bold">
-                    Si lo desea, puede elegir otra fecha disponible:
-                </label>
-                <select name="group_id" id="group_id"
-                    class="mt-1 block w-full rounded border border-gray-300 p-2 text-black">
-                    @foreach ($availableGroups as $group)
-                        <option value="{{ $group->id }}">
-                            {{ $group->name }} ({{ \Carbon\Carbon::parse($group->date)->format('d/m/Y') }})
-                        </option>
-                    @endforeach
-                </select>
+            <fieldset class="grid gap-8 md:grid-cols-2 py-4">
+                @foreach ($availableGroups as $group)
+                    <x-form-input id="{{ $group->id }}" name="group_id[]" type="radio">
+                        <div class="ml-2">
+                            ✏️ <span class="font-bold">Nombre:</span> {{ $group->name }}
+                            <br>
+                            🕘 <span class="font-bold">Fecha:</span> {{ \Carbon\Carbon::parse($group->date)->format('d/m/Y') }}
+                            <br>
+                            📍 <span class="font-bold">Lugar:</span> {{ $group->location }}
+                        </div>
+                    </x-form-input>
+                @endforeach
+            </fieldset>
 
-                @if ($errors->any())
-                    <div class="text-red-800 font-bold">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-            </div>
+            @if ($errors->any())
+                <div class="font-bold text-red-800">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <x-button class="text-label-large mx-auto" type="submit">
                 <span>Confirmar mi Lugar</span>
