@@ -13,6 +13,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Actions;
+use App\Services\GroupActions;
 
 class GroupResource extends Resource
 {
@@ -36,10 +39,8 @@ class GroupResource extends Resource
                             ->required()
                             ->label('Nombre del Grupo')
                             ->maxLength(255),
-                        Forms\Components\DateTimePicker::make('date')
+                        Forms\Components\DateTimePicker::make('date_time')
                             ->seconds(false)
-                            ->native(false)
-                            ->minDate(now())
                             ->required()
                             ->label('Fecha de Entrevista'),
                         Forms\Components\TextInput::make('capacity')
@@ -53,6 +54,15 @@ class GroupResource extends Resource
                             ->label('Aplicantes en el Grupo')
                             ->disabled()
                             ->default(0),
+                        Forms\Components\TextInput::make('location')
+                            ->columnSpanFull()
+                            ->label("Direccion")
+                            ->default(0),
+                        Forms\Components\TextInput::make('location_link')
+                            ->columnSpanFull()
+                            ->label('Link de la ubicacion')
+                            ->default(0),
+
                     ]),
                 Forms\Components\Section::make('Mensaje para los Aplicantes')
                     ->description('Redacta un mensaje personalizado que será mostrado a los miembros del grupo.')
@@ -62,6 +72,35 @@ class GroupResource extends Resource
                             ->hiddenLabel()
                             ->rows(10),
                     ]),
+                Actions::make([
+                    // Botón para reenviar la informacion a todos los aplicantes del grupo
+                    Action::make('reSendGroupInfo')
+                        ->label("Reenviar Informacion del grupo")
+                        ->icon('heroicon-o-check-circle') 
+                        ->requiresConfirmation()
+                        ->modalHeading('Reenviar informacion del grupo')
+                        ->modalDescription("¿Estás seguro reenviar la informacion a todos los aplicantes de este grupo? Esta acción no se puede deshacer.")
+                        ->modalSubmitActionLabel('Sí, aprobar!')
+                        ->action(fn (Group $record) => GroupActions::reSendGroupMessage($record)),
+
+                    // --- Botón de mensaje personalizado a todos los aplicantes del grupo
+                    Action::make('sendCustomMessage')
+                        ->label("Enviar mensaje personalizado")
+                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                        ->form([
+                            Forms\Components\Textarea::make('message')
+                                ->label('Mensaje')
+                                ->required()
+                                ->rows(5)
+                                ->placeholder('Escribe tu mensaje aquí...'),
+                        ])
+                        ->modalHeading('Enviar mensaje personalizado')
+                        ->action(function (array $data, Group $record) {
+                            GroupActions::sendCustomMessageToGroup($record, $data['message']);
+                        }),
+                ])
+                ->fullWidth()
+                ->columnSpan(2),
             ]);
     }
 

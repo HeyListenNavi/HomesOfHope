@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Applicant;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -49,6 +50,22 @@ class EvolutionApiNotificationService
 
         return $this->sendText($applicant->chat_id, $message);
     }
+
+    public function sendSuccessInfo( Applicant $applicant ){
+        $message = "Felicidades! La cita para tu entrevista presencial fue " .
+                    "registrada con exito.\n" .
+                    "Por favor recuerda la siguiente informacion:\n" .
+                    "Tu cita es el dia: " . $applicant->group->date_time->toDateString() . "\n" .
+                    "A las: " . $applicant->group->date_time->toTimeString() . "\n" . 
+                    "Con direccion: : " . $applicant->group->location . "\n" . 
+                    "Ubicacion: " . $applicant->group->location_link . "\n";
+ 
+        $message .= "No olvides leer la siguiente informacion importante: \n" . $applicant->group->message;
+
+
+        $this->sendCustomMessage($applicant, $message);
+    }
+
 
     public function sendCustomMessage(Applicant $applicant, string $message): bool
     {

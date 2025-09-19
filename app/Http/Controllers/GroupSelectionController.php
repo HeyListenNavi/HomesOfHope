@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\EvolutionApiNotificationService;
 
 class GroupSelectionController extends Controller
 {
@@ -24,8 +25,8 @@ class GroupSelectionController extends Controller
 
         // Buscamos todos los grupos que tengan cupo disponible.
         $availableGroups = Group::where('current_members_count', '<', DB::raw('capacity'))
-                               ->whereNotNull('date')
-                               ->orderBy('date', 'asc')
+                               ->whereNotNull('date_time')
+                               ->orderBy('date_time', 'asc')
                                ->get();
 
         return view('selection.form', compact('applicant', 'availableGroups'));
@@ -68,6 +69,9 @@ class GroupSelectionController extends Controller
             
             // Incrementamos el contador del grupo
             $group->increment('current_members_count');
+
+            $EvolutionApiNotificaiton = new EvolutionApiNotificationService();
+            $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
 
             return redirect()->route('selection.success')->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
         });

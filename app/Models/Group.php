@@ -15,8 +15,20 @@ class Group extends Model
         "message",
         'capacity',
         'current_members_count',
-        'date',
+        'date_time',
+        "location",
+        "location_link",
     ];
+
+
+    protected function casts(): array
+    {
+        return [
+            'date_time' => 'datetime',
+        ];
+    }
+
+    
 
     // Relación con los solicitantes del grupo
     public function applicants(): HasMany
