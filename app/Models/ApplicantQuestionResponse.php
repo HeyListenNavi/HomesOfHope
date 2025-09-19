@@ -16,7 +16,7 @@ class ApplicantQuestionResponse extends Model
         'question_text_snapshot',
         'user_response',
         "ai_decision",
-        "ai_explanation",
+        "ai_decision_reason",
     ];
 
     public function applicant(): BelongsTo
