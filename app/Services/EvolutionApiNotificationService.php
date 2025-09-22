@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Applicant;
+use App\Models\Message;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +35,7 @@ class EvolutionApiNotificationService
         $message .= $selectionUrl . "\n\n";
         $message .= "Este enlace es personal y expirará en 3 días. ¡No lo compartas!";
 
-        return $this->sendText($applicant->chat_id, $message);
+        return $this->sendCustomMessage($applicant, $message);
     }
 
     public function sendCurrentQuestion(Applicant $applicant): bool
@@ -48,7 +49,7 @@ class EvolutionApiNotificationService
 
         $message = $currentQuestion->question_text;
 
-        return $this->sendText($applicant->chat_id, $message);
+        return $this->sendCustomMessage($applicant, $message);
     }
 
     public function sendSuccessInfo( Applicant $applicant ){
@@ -62,13 +63,20 @@ class EvolutionApiNotificationService
  
         $message .= "No olvides leer la siguiente informacion importante: \n" . $applicant->group->message;
 
-
         $this->sendCustomMessage($applicant, $message);
     }
 
 
     public function sendCustomMessage(Applicant $applicant, string $message): bool
     {
+        Message::create([
+            'conversation_id' => $applicant->conversation->id,
+            'phone' => $applicant->chat_id,
+            'message' => $message,
+            'role' => 'assistant',
+            'name' => $applicant->applicant_name,
+        ]);
+
         return $this->sendText($applicant->chat_id, $message);
     }
 
