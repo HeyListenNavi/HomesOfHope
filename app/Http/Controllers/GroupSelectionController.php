@@ -43,12 +43,12 @@ class GroupSelectionController extends Controller
         }
 
         $request->validate([
-            'group_id' => 'required|array|min:1'
+            'group_id' => 'required'
         ]);
 
         // Usamos una transacción para garantizar la integridad de los datos
         return DB::transaction(function () use ($request, $applicant) {
-            $groupId = $request->input('group_id.0');
+            $groupId = $request->input('group_id');
 
             // Bloqueamos la fila del grupo para evitar que dos personas
             // tomen el último lugar al mismo tiempo (race condition).
