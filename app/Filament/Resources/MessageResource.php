@@ -71,6 +71,7 @@ class MessageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
             ->columns([
                 Tables\Columns\TextColumn::make('conversation.chat_id')
                     ->label('Número de Teléfono')

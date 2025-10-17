@@ -321,6 +321,10 @@ class BotApplicantController extends Controller
             "gender" => $validated["gender"],
         ]);
 
+        $applicant->conversation->update([
+            'user_name' => $validated['applicant_name'],
+        ]);
+
         return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);
     }
 

@@ -188,6 +188,7 @@ class ApplicantResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
             ->columns([
                 TextColumn::make('applicant_name')->label('Nombre')->searchable(),
                 TextColumn::make('chat_id')->label('Número de Teléfono')->searchable(),

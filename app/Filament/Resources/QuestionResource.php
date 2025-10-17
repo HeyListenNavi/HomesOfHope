@@ -99,6 +99,7 @@ class QuestionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
             ->columns([
                 TextColumn::make('question_text')->limit(50)->searchable()->label('Pregunta'),
                 TextColumn::make('key')->searchable()->label('Clave única'),
