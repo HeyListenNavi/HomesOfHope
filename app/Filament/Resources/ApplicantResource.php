@@ -189,6 +189,7 @@ class ApplicantResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('applicant_name')->label('Nombre')->searchable(),
                 TextColumn::make('chat_id')->label('Número de Teléfono')->searchable(),

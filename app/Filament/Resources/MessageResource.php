@@ -72,6 +72,7 @@ class MessageResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('conversation.chat_id')
                     ->label('Número de Teléfono')

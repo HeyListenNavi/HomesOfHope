@@ -60,6 +60,7 @@ class ConversationResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('user_name')
                     ->searchable()
