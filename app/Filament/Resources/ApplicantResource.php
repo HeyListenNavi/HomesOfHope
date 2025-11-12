@@ -122,6 +122,13 @@ class ApplicantResource extends Resource
                         ->modalHeading('Pasar a la siguiente etapa')
                         ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.")
                         ->modalSubmitActionLabel('Sí, aprobar!')
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
                         ->action(fn(Applicant $record) => ApplicantActions::approveStage($record)),
 
                     // Botón para aprobar al aplicante de forma definitiva
@@ -132,6 +139,13 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Aprobar aplicante')
                         ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?")
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
                         ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
 
                     // --- Botón de mensaje personalizado 
@@ -146,6 +160,13 @@ class ApplicantResource extends Resource
                                 ->placeholder('Escribe tu mensaje aquí...'),
                         ])
                         ->modalHeading('Enviar mensaje personalizado')
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
                         ->action(function (array $data, Applicant $record) {
                             ApplicantActions::sendCustomMessage($record, $data['message']);
                         }),
@@ -158,6 +179,13 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar pregunta')
                         ->modalDescription('¿Estás seguro de reenviar la pregunta actual a este aplicante?')
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
                         ->action(fn(Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
 
                     // Botón para reenviar el enlace de selección de grupo
@@ -168,6 +196,13 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar enlace de grupo')
                         ->modalDescription('¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?')
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
                         ->action(fn(Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
 
                     // Botón para reiniciar el proceso del aplicante
@@ -178,10 +213,17 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reiniciar proceso del aplicante')
                         ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.")
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
                         ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
                 ])
                     ->fullWidth()
-                    ->columnSpan(2),
+                    ->columnSpanFull(),
             ]);
     }
 
