@@ -67,9 +67,6 @@ class GroupSelectionController extends Controller
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
 
-            // Incrementamos el contador del grupo
-            $group->increment('current_members_count');
-
             $EvolutionApiNotificaiton = new EvolutionApiNotificationService();
             $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
 

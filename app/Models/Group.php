@@ -28,7 +28,10 @@ class Group extends Model
         ];
     }
 
-    
+    public function getCurrentMembersCountAttribute(): int
+    {
+        return $this->applicants()->count();
+    } 
 
     // Relación con los solicitantes del grupo
     public function applicants(): HasMany
