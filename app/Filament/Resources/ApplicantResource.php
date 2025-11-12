@@ -221,6 +221,32 @@ class ApplicantResource extends Resource
                             return $last->created_at->lt(now()->subDay());
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
+
+                    // Botón para rechazar al aplicante
+                    Action::make('rejectApplicant')
+                        ->label("Rechazar")
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label('Razon')
+                                ->required()
+                                ->rows(5)
+                                ->placeholder('Escribe la razon...'),
+                        ])
+                        ->requiresConfirmation()
+                        ->modalHeading('Rechazar al aplicante')
+                        ->modalDescription("¿Estás seguro de rechazar a este aplicante?")
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) return true;
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) return true;
+                            return $last->created_at->lt(now()->subDay());
+                        })
+                        ->action(function (array $data, Applicant $record) {
+                            ApplicantActions::rejectApplicant($record, $data['reason']);
+                        }),
                 ])
                     ->fullWidth()
                     ->columnSpanFull(),

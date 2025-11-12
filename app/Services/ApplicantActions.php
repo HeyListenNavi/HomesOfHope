@@ -108,7 +108,7 @@ class ApplicantActions
 
         $applicant->update([
             "process_status" => "approved",
-            "group_id" => null, 
+            "group_id" => null,
         ]);
         Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null antes de reenviar el enlace.");
 
@@ -134,5 +134,18 @@ class ApplicantActions
         Log::info("Enviando mensaje personalizado al aplicante con ID {$applicant->id}.");
         $notificationService = new EvolutionApiNotificationService();
         $notificationService->sendCustomMessage($applicant, $message);
+    }
+
+    public static function rejectApplicant(Applicant $applicant, string $reason): void
+    {
+        Log::info("Rechazando al aplicante con ID {$applicant->id}.");
+        
+        $applicant->update([
+            "process_status" => "rejected",
+            "rejection_reason" => $reason,
+        ]);
+
+        $notificationService = new EvolutionApiNotificationService();
+        $notificationService->sendCustomMessage($applicant, "Lo sentimos! su solicitud ha sido rechazada por nuestro equipo");
     }
 }
