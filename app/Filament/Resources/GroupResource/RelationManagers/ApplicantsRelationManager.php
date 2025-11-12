@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\GroupResource\RelationManagers;
 
+use App\Models\Applicant;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -21,16 +22,17 @@ class ApplicantsRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                TextInput::make('applicant_name')
+                Select::make('applicant_id')
+                    ->label('Solicitante a asignar')
+                    ->options(fn() => Applicant::whereNull('group_id')
+                        ->orderBy('applicant_name')
+                        ->pluck('applicant_name', 'id')
+                        ->toArray())
+                    ->searchable()
                     ->required()
-                    ->maxLength(255)
-                    ->columnSpan(2),
-                TextInput::make("curp"),
-                Select::make("gender")
-                    ->options([
-                        "man" => "Hombre",
-                        "woman" => "Mujer",
-                    ])
+                    ->columnSpanFull()
+                    ->helperText('Selecciona un solicitante que aún no esté asignado a ningún grupo.'),
+
             ]);
     }
 
@@ -43,11 +45,11 @@ class ApplicantsRelationManager extends RelationManager
                 TextColumn::make("curp"),
                 TextColumn::make('gender')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'man' => 'success',
                         'woman' => 'warning',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
                         'man' => 'Hombre',
                         'woman' => 'Mujer',
                     }),
@@ -56,7 +58,36 @@ class ApplicantsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\Action::make('assignApplicant')
+                    ->label('Asignar solicitante')
+                    ->form([
+                        Select::make('applicant_id')
+                            ->label('Solicitante')
+                            ->options(fn() => Applicant::whereNull('group_id')
+                                ->orderBy('applicant_name')
+                                ->pluck('applicant_name', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $applicant = Applicant::find($data['applicant_id']);
+                        if (! $applicant) {
+                            return;
+                        }
+
+                        $group = $this->getOwnerRecord();
+
+                        $capacity = $group->capacity;
+                        $currentCount = $group->applicants()->count();
+
+                        if ($currentCount >= $capacity) {
+                            return;
+                        }
+
+                        $applicant->update(['group_id' => $group->id]);
+                    })
+                    ->color('primary'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
