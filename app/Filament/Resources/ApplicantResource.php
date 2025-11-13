@@ -19,8 +19,6 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Actions;
 
-
-
 class ApplicantResource extends Resource
 {
     protected static ?string $model = Applicant::class;
