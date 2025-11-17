@@ -10,7 +10,7 @@ use App\Models\ApplicantQuestionResponse;
 use App\Services\GroupAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Services\EvolutionApiNotificationService;
+use App\Services\WhatsappApiNotificationService;
 
 
 
@@ -222,7 +222,7 @@ class BotApplicantController extends Controller
                     'confirmation_status' => 'pending',
                 ]);
 
-                $notificationService = new EvolutionApiNotificationService();
+                $notificationService = new WhatsappApiNotificationService();
                 $notificationService->sendGroupSelectionLink($applicant);
 
                 return response()->json([

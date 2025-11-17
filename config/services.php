@@ -34,10 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-    'evolution' => [
-        'key' => env('EVOLUTION_KEY'),
-        'url' => env('EVOLUTION_URL'),
-        'instance' => env('EVOLUTION_INSTANCE'),
-        'number' => env('EVOLUTION_NUMBER'),
+    'whatsapp' => [
+        'key' => env('WHATSAPP_KEY'),
+        'url' => env('WHATSAPP_URL'),
+        'number' => env('WHATSAPP_NUMBER'),
     ]
 ];

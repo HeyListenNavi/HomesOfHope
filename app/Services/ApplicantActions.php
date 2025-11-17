@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Applicant;
 use App\Models\Stage;
-use App\Services\EvolutionApiNotificationService;
+use App\Services\WhatsappApiNotificationService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -13,7 +13,7 @@ class ApplicantActions
     public static function resetApplicant(Applicant $applicant): void
     {
         Log::info("Reiniciando el proceso para el aplicante con ID {$applicant->id}.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
 
         $firstStage = Stage::orderBy('order')->first();
 
@@ -56,7 +56,7 @@ class ApplicantActions
     public static function approveStage(Applicant $applicant): void
     {
         Log::info("Aprobando la etapa actual para el aplicante con ID {$applicant->id}.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
 
         $currentStage = $applicant->currentStage;
 
@@ -97,14 +97,14 @@ class ApplicantActions
     public static function reSendCurrentQuestion(Applicant $applicant): void
     {
         Log::info("Reenviando la pregunta actual al aplicante con ID {$applicant->id}.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
         $notificationService->sendCurrentQuestion($applicant);
     }
 
     public static function reSendGroupSelectionLink(Applicant $applicant): void
     {
         Log::info("Reenviando enlace de selección de grupo al aplicante con ID {$applicant->id}.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
 
         $applicant->update([
             "process_status" => "approved",
@@ -118,7 +118,7 @@ class ApplicantActions
     public static function approveApplicantFinal(Applicant $applicant): void
     {
         Log::info("Aprobando al aplicante con ID {$applicant->id} de forma definitiva.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
 
         $applicant->update([
             "process_status" => "approved",
@@ -132,7 +132,7 @@ class ApplicantActions
     public static function sendCustomMessage(Applicant $applicant, string $message): void
     {
         Log::info("Enviando mensaje personalizado al aplicante con ID {$applicant->id}.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
         $notificationService->sendCustomMessage($applicant, $message);
     }
 
@@ -145,7 +145,7 @@ class ApplicantActions
             "rejection_reason" => $reason,
         ]);
 
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
         $notificationService->sendCustomMessage($applicant, "Lo sentimos! su solicitud ha sido rechazada por nuestro equipo");
     }
 }

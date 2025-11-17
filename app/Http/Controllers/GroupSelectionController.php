@@ -6,7 +6,7 @@ use App\Models\Applicant;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\EvolutionApiNotificationService;
+use App\Services\WhatsappApiNotificationService;
 
 class GroupSelectionController extends Controller
 {
@@ -67,7 +67,7 @@ class GroupSelectionController extends Controller
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
 
-            $EvolutionApiNotificaiton = new EvolutionApiNotificationService();
+            $EvolutionApiNotificaiton = new WhatsappApiNotificationService();
             $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
 
             return redirect()->route('selection.success')->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
@@ -80,7 +80,7 @@ class GroupSelectionController extends Controller
      */
     public function showSuccess()
     {
-        $number = config('services.evolution.number');
+        $number = config('services.whatsapp.number');
         $whatsAppUrl = "https://wa.me/{$number}";
         return view('selection.success', compact('whatsAppUrl'));
     }
