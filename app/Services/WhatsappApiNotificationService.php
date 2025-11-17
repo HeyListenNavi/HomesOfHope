@@ -17,8 +17,8 @@ class WhatsappApiNotificationService
 
     public function __construct()
     {
-        $this->apiUrl = config('services.evolution.url');
-        $this->apiKey = config('services.evolution.key');
+        $this->apiUrl = config('services.whatsapp.url');
+        $this->apiKey = config('services.whatsapp.key');
     }
 
     public function sendGroupSelectionLink(Applicant $applicant): bool
