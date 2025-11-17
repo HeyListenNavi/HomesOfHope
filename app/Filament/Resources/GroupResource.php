@@ -81,6 +81,7 @@ class GroupResource extends Resource
                         ->modalHeading('Reenviar informacion del grupo')
                         ->modalDescription("¿Estás seguro reenviar la informacion a todos los aplicantes de este grupo? Esta acción no se puede deshacer.")
                         ->modalSubmitActionLabel('Sí, aprobar!')
+                        ->disabled(true) // Desactivadas hasta utilizar templates
                         ->action(fn (Group $record) => GroupActions::reSendGroupMessage($record)),
 
                     // --- Botón de mensaje personalizado a todos los aplicantes del grupo
@@ -95,6 +96,7 @@ class GroupResource extends Resource
                                 ->placeholder('Escribe tu mensaje aquí...'),
                         ])
                         ->modalHeading('Enviar mensaje personalizado')
+                        ->disabled(true) // Desactivadas hasta utilizar templates
                         ->action(function (array $data, Group $record) {
                             GroupActions::sendCustomMessageToGroup($record, $data['message']);
                         }),
