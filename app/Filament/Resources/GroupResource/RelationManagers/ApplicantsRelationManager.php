@@ -64,6 +64,7 @@ class ApplicantsRelationManager extends RelationManager
                         Select::make('applicant_id')
                             ->label('Solicitante')
                             ->options(fn() => Applicant::whereNull('group_id')
+                                ->whereNotNull('applicant_name')
                                 ->orderBy('applicant_name')
                                 ->pluck('applicant_name', 'id')
                                 ->toArray())
