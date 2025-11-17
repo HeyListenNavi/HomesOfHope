@@ -18,6 +18,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Actions;
+use Illuminate\Database\Eloquent\Collection;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantResource extends Resource
 {
@@ -125,7 +127,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::approveStage($record)),
 
@@ -142,7 +144,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
 
@@ -163,7 +165,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(function (array $data, Applicant $record) {
                             ApplicantActions::sendCustomMessage($record, $data['message']);
@@ -182,7 +184,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
 
@@ -199,7 +201,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
 
@@ -216,7 +218,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
 
@@ -240,7 +242,7 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-                            return $last->created_at->lt(now()->subDay());
+                            return $last->created_at->lt(now()->subHours(23));
                         })
                         ->action(function (array $data, Applicant $record) {
                             ApplicantActions::rejectApplicant($record, $data['reason']);
@@ -291,6 +293,31 @@ class ApplicantResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('exportSelected')
+                        ->label('Exportar Seleccionados (CSV)')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function (Collection $records) {
+                            
+                            return new StreamedResponse(function () use ($records) {
+                                $handle = fopen('php://output', 'w');
+                                
+                                fputcsv($handle, ['Numero', 'Nombre', 'CURP']);
+                                
+                                $records->each(function ($applicant) use ($handle) {
+                                    fputcsv($handle, [
+                                        $applicant->chat_id,
+                                        $applicant->applicant_name,
+                                        $applicant->curp
+                                    ]);
+                                });
+                                
+                                fclose($handle);
+                            }, 200, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="selected_applicants_' . now()->format('Y-m-d') . '.csv"',
+                            ]);
+
+                        }),
                 ]),
             ]);
     }
