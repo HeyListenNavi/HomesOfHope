@@ -58,7 +58,37 @@ class ApplicantsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                //
+                Tables\Actions\Action::make('assignApplicant')
+                    ->label('Asignar solicitante')
+                    ->form([
+                        Select::make('applicant_id')
+                            ->label('Solicitante')
+                            ->options(fn() => Applicant::whereNull('group_id')
+                                ->whereNotNull('applicant_name')
+                                ->orderBy('applicant_name')
+                                ->pluck('applicant_name', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $applicant = Applicant::find($data['applicant_id']);
+                        if (! $applicant) {
+                            return;
+                        }
+
+                        $group = $this->getOwnerRecord();
+
+                        $capacity = $group->capacity;
+                        $currentCount = $group->applicants()->count();
+
+                        if ($currentCount >= $capacity) {
+                            return;
+                        }
+
+                        $applicant->update(['group_id' => $group->id]);
+                    })
+                    ->color('primary'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
