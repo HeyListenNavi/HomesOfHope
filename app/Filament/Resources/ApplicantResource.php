@@ -295,7 +295,6 @@ class ApplicantResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
-            ->poll('10s')
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('applicant_name')
