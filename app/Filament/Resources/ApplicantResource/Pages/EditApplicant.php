@@ -13,6 +13,20 @@ class EditApplicant extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('goToWhatsapp')
+                ->label('WhatsApp')
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->color('primary')
+                ->url(function () {
+                    $number = $this->record->chatid;
+
+                    $text = "Hola! Soy del equipo de Casas de Esperanza, y me gustaría realizarte algunas preguntas sobre tu aplicación";
+
+                    $encodedMessage = urlencode($text);
+
+                    return "https://wa.me/{$number}?text={$encodedMessage}";
+                })
+                ->openUrlInNewTab(),
             Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
         ];
