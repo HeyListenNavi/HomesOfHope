@@ -69,7 +69,6 @@ class MessageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->poll('10s')
             ->defaultPaginationPageOption(25)
             ->defaultSort('created_at', 'desc')
             ->columns([
