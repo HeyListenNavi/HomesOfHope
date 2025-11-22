@@ -64,7 +64,6 @@ class ApplicantConversationRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('message')
-            ->poll('10s') 
             ->defaultSort('created_at', 'desc') 
             ->columns([
                 IconColumn::make('role')
