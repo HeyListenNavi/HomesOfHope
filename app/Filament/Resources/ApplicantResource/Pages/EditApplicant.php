@@ -18,7 +18,7 @@ class EditApplicant extends EditRecord
                 ->icon('heroicon-o-chat-bubble-left-right')
                 ->color('primary')
                 ->url(function () {
-                    $number = $this->record->chatid;
+                    $number = $this->record->chat_id;
 
                     $text = "Hola! Soy del equipo de Casas de Esperanza, y me gustaría realizarte algunas preguntas sobre tu aplicación";
 
