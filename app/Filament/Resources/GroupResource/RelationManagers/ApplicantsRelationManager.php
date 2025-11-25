@@ -5,7 +5,7 @@ namespace App\Filament\Resources\GroupResource\RelationManagers;
 use App\Filament\Resources\ApplicantResource;
 use App\Models\Applicant;
 use Filament\Forms\Components\Select;
-use Filament\Notifications\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Colors\Color;
