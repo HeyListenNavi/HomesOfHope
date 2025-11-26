@@ -97,7 +97,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->label('Pregunta')
                     ->color('gray')
                     ->limit(90)
-                    ->tooltip(fn(Model $record) => $record->question_text_snapshot)
+                    ->tooltip(fn(Model $record) => $record->user_response)
                     ->searchable(),
             ])
             ->filters([
