@@ -323,7 +323,8 @@ class ApplicantResource extends Resource
                 TextColumn::make('currentStage.name')
                     ->label('Etapa')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->sortable(),
 
                 TextColumn::make('process_status')
                     ->label('Estatus')
