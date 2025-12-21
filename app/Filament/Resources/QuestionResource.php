@@ -11,7 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Validation\Rules\Unique;
+use Filament\Tables\Columns\TextColumn\TextColumnFontFamily;
 
 class QuestionResource extends Resource
 {
@@ -27,88 +27,115 @@ class QuestionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Configuración de la Pregunta')
-                    ->description('Selecciona la etapa y redacta la pregunta que se le hará al solicitante.')
+                Forms\Components\Section::make('Definición de la Pregunta')
+                    ->description('Configura el contenido y la etapa a la que pertenece.')
+                    ->icon('heroicon-m-chat-bubble-bottom-center-text')
+                    ->columns(1)
                     ->schema([
-                        Forms\Components\Select::make('stage_id')->relationship('stage', 'name')->required()->label('Etapa'),
-                        Forms\Components\Textarea::make('question_text')->required()->label('Pregunta')->columnSpanFull()->rows(5)->autosize(),
+                        Forms\Components\Select::make('stage_id')
+                            ->relationship('stage', 'name')
+                            ->required()
+                            ->label('Etapa del Proceso')
+                            ->prefixIcon('heroicon-m-rectangle-stack')
+                            ->native(false),
+
+                        Forms\Components\Textarea::make('question_text')
+                            ->required()
+                            ->label('Pregunta')
+                            ->placeholder('¿Cuál es tu ingreso mensual aproximado?')
+                            ->rows(3)
+                            ->autosize(),
                     ]),
-                Forms\Components\Section::make('Criterios de Evaluación Automática')
-                    ->description('Define las reglas que utilizará la IA para evaluar y aprobar la respuesta del solicitante.')
+
+                Forms\Components\Section::make('Lógica de Evaluación (IA)')
+                    ->description('Reglas automáticas para validar la respuesta del aplicante.')
+                    ->icon('heroicon-m-cpu-chip')
+                    ->collapsible()
                     ->schema([
                         Forms\Components\Repeater::make('approval_criteria')
-                            ->hiddenLabel()
+                            ->label('Reglas')
+                            ->addActionLabel('Agregar nueva regla')
+                            ->itemLabel('Regla')
                             ->schema([
-                                Forms\Components\Select::make('rule')
-                                    ->label('Regla')
-                                    ->options([
-                                        'approve_if' => 'Aprueba sí...',
-                                        'reject_if' => 'No Aprueba sí...',
-                                        'human_if' => 'Require de alguien del Equipo sí...',
-                                    ])
-                                    ->searchable()
-                                    ->required(),
-                                Forms\Components\Select::make('operator')
-                                    ->label('Operador')
-                                    ->options([
-                                        'Texto' => [
-                                            'is' => 'es igual a',
-                                            'is_not' => 'no es igual a',
-                                            'contains' => 'contiene',
+                                Forms\Components\Grid::make(3)
+                                    ->schema([
+                                        Forms\Components\Select::make('rule')
+                                            ->label('Acción')
+                                            ->options([
+                                                'approve_if' => 'Aprobar automáticamente sí...',
+                                                'reject_if' => 'Rechazar automáticamente sí...',
+                                                'human_if' => 'Solicitar revisión humana sí...',
+                                            ])
+                                            ->prefixIcon('heroicon-m-play')
+                                            ->required(),
 
-                                            'does_not_contain' => 'no contiene',
-                                            'is_empty' => 'está vacío',
-                                            'is_not_empty' => 'no está vacío',
-                                        ],
-                                        'Números' => [
-                                            'is_equal_to' => 'es igual a',
-                                            'is_greater_than' => 'es mayor que',
-                                            'is_less_than' => 'es menor que',
-                                            'is_greater_than_or_equal_to' => 'es mayor o igual que',
-                                            'is_less_than_or_equal_to' => 'es menor o igual que',
-                                            'between' => 'está entre',
-                                        ],
-                                        'Fechas' => [
-                                            'is_before' => 'es anterior a',
-                                            'is_after' => 'es posterior a',
-                                        ],
-                                    ])
-                                    ->required()
-                                    ->searchable()
-                                    ->columnSpan(function (Get $get) {
-                                        return in_array($get('operator'), ['is_empty', 'is_not_empty']) ? '2' : '1';
-                                    })
-                                    ->reactive(),
-                                Forms\Components\TextInput::make('value')
-                                    ->label('Valor de la Regla')
-                                    ->required()
-                                    ->placeholder('Escribe el valor a comparar')
-                                    ->hidden(function (Get $get) {
-                                        return in_array($get('operator'), ['is_empty', 'is_not_empty']);
-                                    }),
+                                        Forms\Components\Select::make('operator')
+                                            ->label('Condición')
+                                            ->options([
+                                                'Texto' => [
+                                                    'is' => 'es igual a',
+                                                    'is_not' => 'no es igual a',
+                                                    'contains' => 'contiene la palabra',
+                                                    'does_not_contain' => 'no contiene',
+                                                    'is_empty' => 'está vacío',
+                                                    'is_not_empty' => 'tiene contenido',
+                                                ],
+                                                'Números' => [
+                                                    'is_equal_to' => '= igual a',
+                                                    'is_greater_than' => '> mayor que',
+                                                    'is_less_than' => '< menor que',
+                                                    'is_greater_than_or_equal_to' => '>= mayor o igual',
+                                                    'is_less_than_or_equal_to' => '<= menor o igual',
+                                                    'between' => 'está entre rango',
+                                                ],
+                                            ])
+                                            ->required()
+                                            ->searchable()
+                                            ->columnSpan(fn (Get $get) => in_array($get('operator'), ['is_empty', 'is_not_empty']) ? 2 : 1)
+                                            ->reactive(),
+
+                                        Forms\Components\TextInput::make('value')
+                                            ->label('Valor de Comparación')
+                                            ->required()
+                                            ->placeholder('Valor...')
+                                            ->hidden(fn (Get $get) => in_array($get('operator'), ['is_empty', 'is_not_empty'])),
+                                    ]),
                             ])
-                            ->label('Criterios de Aprobación')
-                            ->defaultItems(0)
-                            ->columns(3)
                             ->collapsible()
+                            ->cloneable()
                             ->columnSpanFull(),
-                    ])
+                    ]),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
+            ->defaultGroup('stage.name')
+            ->defaultSort('order', 'asc')
             ->columns([
-                TextColumn::make('question_text')->limit(50)->searchable()->label('Pregunta'),
-                TextColumn::make('key')->searchable()->label('Clave única'),
-                TextColumn::make('stage.name')->toggleable(isToggledHiddenByDefault: true)->label('Etapa'),
+                TextColumn::make('question_text')
+                    ->label('Pregunta')
+                    ->limit(90)
+                    ->tooltip(fn ($record) => $record->question_text)
+                    ->searchable()
+                    ->wrap(),
+
+                TextColumn::make('stage.name')
+                    ->label('Etapa')
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->color('gray'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

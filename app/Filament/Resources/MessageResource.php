@@ -10,8 +10,10 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 
 class MessageResource extends Resource
 {
@@ -29,35 +31,31 @@ class MessageResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make('Conversación')
-                    ->description('Selecciona la conversación a la que pertenece el mensaje.')
+                    ->description('Conversación a la que pertenece este mensaje.')
+                    ->icon('heroicon-m-link')
+                    ->columns(2)
                     ->schema([
                         Forms\Components\Select::make('conversation_id')
                             ->relationship('conversation', 'chat_id')
-                            ->label('Número de Teléfono')
+                            ->label('Número de Telefono')
                             ->searchable()
                             ->preload()
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('chat_id')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->readOnly()
-                                    ->label('Número de Teléfono'),
-                                Forms\Components\TextInput::make('user_name')
-                                    ->maxLength(255)
-                                    ->label('Nombre'),
-                            ])
-                            ->required(),
-                    ]),
-                Forms\Components\Section::make('Detalles del Mensaje')
-                    ->description('Completa la información del mensaje enviado o recibido.')
-                    ->schema([
+                            ->required()
+                            ->prefixIcon('heroicon-m-chat-bubble-oval-left-ellipsis'),
+
                         Forms\Components\Select::make('role')
                             ->label('Rol')
                             ->options([
                                 'user' => 'Usuario',
                                 'assistant' => 'Bot',
                             ])
-                            ->required(),
+                            ->required()
+                            ->native(false)
+                            ->prefixIcon('heroicon-m-user'),
+                    ]),
+
+                Forms\Components\Section::make('Contenido')
+                    ->schema([
                         Forms\Components\Textarea::make('message')
                             ->label('Mensaje')
                             ->required()
@@ -71,58 +69,72 @@ class MessageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('conversation.chat_id')
-                    ->label('Número de Teléfono')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('phone')
-                    ->label('Número de Teléfono')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nombre')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('role')
+                IconColumn::make('role')
                     ->label('Rol')
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'user' => 'Usuario',
-                        'assistant' => 'Bot',
+                    ->icon(fn(string $state): string => match ($state) {
+                        'user' => 'heroicon-m-user',
+                        'assistant' => 'heroicon-m-cpu-chip',
+                        default => 'heroicon-m-question-mark-circle',
                     })
-                    ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'user' => 'success',
                         'assistant' => 'info',
-                        default => 'secondary',
+                        default => 'gray',
                     })
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('message')
-                    ->label('Mensaje')
+                    ->tooltip(fn(string $state): string => match ($state) {
+                        'user' => 'Mensaje Entrante (Usuario)',
+                        'assistant' => 'Mensaje Saliente (Bot)',
+                        default => $state,
+                    }),
+
+                TextColumn::make('conversation.user_name')
+                    ->label('Usuario')
                     ->searchable()
-                    ->limit(50),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->label('Creado en')
+                    ->placeholder('Desconocido'),
+
+                TextColumn::make('conversation.chat_id')
+                    ->label('Número de Telefono')
+                    ->icon('heroicon-m-chat-bubble-left-right')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) return '-';
+
+                        return str_starts_with($state, '521') ? substr($state, 3) : $state;
+                    })
+                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->openUrlInNewTab()
+                    ->searchable(),
+
+                TextColumn::make('message')
+                    ->label('Contenido')
+                    ->limit(60)
+                    ->tooltip(fn(Message $record) => $record->message)
+                    ->searchable()
+                    ->wrap(),
+
+                TextColumn::make('created_at')
+                    ->label('Creado En')
+                    ->since()
+                    ->color('gray')
+                    ->icon('heroicon-m-clock')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->label('Actualizado en')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('role')
+                    ->label('Filtrar por Rok')
+                    ->options([
+                        'user' => 'Entrantes (Usuarios)',
+                        'assistant' => 'Salientes (Bot)',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\BulkActionGroup::make([]),
             ]);
     }
 
@@ -137,9 +149,7 @@ class MessageResource extends Resource
     {
         return [
             'index' => Pages\ListMessages::route('/'),
-            'create' => Pages\CreateMessage::route('/create'),
             'view' => Pages\ViewMessage::route('/{record}'),
-            'edit' => Pages\EditMessage::route('/{record}/edit'),
         ];
     }
 }

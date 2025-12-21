@@ -10,7 +10,7 @@ use App\Models\ApplicantQuestionResponse;
 use App\Services\GroupAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Services\EvolutionApiNotificationService;
+use App\Services\WhatsappApiNotificationService;
 
 
 
@@ -222,7 +222,7 @@ class BotApplicantController extends Controller
                     'confirmation_status' => 'pending',
                 ]);
 
-                $notificationService = new EvolutionApiNotificationService();
+                $notificationService = new WhatsappApiNotificationService();
                 $notificationService->sendGroupSelectionLink($applicant);
 
                 return response()->json([
@@ -279,7 +279,9 @@ class BotApplicantController extends Controller
         }
 
         return response()->json([
+            "applicant_name" => $applicant->applicant_name,
             "current_stage" => $applicant->current_stage_id,
+            "status" => $applicant->process_status,
             "current_question" => [
                 "question_id" => $applicant->currentQuestion->id,
                 "question_text" => $applicant->currentQuestion->question_text,
@@ -318,6 +320,10 @@ class BotApplicantController extends Controller
             "curp" => $validated["curp"],
             "applicant_name" => $validated["applicant_name"], // Corregido
             "gender" => $validated["gender"],
+        ]);
+
+        $applicant->conversation->update([
+            'user_name' => $validated['applicant_name'],
         ]);
 
         return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);

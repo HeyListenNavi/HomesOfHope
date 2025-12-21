@@ -2,18 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ApplicantResource\RelationManagers\ConversationMessagesRelationManager;
 use App\Filament\Resources\ConversationResource\Pages;
-use App\Filament\Resources\ConversationResource\RelationManagers;
-use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager as RelationManagersConversationMessagesRelationManager;
+use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager;
 use App\Models\Conversation;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ConversationResource extends Resource
 {
@@ -30,28 +28,38 @@ class ConversationResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Datos de la Conversación')
-                    ->description('Información principal de la conversación con el solicitante.')
+                // --- SECTION 1: CONTACT INFO ---
+                Forms\Components\Section::make('Información del Contacto')
+                    ->description('Identificación del usuario en el chat.')
+                    ->icon('heroicon-m-user-circle')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('chat_id')
-                            ->required()
-                            ->maxLength(255)
-                            ->label('Número de Teléfono'),
                         Forms\Components\TextInput::make('user_name')
-                            ->maxLength(255)
-                            ->label('Nombre'),
+                            ->label('Nombre')
+                            ->prefixIcon('heroicon-m-user')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('chat_id')
+                            ->label('Número de Telefono')
+                            ->required()
+                            ->prefixIcon('heroicon-m-phone')
+                            ->maxLength(255),
                     ]),
-                Forms\Components\Section::make('Estado y Proceso')
-                    ->description('Consulta el proceso y estado actual de la conversación.')
+
+                Forms\Components\Section::make('Estado del Bot')
+                    ->description('Rastreo del flujo y estado actual del sistema.')
+                    ->icon('heroicon-m-cpu-chip')
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('current_process')
+                            ->label('Proceso Actual')
                             ->disabled()
-                            ->label('Proceso Actual'),
+                            ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state))),
+
                         Forms\Components\TextInput::make('process_status')
+                            ->label('Estatus')
                             ->disabled()
-                            ->label('Estado del Proceso'),
+                            ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state))),
                     ]),
             ]);
     }
@@ -59,44 +67,48 @@ class ConversationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('user_name')
+                TextColumn::make('user_name')
+                    ->label('Usuario')
                     ->searchable()
-                    ->default('N/A')
-                    ->label('Nombre'),
-                Tables\Columns\TextColumn::make('chat_id')
-                    ->searchable()
-                    ->label('Número de Teléfono'),
-                Tables\Columns\TextColumn::make('current_process')
-                    ->searchable()
-                    ->sortable()
+                    ->default('Desconocido'),
+
+                TextColumn::make('chat_id')
+                    ->label('Número de Telefono')
+                    ->icon('heroicon-m-chat-bubble-left-right')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) return '-';
+
+                        return str_starts_with($state, '521') ? substr($state, 3) : $state;
+                    })
+                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->openUrlInNewTab()
+                    ->searchable(),
+
+                TextColumn::make('current_process')
+                    ->label('Proceso')
                     ->badge()
-                    ->color('warning')
-                    ->label('Proceso Actual')
-                    ->default('General'),
-                Tables\Columns\TextColumn::make('process_status')
-                    ->sortable()
+                    ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state)))
+                    ->searchable(),
+
+                TextColumn::make('process_status')
+                    ->label('Estatus')
                     ->badge()
-                    ->color('info')
-                    ->label('Estado del Proceso')
-                    ->default('N/A'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->label('Creado en')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->label('Actualizado en')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state)))
+                    ->color('gray')
+                    ->searchable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->color('gray'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -108,7 +120,7 @@ class ConversationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagersConversationMessagesRelationManager::class,
+            ConversationMessagesRelationManager::class,
         ];
     }
 

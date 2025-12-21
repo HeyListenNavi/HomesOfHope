@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Actions;
 use App\Services\GroupActions;
+use Filament\Tables\Columns\TextColumn;
 
 class GroupResource extends Resource
 {
@@ -31,109 +32,111 @@ class GroupResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Datos del Grupo')
+                Forms\Components\Section::make('Detalles del Grupo')
+                    ->description('Configuración principal de la logística y capacidad.')
+                    ->icon('heroicon-m-clipboard-document-list')
                     ->columns(2)
-                    ->description('Completa la información principal del grupo y configura su capacidad y fecha de entrevista.')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->required()
                             ->label('Nombre del Grupo')
-                            ->maxLength(255),
-                        Forms\Components\DateTimePicker::make('date_time')
-                            ->seconds(false)
                             ->required()
-                            ->label('Fecha de Entrevista'),
-                        Forms\Components\TextInput::make('capacity')
-                            ->required()
-                            ->numeric()
-                            ->label('Capacidad Máxima')
-                            ->default(25)
-                            ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
-                        Forms\Components\TextInput::make('current_members_count')
-                            ->numeric()
-                            ->label('Aplicantes en el Grupo')
-                            ->disabled()
-                            ->default(0),
-                        Forms\Components\TextInput::make('location')
-                            ->columnSpanFull()
-                            ->label("Direccion")
-                            ->default(0),
-                        Forms\Components\TextInput::make('location_link')
-                            ->columnSpanFull()
-                            ->label('Link de la ubicacion')
-                            ->default(0),
+                            ->maxLength(255)
+                            ->prefixIcon('heroicon-m-user-group'),
 
+                        Forms\Components\DateTimePicker::make('date_time')
+                            ->label('Fecha de Entrevista')
+                            ->required()
+                            ->seconds(false)
+                            ->prefixIcon('heroicon-m-calendar-days')
+                            ->native(false),
+
+                        Forms\Components\TextInput::make('capacity')
+                            ->label('Capacidad Máxima')
+                            ->required()
+                            ->numeric()
+                            ->default(25)
+                            ->prefixIcon('heroicon-m-ticket')
+                            ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
+
+                        Forms\Components\TextInput::make('current_members_count')
+                            ->label('Miembros Actuales')
+                            ->numeric()
+                            ->readOnly()
+                            ->disabled() 
+                            ->default(0)
+                            ->prefixIcon('heroicon-m-users'),
+                        
+                        Forms\Components\TextInput::make('location')
+                            ->label("Dirección Física")
+                            ->placeholder('Calle, Número, Colonia...')
+                            ->prefixIcon('heroicon-m-map-pin')
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('location_link')
+                            ->label('Enlace de Google Maps')
+                            ->placeholder('https://maps.google.com/...')
+                            ->prefixIcon('heroicon-m-link')
+                            ->url() 
+                            ->columnSpanFull(),
                     ]),
-                Forms\Components\Section::make('Mensaje para los Aplicantes')
-                    ->description('Redacta un mensaje personalizado que será mostrado a los miembros del grupo.')
+
+                Forms\Components\Section::make('Comunicación')
+                    ->description('Mensaje de bienvenida e instrucciones para el grupo.')
+                    ->icon('heroicon-m-chat-bubble-left-right')
+                    ->collapsible()
                     ->schema([
                         Forms\Components\Textarea::make("message")
-                            ->columnSpan(2)
                             ->hiddenLabel()
-                            ->rows(10),
+                            ->placeholder('Escribe aquí las instrucciones que verán los aplicantes...')
+                            ->rows(6)
+                            ->columnSpanFull(),
                     ]),
-                Actions::make([
-                    // Botón para reenviar la informacion a todos los aplicantes del grupo
-                    Action::make('reSendGroupInfo')
-                        ->label("Reenviar Informacion del grupo")
-                        ->icon('heroicon-o-check-circle') 
-                        ->requiresConfirmation()
-                        ->modalHeading('Reenviar informacion del grupo')
-                        ->modalDescription("¿Estás seguro reenviar la informacion a todos los aplicantes de este grupo? Esta acción no se puede deshacer.")
-                        ->modalSubmitActionLabel('Sí, aprobar!')
-                        ->action(fn (Group $record) => GroupActions::reSendGroupMessage($record)),
-
-                    // --- Botón de mensaje personalizado a todos los aplicantes del grupo
-                    Action::make('sendCustomMessage')
-                        ->label("Enviar mensaje personalizado")
-                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
-                        ->form([
-                            Forms\Components\Textarea::make('message')
-                                ->label('Mensaje')
-                                ->required()
-                                ->rows(5)
-                                ->placeholder('Escribe tu mensaje aquí...'),
-                        ])
-                        ->modalHeading('Enviar mensaje personalizado')
-                        ->action(function (array $data, Group $record) {
-                            GroupActions::sendCustomMessageToGroup($record, $data['message']);
-                        }),
-                ])
-                ->fullWidth()
-                ->columnSpan(2),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
+                    ->label('Nombre del Grupo')
                     ->searchable()
-                    ->label('Nombre')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('capacity')
-                    ->numeric()
-                    ->label('Capacidad')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('current_members_count')
-                    ->numeric()
-                    ->label('Aplicantes en el Grupo')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('date')
-                    ->date()
+                    ->sortable()
+                    ->icon('heroicon-m-user-group'),
+
+                TextColumn::make('current_members_count')
+                    ->label('Ocupación')
+                    ->sortable()
+                    ->formatStateUsing(fn($state, Group $record) => "{$state} / {$record->capacity}")
+                    ->badge()
+                    ->color(fn($state, Group $record) => match (true) {
+                        $state >= $record->capacity => 'danger',
+                        $state >= ($record->capacity * 0.8) => 'warning',
+                        default => 'success',
+                    })
+                    ->icon(fn($state, Group $record) => $state >= $record->capacity ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
+
+                TextColumn::make('date_time')
                     ->label('Fecha de Entrevista')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->label('Creado en')
+                    ->dateTime('l d M, Y - h:i A')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                    ->icon('heroicon-m-calendar-days')
+                    ->description(fn(Group $record) => ucfirst($record->date_time->locale('es')->diffForHumans())),
+
+                TextColumn::make('created_at')
                     ->dateTime()
-                    ->label('Actualizado en')
+                    ->label('Creado')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->color('gray'),
+
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->label('Actualizado')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->color('gray'),
             ])
             ->filters([
                 //

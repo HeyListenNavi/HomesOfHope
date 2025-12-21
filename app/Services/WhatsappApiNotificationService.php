@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
-class EvolutionApiNotificationService
+class WhatsappApiNotificationService 
 {
     protected string $apiUrl;
     protected string $apiKey;
@@ -17,9 +17,8 @@ class EvolutionApiNotificationService
 
     public function __construct()
     {
-        $this->apiUrl = config('services.evolution.url');
-        $this->apiKey = config('services.evolution.key');
-        $this->instance = config('services.evolution.instance');
+        $this->apiUrl = config('services.whatsapp.url');
+        $this->apiKey = config('services.whatsapp.key');
     }
 
     public function sendGroupSelectionLink(Applicant $applicant): bool
@@ -52,15 +51,16 @@ class EvolutionApiNotificationService
         return $this->sendCustomMessage($applicant, $message);
     }
 
-    public function sendSuccessInfo( Applicant $applicant ){
+    public function sendSuccessInfo(Applicant $applicant)
+    {
         $message = "Felicidades! La cita para tu entrevista presencial fue " .
-                    "registrada con exito.\n" .
-                    "Por favor recuerda la siguiente informacion:\n" .
-                    "Tu cita es el dia: " . $applicant->group->date_time->toDateString() . "\n" .
-                    "A las: " . $applicant->group->date_time->toTimeString() . "\n" . 
-                    "Con direccion: : " . $applicant->group->location . "\n" . 
-                    "Ubicacion: " . $applicant->group->location_link . "\n";
- 
+            "registrada con exito.\n" .
+            "Por favor recuerda la siguiente informacion:\n" .
+            "Tu cita es el dia: " . $applicant->group->date_time->toDateString() . "\n" .
+            "A las: " . $applicant->group->date_time->toTimeString() . "\n" .
+            "Con direccion: : " . $applicant->group->location . "\n" .
+            "Ubicacion: " . $applicant->group->location_link . "\n";
+
         $message .= "No olvides leer la siguiente informacion importante: \n" . $applicant->group->message;
 
         $this->sendCustomMessage($applicant, $message);
@@ -83,15 +83,19 @@ class EvolutionApiNotificationService
     protected function sendText(string $recipientId, string $message): bool
     {
         try {
-            $url = "{$this->apiUrl}/message/sendText/{$this->instance}";
+            $url = "{$this->apiUrl}/messages";
 
             $response = Http::withHeaders([
-                'apikey' => $this->apiKey,
+                'D360-API-KEY' => $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->post($url, [
-                'number' => $recipientId,
-                'delay' => 1200,
-                'text' => $message,
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'type' => 'text',
+                'to' => $recipientId,
+                'text' => [
+                    'body' => $message,
+                ],
             ]);
 
             if ($response->successful()) {
@@ -101,7 +105,6 @@ class EvolutionApiNotificationService
 
             Log::error("Error al enviar mensaje a {$recipientId}: " . $response->body());
             return false;
-
         } catch (\Exception $e) {
             Log::critical("Excepción al enviar mensaje con Evolution API: " . $e->getMessage());
             return false;

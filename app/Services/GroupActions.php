@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Group;
-use App\Services\EvolutionApiNotificationService;
+use App\Services\WhatsappApiNotificationService;
 use Illuminate\Support\Facades\Log;
 
 
@@ -19,7 +19,7 @@ class GroupActions
     public static function sendCustomMessageToGroup(Group $group, string $message): void
     {
         Log::info("Enviando mensaje personalizado a todos los aplicantes del grupo con ID {$group->id}.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
 
         $applicants = $group->applicants;
 
@@ -45,7 +45,7 @@ class GroupActions
     public static function reSendGroupMessage(Group $group): void
     {
         Log::info("Reenviando el mensaje del grupo con ID {$group->id} a todos sus aplicantes.");
-        $notificationService = new EvolutionApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService();
 
         /* $groupMessage = $group->message;
 

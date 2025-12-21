@@ -50,7 +50,7 @@
 
             <fieldset class="grid gap-8 md:grid-cols-2 py-4">
                 @foreach ($availableGroups as $group)
-                    <x-form-input id="{{ $group->id }}" name="group_id[]" type="radio">
+                    <x-form-input id="{{ $group->id }}" value="{{ $group->id }}" name="group_id[]" type="radio">
                         <div class="ml-2">
                             ✏️ <span class="font-bold">Nombre:</span> {{ $group->name }}
                             <br>
