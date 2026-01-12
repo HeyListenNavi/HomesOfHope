@@ -13,8 +13,8 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\VisitController;
 use App\Http\Controllers\Api\EvidenceController;
-use app\Http\Controllers\Api\TaskController;
-use app\Http\Controllers\Api\TestimonyController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TestimonyController;
 
 
 
