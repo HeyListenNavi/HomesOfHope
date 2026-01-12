@@ -23,7 +23,7 @@ class NoteController extends Controller
             $map = [
                 'family_profile' => \App\Models\FamilyProfile::class,
                 'family_member' => \App\Models\FamilyMember::class,
-                "note" => \App\Models\Note::class,
+                "note" => \App\Models\Visit::class,
             ];
             
             $realType = $map[$type] ?? $type;
@@ -48,7 +48,7 @@ class NoteController extends Controller
         $validTypes = [
             'family_profile' => \App\Models\FamilyProfile::class,
             'family_member' => \App\Models\FamilyMember::class,
-            "visite" => \App\Models\Note::class,
+            "visite" => \App\Models\Visit::class,
         ];
         
         $className = $validTypes[$validated['noteable_type']] ?? $validated['noteable_type'];
