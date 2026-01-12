@@ -12,6 +12,7 @@ use App\Models\Message;
 use App\Models\PartialApplicant;
 use App\Models\Question;
 use App\Models\Stage;
+use App\Models\Visit;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +26,14 @@ class DatabaseSeeder extends Seeder
             GroupSeeder::class,
             ApplicantSeeder::class,
             MessageSeeder::class,
+            FamilyProfileSeeder::class,
+            FamilyMemberSeeder::class,
+            DocumentSeeder::class,
+            NoteSeeder::class,
+            VisitSeeder::class,
+            EvidenceSeeder::class,
+            TaskSeeder::class,
+            TestimonySeeder::class,
         ]);
     }
 }
