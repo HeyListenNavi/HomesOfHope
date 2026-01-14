@@ -31,9 +31,9 @@ class FamilyMember extends Model
         'is_responsible' => 'boolean',
     ];
 
-    /* -------------------------------------------------------------------------- */
-    /*                                Relationships                               */
-    /* -------------------------------------------------------------------------- */
+    protected $appends = [
+        "full_name"
+    ];
 
     /**
      * Get the family profile that this member belongs to.
@@ -57,5 +57,9 @@ class FamilyMember extends Model
     public function notes(): MorphMany
     {
         return $this->morphMany(Note::class, 'noteable');
+    }
+
+    public function getFullNameAttribute(){
+        return $this->name . " " . $this->paternal_surname . " " . $this->maternal_surname;
     }
 }
