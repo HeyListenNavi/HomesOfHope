@@ -81,12 +81,4 @@ class FamilyProfile extends Model
     {
         return $this->morphMany(Note::class, 'noteable');
     }
-    
-    /**
-     * Get all tasks related to this family profile.
-     */
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class);
-    }
 }

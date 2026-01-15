@@ -7,6 +7,8 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Models\Visit;
+use App\Filament\Resources\VisitResource;
 
 class VisitsRelationManager extends RelationManager
 {
@@ -148,8 +150,18 @@ class VisitsRelationManager extends RelationManager
                     ->label('Nueva visita'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                // 1. Botón de Edición Rápida (Modal/SlideOver)
+                Tables\Actions\EditAction::make()
+                    ->slideOver(), // Opcional: para que no ocupe toda la pantalla
+
+                // 2. Botón para IR al Recurso (View/Edit Page)
+                Tables\Actions\Action::make('open')
+                    ->label('Gestionar') // Texto del botón
+                    ->icon('heroicon-m-arrow-top-right-on-square') // Icono de "abrir externo"
+                    ->color('gray') // Color neutro para no competir con acciones principales
+                    // Aquí está la magia: Redirige a la página de edición del VisitResource
+                    ->url(fn (Visit $record): string => VisitResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(), // Opcional: si quieres que abra otra pestaña
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

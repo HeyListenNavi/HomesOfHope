@@ -18,7 +18,7 @@ class FamilyProfileResource extends Resource
     protected static ?string $model = FamilyProfile::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-home';
-    protected static ?string $navigationGroup = 'Casos Familiares';
+    protected static ?string $navigationGroup = 'Familias';
     protected static ?string $label = 'Perfil Familiar';
     protected static ?string $pluralLabel = 'Perfiles Familiares';
 
@@ -32,7 +32,9 @@ class FamilyProfileResource extends Resource
                             ->schema([
                                 Forms\Components\FileUpload::make('family_photo_path')
                                     ->image()
+                                    ->disk('public')
                                     ->directory('families')
+                                    ->visibility('public')
                                     ->columnSpan(4),
                                 Grid::make(12)
                                     ->schema([
@@ -144,8 +146,7 @@ class FamilyProfileResource extends Resource
             RelationManagers\VisitsRelationManager::class,
             RelationManagers\TestimoniesRelationManager::class,
             RelationManagers\DocumentsRelationManager::class,
-            //RelationManagers\NotesRelationManager::class,
-            //RelationManagers\TasksRelationManager::class,
+            RelationManagers\NotesRelationManager::class,
         ];
     }
 
