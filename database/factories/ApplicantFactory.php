@@ -11,7 +11,7 @@ class ApplicantFactory extends Factory
 {
     public function definition(): array
     {
-        $processStatus = $this->faker->randomElement(['in_progress', 'approved', 'rejected', 'requires_revision', 'canceled']);
+        $processStatus = $this->faker->randomElement(['in_progress', 'approved', "staff_approved", 'rejected', "staff_rejected", 'requires_revision', 'canceled']);
         
         return [
             // Se usa el chat_id de una conversación existente.
