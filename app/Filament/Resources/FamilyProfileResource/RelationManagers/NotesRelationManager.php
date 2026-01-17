@@ -7,9 +7,8 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Filament\Support\Enums\FontWeight;
 
 class NotesRelationManager extends RelationManager
 {
@@ -19,114 +18,91 @@ class NotesRelationManager extends RelationManager
 
     protected static ?string $modelLabel = 'Nota';
 
-    protected static ?string $icon = 'heroicon-o-document-text';
+    protected static ?string $icon = 'heroicon-s-document-text';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                // Usamos un Section para agrupar visualmente y dar elevación
                 Forms\Components\Section::make('Detalles de la Nota')
-                    ->description('Agrega observaciones o comentarios relevantes.')
+                    ->description('Agrega observaciones o comentarios relevantes para el seguimiento.')
+                    ->icon('heroicon-s-pencil-square')
                     ->schema([
-                        
-                        // Campo oculto para asignar automáticamente el autor
+
                         Forms\Components\Hidden::make('user_id')
                             ->default(Auth::id())
                             ->required(),
 
-                        // Editor de texto enriquecido para mejor formato
-                        Forms\Components\RichEditor::make('content')
+                        Forms\Components\Textarea::make('content')
                             ->label('Contenido')
                             ->required()
-                            ->columnSpanFull() // Ocupa todo el ancho
-                            ->toolbarButtons([
-                                'bold',
-                                'italic',
-                                'bulletList',
-                                'orderedList',
-                                'link',
-                                'redo',
-                                'undo',
-                            ])
-                            ->placeholder('Escribe aquí los detalles de la nota...'),
+                            ->columnSpanFull()
+                            ->rows(5)
+                            ->autosize()
+                            ->placeholder('Escribe aquí los detalles, acuerdos o incidentes...'),
 
-                        // Agrupación para opciones de estado/visibilidad
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\Toggle::make('is_private')
-                                    ->label('Nota Privada')
-                                    ->helperText('Solo visible para usuarios con permisos elevados.')
-                                    ->onIcon('heroicon-m-eye-slash')
-                                    ->offIcon('heroicon-m-eye')
-                                    ->default(false)
-                                    ->columnSpan(1),
-                            ]),
-                    ])
-                    ->columns(2), // Estructura interna de la sección
+                        Forms\Components\Toggle::make('is_private')
+                            ->label('Nota Confidencial')
+                            ->helperText('Solo visible para administradores y el creador.')
+                            ->onIcon('heroicon-s-lock-closed')
+                            ->offIcon('heroicon-s-globe-americas')
+                            ->onColor('danger')
+                            ->offColor('success')
+                            ->default(false),
+                    ]),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('content')
             ->columns([
-                // Columna del Autor con Avatar si tu usuario tiene uno, o solo nombre
-                Tables\Columns\TextColumn::make('author.name')
-                    ->label('Autor')
-                    ->icon('heroicon-m-user')
-                    ->sortable()
-                    ->searchable(),
-
-                // Contenido truncado para no romper la tabla
-                Tables\Columns\TextColumn::make('content')
-                    ->label('Contenido')
-                    ->html() // Necesario porque usamos RichEditor
-                    ->limit(50)
-                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
-                        return strip_tags($column->getState());
-                    })
-                    ->wrap(),
-
-                // Indicador visual de privacidad
-                Tables\Columns\IconColumn::make('is_private')
-                    ->label('Privada')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-lock-closed')
-                    ->falseIcon('heroicon-o-globe-americas')
-                    ->trueColor('danger')
-                    ->falseColor('success')
-                    ->sortable(),
-
-                // Fecha de creación con formato amigable
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
-                    ->dateTime('d M Y, H:i')
+                    ->dateTime('d M Y, H:i A')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->color('gray'),
+
+                Tables\Columns\TextColumn::make('author.name')
+                    ->label('Autor')
+                    ->icon('heroicon-s-user')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('content')
+                    ->label('Resumen')
+                    ->formatStateUsing(fn (string $state) => strip_tags($state))
+                    ->limit(60)
+                    ->wrap()
+                    ->tooltip(fn ($record) => strip_tags($record->content)),
             ])
             ->filters([
-                // Filtro para ver solo notas privadas o públicas
-                Tables\Filters\TernaryFilter::make('is_private')
-                    ->label('Privacidad')
-                    ->placeholder('Todas las notas')
-                    ->trueLabel('Solo Privadas')
-                    ->falseLabel('Solo Públicas'),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->label('Nueva Nota'),
+                    ->label('Agregar Nota')
+                    ->icon('heroicon-s-plus')
+                    ->slideOver()
+                    ->modalWidth('2xl')
+                    ->modalHeading('Crear Nueva Nota'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-s-pencil-square')
+                    ->slideOver()
+                    ->modalWidth('2xl')
+                    ->modalHeading('Editar Nota'),
+
+                Tables\Actions\DeleteAction::make()
+                    ->icon('heroicon-s-trash')
+                    ->modalHeading('Borrar Nota'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc'); // Las notas más nuevas primero
+            ->defaultSort('created_at', 'desc');
     }
 }

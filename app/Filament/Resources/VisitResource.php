@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\VisitResource\Pages;
-use App\Models\Visit;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Visit;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Resources\Resource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\ToggleButtons;
+use App\Filament\Resources\VisitResource\Pages;
 use App\Filament\Resources\VisitResource\RelationManagers;
 
 class VisitResource extends Resource
@@ -32,104 +33,123 @@ class VisitResource extends Resource
     {
         return $form
             ->schema([
-                // GRUPO 1: Logística de la Visita (Izquierda)
-                Forms\Components\Group::make()
+                Forms\Components\Grid::make(3)
                     ->schema([
-                        Forms\Components\Section::make('Información General')
-                            ->description('Detalles principales de la cita.')
-                            ->icon('heroicon-o-information-circle')
+                        // COLUMNA IZQUIERDA (Contenido Principal)
+                        Forms\Components\Group::make()
+                            ->columnSpan(['lg' => 2])
                             ->schema([
-                                // Selección de Familia
-                                Forms\Components\Select::make('family_profile_id')
-                                    ->relationship('familyProfile', 'family_name')
-                                    ->label('Familia')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->prefixIcon('heroicon-o-users'),
+                                Forms\Components\Section::make('Detalles de la Visita')
+                                    ->icon('heroicon-s-clipboard-document-list')
+                                    ->schema([
+                                        Forms\Components\Select::make('family_profile_id')
+                                            ->relationship('familyProfile', 'family_name')
+                                            ->label('Familia a visitar')
+                                            ->searchable()
+                                            ->preload()
+                                            ->default(fn() => request('family_profile_id')) // Mantiene la magia del botón "Agendar"
+                                            ->required()
+                                            ->prefixIcon('heroicon-s-users'),
 
-                                // Tipo de Ubicación (con iconos visuales)
-                                Forms\Components\Select::make('location_type')
-                                    ->label('Tipo de Ubicación')
-                                    ->options([
-                                        'home' => 'Domiciliaria',
-                                        'office' => 'En Oficina',
-                                        'virtual' => 'Virtual / Llamada',
-                                        'field' => 'Campo / Otro',
+                                        ToggleButtons::make('location_type')
+                                            ->label('Modalidad')
+                                            ->options([
+                                                'home' => 'Domicilio',
+                                                'office' => 'Oficina',
+                                                'virtual' => 'Virtual',
+                                                'field' => 'Campo',
+                                            ])
+                                            ->icons([
+                                                'home' => 'heroicon-s-home',
+                                                'office' => 'heroicon-s-building-office',
+                                                'virtual' => 'heroicon-s-video-camera',
+                                                'field' => 'heroicon-s-map',
+                                            ])
+                                            ->colors([
+                                                'home' => 'success',   // Verde = Ideal
+                                                'office' => 'info',    // Azul = Formal
+                                                'virtual' => 'warning', // Naranja = Distancia
+                                                'field' => 'gray',     // Gris = Otro
+                                            ])
+                                            ->inline()
+                                            ->required(),
+                                    ]),
+
+                                Forms\Components\Section::make('Notas para quien Visita')
+                                    ->description('Instrucciones o contexto para la persona que realizará la visita.')
+                                    ->icon('heroicon-s-pencil-square')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('outcome_summary')
+                                            ->label('Instrucciones / Contexto')
+                                            ->placeholder('Ej: Verificar si terminaron el techo, preguntar por la salud del abuelo...')
+                                            ->rows(4)
+                                            ->autosize()
+                                            ->columnSpanFull(),
                                     ])
-                                    ->required()
-                                    ->native(false)
-                                    ->prefixIcon('heroicon-o-building-office-2'),
+                                    ->disabled(fn(Forms\Get $get) => $get('status') !== 'scheduled'),
+                            ]),
 
-                                // Asignación del personal
-                                Forms\Components\Select::make('attended_by')
-                                    ->relationship('attendant', 'name')
-                                    ->label('Atendido por')
-                                    ->default(Auth::id())
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->prefixIcon('heroicon-o-user'),
-                            ])->columns(2),
-
-                        // Resultado de la visita (Editor grande)
-                        Forms\Components\Section::make('Resultados y Observaciones')
-                            ->description('Resumen de lo sucedido durante la visita.')
-                            ->icon('heroicon-o-clipboard-document-list')
+                        // COLUMNA DERECHA (Barra Lateral: Agenda y Estatus)
+                        Forms\Components\Group::make()
+                            ->columnSpan(['lg' => 1])
                             ->schema([
-                                Forms\Components\RichEditor::make('outcome_summary')
-                                    ->label('Resumen del Resultado')
-                                    ->placeholder('Describa los hallazgos, acuerdos y conclusiones...')
-                                    ->toolbarButtons([
-                                        'bold', 'italic', 'bulletList', 'orderedList', 'link',
-                                    ])
-                                    ->columnSpanFull(),
+                                Forms\Components\Section::make('Agenda')
+                                    ->icon('heroicon-s-calendar')
+                                    ->schema([
+                                        Forms\Components\DateTimePicker::make('scheduled_at')
+                                            ->label('Fecha Programada')
+                                            ->required()
+                                            ->native(false)
+                                            ->prefixIcon('heroicon-s-clock'),
+
+                                        Forms\Components\Select::make('attended_by')
+                                            ->relationship('attendant', 'name')
+                                            ->label('Responsable')
+                                            ->default(Auth::id())
+                                            ->searchable()
+                                            ->preload()
+                                            ->prefixIcon('heroicon-s-user-circle'),
+
+                                        Forms\Components\DateTimePicker::make('completed_at')
+                                            ->label('Cierre')
+                                            ->native(false)
+                                            // Solo visible cuando ya se cerró la visita
+                                            ->visible(fn(Forms\Get $get) => in_array($get('status'), ['completed', 'cancelled'])),
+                                    ]),
+
+                                Forms\Components\Section::make('Estado')
+                                    ->schema([
+                                        ToggleButtons::make('status')
+                                            ->default('scheduled')
+                                            ->hiddenLabel()
+                                            ->options([
+                                                'scheduled' => 'Programada',
+                                                'completed' => 'Completada',
+                                                'cancelled' => 'Cancelada',
+                                                'no_show' => 'No se presentó',
+                                                'rescheduled' => 'Reprogramada',
+                                            ])
+                                            ->colors([
+                                                'scheduled' => 'info',
+                                                'completed' => 'success',
+                                                'cancelled' => 'danger',
+                                                'no_show' => 'warning',
+                                                'rescheduled' => 'gray',
+                                            ])
+                                            ->icons([
+                                                'scheduled' => 'heroicon-s-calendar',
+                                                'completed' => 'heroicon-s-check-circle',
+                                                'cancelled' => 'heroicon-s-x-circle',
+                                                'no_show' => 'heroicon-s-eye-slash',
+                                                'rescheduled' => 'heroicon-s-arrow-path',
+                                            ])
+                                            ->default('scheduled'),
+                                    ]),
                             ]),
                     ])
-                    ->columnSpan(['lg' => 2]),
-
-                // GRUPO 2: Estado y Tiempos (Derecha)
-                Forms\Components\Group::make()
-                    ->schema([
-                        Forms\Components\Section::make('Estado y Agenda')
-                            ->icon('heroicon-o-calendar-days')
-                            ->schema([
-                                // Estado con colores semánticos
-                                Forms\Components\Select::make('status')
-                                    ->label('Estado Actual')
-                                    ->options([
-                                        'scheduled' => 'Programada',
-                                        'completed' => 'Completada',
-                                        'cancelled' => 'Cancelada',
-                                        'no_show' => 'No se presentó',
-                                        'rescheduled' => 'Reprogramada',
-                                    ])
-                                    ->default('scheduled')
-                                    ->required()
-                                    ->native(false)
-                                    ->selectablePlaceholder(false),
-
-                                // Fechas
-                                Forms\Components\DateTimePicker::make('scheduled_at')
-                                    ->label('Fecha Programada')
-                                    ->required()
-                                    ->native(false)
-                                    ->seconds(false),
-
-                                Forms\Components\DateTimePicker::make('completed_at')
-                                    ->label('Fecha de Cierre')
-                                    ->native(false)
-                                    ->seconds(false)
-                                    ->placeholder('Pendiente de cierre')
-                                    ->visible(fn (Forms\Get $get) => in_array($get('status'), ['completed', 'cancelled'])),
-                            ]),
-                    ])
-                    ->columnSpan(['lg' => 1]),
-            ])
-            ->columns(3);
+            ]);
     }
 
-    // CORRECCIÓN: Agregado 'static' aquí
     public static function table(Table $table): Table
     {
         return $table
@@ -137,14 +157,41 @@ class VisitResource extends Resource
                 Tables\Columns\TextColumn::make('familyProfile.family_name')
                     ->label('Familia')
                     ->searchable()
-                    ->sortable()
-                    ->weight('bold')
-                    ->icon('heroicon-o-users'),
+                    ->icon('heroicon-s-users')
+                    ->color('gray'),
+
+                Tables\Columns\TextColumn::make('scheduled_at')
+                    ->label('Fecha')
+                    ->dateTime('d M Y')
+                    ->description(fn($record) => $record->scheduled_at->format('h:i A')) // Hora debajo
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('location_type')
+                    ->label('Tipo')
+                    ->icon(fn(string $state): string => match ($state) {
+                        'home' => 'heroicon-s-home',
+                        'office' => 'heroicon-s-building-office',
+                        'virtual' => 'heroicon-s-video-camera',
+                        default => 'heroicon-s-map-pin',
+                    })
+                    ->tooltip(fn(string $state): string => match ($state) {
+                        'home' => 'Domiciliaria',
+                        'office' => 'Oficina',
+                        'virtual' => 'Virtual',
+                        default => 'Campo',
+                    })
+                    ->color(fn(string $state): string => match ($state) {
+                        'home' => 'success',
+                        'office' => 'info',
+                        'virtual' => 'warning',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->sortable()
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
                         'scheduled' => 'Programada',
                         'completed' => 'Completada',
                         'cancelled' => 'Cancelada',
@@ -152,42 +199,27 @@ class VisitResource extends Resource
                         'rescheduled' => 'Reprogramada',
                         default => $state,
                     })
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'scheduled' => 'info',
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         'no_show' => 'warning',
-                        'rescheduled' => 'gray',
                         default => 'gray',
                     })
-                    ->icon(fn (string $state): ?string => match ($state) {
-                        'scheduled' => 'heroicon-o-clock',
-                        'completed' => 'heroicon-o-check-circle',
-                        'cancelled' => 'heroicon-o-x-circle',
+                    ->icon(fn(string $state): ?string => match ($state) {
+                        'scheduled' => 'heroicon-s-calendar',
+                        'completed' => 'heroicon-s-check-circle',
+                        'cancelled' => 'heroicon-s-x-circle',
+                        'no_show' => 'heroicon-s-eye-slash',
                         default => null,
                     }),
 
-                Tables\Columns\IconColumn::make('location_type')
-                    ->label('Tipo')
-                    ->icon(fn (string $state): string => match ($state) {
-                        'home' => 'heroicon-o-home',
-                        'office' => 'heroicon-o-building-office',
-                        'virtual' => 'heroicon-o-computer-desktop',
-                        default => 'heroicon-o-question-mark-circle',
-                    })
-                    ->tooltip(fn (string $state): string => match ($state) {
-                        'home' => 'Domiciliaria',
-                        'office' => 'Oficina',
-                        'virtual' => 'Virtual',
-                        default => 'Otro',
-                    }),
-
-                Tables\Columns\TextColumn::make('scheduled_at')
-                    ->label('Programada')
-                    ->dateTime('d M Y, H:i')
-                    ->sortable()
-                    ->description(fn (Visit $record) => $record->attendant ? 'Por: ' . $record->attendant->name : null),
+                Tables\Columns\TextColumn::make('attendant.name')
+                    ->label('Atiende')
+                    ->icon('heroicon-s-user')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('scheduled_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado')
@@ -196,7 +228,7 @@ class VisitResource extends Resource
                         'completed' => 'Completada',
                         'cancelled' => 'Cancelada',
                     ]),
-                
+
                 Tables\Filters\Filter::make('scheduled_at')
                     ->form([
                         Forms\Components\DatePicker::make('from')->label('Desde'),
@@ -204,25 +236,19 @@ class VisitResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when(
-                                $data['from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('scheduled_at', '>=', $date),
-                            )
-                            ->when(
-                                $data['until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('scheduled_at', '<=', $date),
-                            );
+                            ->when($data['from'], fn(Builder $query, $date) => $query->whereDate('scheduled_at', '>=', $date))
+                            ->when($data['until'], fn(Builder $query, $date) => $query->whereDate('scheduled_at', '<=', $date));
                     })
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-s-pencil-square'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            ->defaultSort('scheduled_at', 'desc');
+            ]);
     }
 
     public static function getRelations(): array

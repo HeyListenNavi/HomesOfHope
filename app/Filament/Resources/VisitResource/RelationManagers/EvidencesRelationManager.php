@@ -8,29 +8,36 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Filament\Support\Enums\FontWeight;
+use Illuminate\Support\Facades\Storage;
 
 class EvidencesRelationManager extends RelationManager
 {
     protected static string $relationship = 'evidences';
 
-    protected static ?string $title = 'Evidencia';
+    protected static ?string $title = 'Evidencia y Archivos'; // Título más completo
 
-    protected static ?string $icon = 'heroicon-o-camera';
+    protected static ?string $icon = 'heroicon-s-camera'; // Icono sólido
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Section::make('Cargar Evidencia')
-                    ->description('Sube fotos o documentos de la visita.')
+                    ->description('Sube fotografías o documentos que validen la visita.')
+                    ->icon('heroicon-s-arrow-up-tray')
                     ->schema([
                         Forms\Components\FileUpload::make('file_path')
-                            ->label('Archivo')
-                            ->image() // O quita esto si aceptas PDFs
-                            ->imageEditor()
+                            ->label('Archivo de Evidencia')
+                            ->image() // Priorizamos imágenes
+                            ->imageEditor() // Permite recortar/rotar antes de subir
+                            ->disk('public')
                             ->directory('evidence-visits')
                             ->required()
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->downloadable() // Permite descargar al editar
+                            ->openable() // Permite abrir en nueva pestaña
+                            ->previewable(),
 
                         Forms\Components\Hidden::make('taken_by')
                             ->default(Auth::id()),
@@ -43,41 +50,52 @@ class EvidencesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('file_path')
             ->columns([
-                // Vista previa de la imagen
+                // Imagen con estilo redondeado
                 Tables\Columns\ImageColumn::make('file_path')
-                    ->label('Evidencia')
+                    ->label('Vista Previa')
                     ->square()
-                    ->height(80),
+                    ->size(80)
+                    ->extraImgAttributes(['class' => 'rounded-lg object-cover shadow-sm']),
 
                 Tables\Columns\TextColumn::make('photographer.name')
                     ->label('Subido por')
-                    ->icon('heroicon-o-user')
+                    ->icon('heroicon-s-user')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
-                    ->dateTime('d M Y, H:i')
-                    ->sortable(),
+                    ->dateTime('d M Y, h:i A')
+                    ->sortable()
+                    ->color('gray'),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->label('Subir Evidencia')
+                    ->icon('heroicon-s-arrow-up-tray')
+                    ->slideOver() // Panel lateral es mejor para cargas
                     ->modalWidth('md'),
             ])
             ->actions([
-                Tables\Actions\DeleteAction::make(),
-                // Ver imagen en grande
+                // Acción rápida para descargar sin abrir el registro
+                Tables\Actions\Action::make('download')
+                    ->label('')
+                    ->icon('heroicon-s-arrow-down-tray')
+                    ->tooltip('Descargar')
+                    ->url(fn ($record) => Storage::url($record->file_path))
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\ViewAction::make()
-                    ->form([
-                         Forms\Components\FileUpload::make('file_path')
-                            ->image()
-                            ->columnSpanFull(),
-                    ]),
+                    ->icon('heroicon-s-eye')
+                    ->modalWidth('xl'),
+
+                Tables\Actions\DeleteAction::make()
+                    ->icon('heroicon-s-trash'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 }

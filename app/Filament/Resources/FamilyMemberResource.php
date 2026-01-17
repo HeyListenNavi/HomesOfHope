@@ -2,15 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\FamilyMemberResource\Pages;
-use App\Models\FamilyMember;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Models\FamilyMember;
+use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\FamilyMemberResource\Pages;
 
 class FamilyMemberResource extends Resource
 {
@@ -30,118 +31,120 @@ class FamilyMemberResource extends Resource
     {
         return $form
             ->schema([
-                // COLUMNA IZQUIERDA: Datos Personales (La parte densa)
                 Forms\Components\Group::make()
                     ->schema([
+                        // SECCIÓN 1: IDENTIDAD
                         Forms\Components\Section::make('Identificación Personal')
-                            ->description('Datos generales del miembro.')
-                            ->icon('heroicon-o-identification')
+                            ->icon('heroicon-s-identification')
                             ->schema([
-                                Forms\Components\Grid::make(3) // Dividimos en 3 columnas para nombre
+                                // Fila de Nombres
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\TextInput::make('name')
                                             ->label('Nombre(s)')
                                             ->required()
+                                            ->placeholder('Ej. Juan Carlos')
                                             ->maxLength(255),
-                                        
+
                                         Forms\Components\TextInput::make('paternal_surname')
                                             ->label('Apellido Paterno')
                                             ->required()
+                                            ->placeholder('Ej. Pérez')
                                             ->maxLength(255),
-                                        
+
                                         Forms\Components\TextInput::make('maternal_surname')
                                             ->label('Apellido Materno')
                                             ->required()
+                                            ->placeholder('Ej. López')
                                             ->maxLength(255),
                                     ]),
 
-                                Forms\Components\Grid::make(2) // Dividimos en 2 para detalles
+                                // Fila de Detalles
+                                Forms\Components\Grid::make(2)
                                     ->schema([
                                         Forms\Components\DatePicker::make('birth_date')
                                             ->label('Fecha de Nacimiento')
                                             ->required()
                                             ->native(false)
                                             ->maxDate(now())
-                                            ->prefixIcon('heroicon-o-cake'),
+                                            ->prefixIcon('heroicon-s-cake'),
 
                                         Forms\Components\TextInput::make('curp')
                                             ->label('CURP')
                                             ->maxLength(18)
-                                            ->visibleOn('create') // Opcional: validaciones extras
-                                            ->prefixIcon('heroicon-o-finger-print')
-                                            ->placeholder('CLAVE ÚNICA...'),
-                                        
+                                            ->prefixIcon('heroicon-s-finger-print')
+                                            ->placeholder('CURP')
+                                            ->required()
+                                            ->formatStateUsing(fn(?string $state) => strtoupper($state)),
+
                                         Forms\Components\TextInput::make('occupation')
                                             ->label('Ocupación')
+                                            ->columnSpanFull()
                                             ->maxLength(255)
-                                            ->prefixIcon('heroicon-o-briefcase')
-                                            ->columnSpanFull(),
+                                            ->prefixIcon('heroicon-s-briefcase'),
                                     ]),
                             ]),
 
-                        Forms\Components\Section::make('Información Médica')
-                            ->description('Condiciones, alergias o notas de salud relevantes.')
-                            ->icon('heroicon-o-heart')
-                            ->collapsed() // Colapsado por defecto para no saturar si está vacío
+                        Forms\Components\Section::make('Ficha Médica')
+                            ->description('Condiciones, alergias o notas de salud importantes.')
+                            ->icon('heroicon-s-heart')
+                            ->collapsed()
                             ->schema([
-                                Forms\Components\RichEditor::make('medical_notes')
-                                    ->label('Notas Clínicas / Médicas')
-                                    ->toolbarButtons(['bold', 'bulletList', 'orderedList'])
-                                    ->placeholder('Escribe aquí alergias, enfermedades crónicas, etc.'),
+                                Forms\Components\Textarea::make('medical_notes')
+                                    ->label('')
+                                    ->rows(5)
+                                    ->autoSize()
+                                    ->placeholder('Escribe aquí alergias, enfermedades crónicas, tipo de sangre, etc.'),
                             ]),
                     ])
                     ->columnSpan(['lg' => 2]),
 
-                // COLUMNA DERECHA: Vinculación y Contacto
                 Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\Section::make('Vinculación Familiar')
-                            ->icon('heroicon-o-users')
+                        Forms\Components\Section::make('Vinculación')
+                            ->icon('heroicon-s-users')
                             ->schema([
                                 Forms\Components\Select::make('family_profile_id')
                                     ->relationship('familyProfile', 'family_name')
-                                    ->label('Familia')
+                                    ->label('Pertenece a la Familia')
                                     ->searchable()
                                     ->preload()
                                     ->required()
-                                    ->createOptionForm([ // Permite crear familia al vuelo si es necesario
-                                        Forms\Components\TextInput::make('family_name')
-                                            ->required(),
-                                    ]),
+                                    ->prefixIcon('heroicon-s-home'),
 
                                 Forms\Components\Select::make('relationship')
-                                    ->label('Parentesco')
+                                    ->label('Rol Familiar')
                                     ->options([
-                                        'Jefe de Familia' => 'Jefe(a) de Familia',
-                                        'Esposo' => 'Esposo(a) / Pareja',
-                                        'Hijo' => 'Hijo(a)',
-                                        'Abuelo' => 'Abuelo(a)',
-                                        'Nieto' => 'Nieto(a)',
-                                        'Otro' => 'Otro',
+                                        'padre' => '👨 Padre de Familia',
+                                        'madre' => '👩 Madre de Familia',
+                                        'hijo' => '👶 Hijo(a)',
+                                        'abuelo' => '👴 Abuelo(a)',
+                                        'nieto' => '🧸 Nieto(a)',
+                                        'otro' => '👤 Otro',
                                     ])
                                     ->required()
                                     ->native(false),
 
                                 Forms\Components\Toggle::make('is_responsible')
-                                    ->label('Es Responsable Principal')
-                                    ->helperText('Marca si esta persona responde por la familia.')
-                                    ->onIcon('heroicon-m-check-badge')
-                                    ->offIcon('heroicon-m-user')
+                                    ->label('Es el Aplicante')
+                                    ->helperText('¿Es la persona que aplica?')
+                                    ->onIcon('heroicon-s-check-badge')
+                                    ->offIcon('heroicon-s-user')
                                     ->onColor('success'),
                             ]),
 
-                        Forms\Components\Section::make('Contacto')
-                            ->icon('heroicon-o-phone')
+                        Forms\Components\Section::make('Contacto Directo')
+                            ->icon('heroicon-s-phone')
                             ->schema([
                                 Forms\Components\TextInput::make('phone')
-                                    ->label('Teléfono')
-                                    ->tel()
-                                    ->prefixIcon('heroicon-o-device-phone-mobile'),
-                                
+                                    ->label('Teléfono (WhatsApp)')
+                                    ->required()
+                                    ->prefixIcon('heroicon-s-chat-bubble-left-right'),
+
                                 Forms\Components\TextInput::make('email')
-                                    ->label('Correo Electrónico')
+                                    ->label('Correo (Opcional)')
                                     ->email()
-                                    //->prefixIcon('heroicon-o-at'),
+                                    ->placeholder('correo@ejemplo.com'),
                             ]),
                     ])
                     ->columnSpan(['lg' => 1]),
@@ -153,64 +156,57 @@ class FamilyMemberResource extends Resource
     {
         return $table
             ->columns([
-                // Columna 1: Nombre Completo y Rol
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Miembro')
-                    ->formatStateUsing(fn (FamilyMember $record) => "{$record->name} {$record->paternal_surname}")
-                    ->description(fn (FamilyMember $record) => $record->maternal_surname) // Muestra el materno abajo en gris
+                    ->label('Nombre Completo')
+                    ->formatStateUsing(fn(FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
                     ->searchable(['name', 'paternal_surname', 'maternal_surname'])
                     ->sortable()
-                    ->icon(fn ($record) => $record->is_responsible ? 'heroicon-o-star' : 'heroicon-o-user')
-                    ->iconColor(fn ($record) => $record->is_responsible ? 'warning' : 'gray'),
+                    ->icon(fn($record) => $record->is_responsible ? 'heroicon-s-star' : null)
+                    ->iconColor('warning'),
 
-                // Columna 2: Familia a la que pertenece
                 Tables\Columns\TextColumn::make('familyProfile.family_name')
                     ->label('Familia')
                     ->sortable()
                     ->searchable()
-                    ->badge()
+                    ->icon('heroicon-s-home')
                     ->color('gray'),
 
-                // Columna 3: Parentesco
                 Tables\Columns\TextColumn::make('relationship')
-                    ->label('Parentesco')
-                    ->sortable()
+                    ->label('Rol')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Jefe de Familia' => 'success',
-                        'Hijo' => 'info',
+                    ->formatStateUsing(fn(string $state): string => ucfirst($state))
+                    ->color(fn(string $state): string => match ($state) {
+                        'padre', 'madre' => 'primary',
+                        'hijo', 'nieto' => 'info',
                         default => 'gray',
                     }),
 
-                // Columna 4: Edad (Calculada al vuelo)
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
-                    ->date('d/m/Y') // Muestra fecha
-                    ->description(fn (FamilyMember $record) => $record->birth_date ? $record->birth_date->age . ' años' : '-')
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(fn($state) => $state ? $state->age . ' años' : '-')
+                    ->description(fn(FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
 
-                // Columna 5: Contacto Rápido
+                // CAMBIO AQUÍ: Lógica de WhatsApp
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Contacto')
-                    ->icon('heroicon-o-phone')
-                    ->copyable() // Permite copiar el teléfono con un click
-                    ->toggleable(),
+                    ->label('WhatsApp')
+                    ->icon('heroicon-s-chat-bubble-left-right')
+                    ->url(fn($state) => $state ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $state) : null)
+                    ->openUrlInNewTab(),
             ])
             ->filters([
-                // Filtro por Familia
                 Tables\Filters\SelectFilter::make('family_profile_id')
                     ->relationship('familyProfile', 'family_name')
-                    ->label('Por Familia')
+                    ->label('Filtrar por Familia')
                     ->searchable()
                     ->preload(),
 
-                // Filtro solo responsables
                 Tables\Filters\TernaryFilter::make('is_responsible')
-                    ->label('Responsables de Hogar'),
+                    ->label('Solo Responsables'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-s-pencil-square'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

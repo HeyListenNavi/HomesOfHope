@@ -15,28 +15,39 @@ class NotesRelationManager extends RelationManager
 
     protected static ?string $title = 'Notas';
 
-    protected static ?string $icon = 'heroicon-o-document-text';
+    protected static ?string $modelLabel = 'Nota';
+
+    protected static ?string $icon = 'heroicon-s-document-text';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Nueva Nota')
+                Forms\Components\Section::make('Detalles de la Nota')
+                    ->description('Agrega observaciones o comentarios relevantes para el seguimiento.')
+                    ->icon('heroicon-s-pencil-square')
                     ->schema([
-                        Forms\Components\RichEditor::make('content')
+
+                        Forms\Components\Hidden::make('user_id')
+                            ->default(Auth::id())
+                            ->required(),
+
+                        Forms\Components\Textarea::make('content')
                             ->label('Contenido')
                             ->required()
-                            ->toolbarButtons(['bold', 'italic', 'bulletList', 'link'])
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->rows(5)
+                            ->autosize()
+                            ->placeholder('Escribe aquí los detalles, acuerdos o incidentes...'),
 
-                        Forms\Components\Toggle::make('is_private') // Recuerda agregar 'is_private' al $fillable de Note
-                            ->label('Nota Privada')
-                            ->onIcon('heroicon-o-lock-closed')
-                            ->offIcon('heroicon-o-eye')
+                        Forms\Components\Toggle::make('is_private')
+                            ->label('Nota Confidencial')
+                            ->helperText('Solo visible para administradores y el creador.')
+                            ->onIcon('heroicon-s-lock-closed')
+                            ->offIcon('heroicon-s-globe-americas')
+                            ->onColor('danger')
+                            ->offColor('success')
                             ->default(false),
-                            
-                        Forms\Components\Hidden::make('user_id')
-                            ->default(Auth::id()),
                     ]),
             ]);
     }
@@ -44,36 +55,51 @@ class NotesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('content')
             ->columns([
-                Tables\Columns\TextColumn::make('author.name')
-                    ->label('Autor')
-                    ->icon('heroicon-o-user')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('content')
-                    ->label('Nota')
-                    ->html()
-                    ->limit(50)
-                    ->wrap(),
-
-                Tables\Columns\IconColumn::make('is_private')
-                    ->label('Privado')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-lock-closed')
-                    ->falseIcon('heroicon-o-globe-alt'),
-
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
-                    ->dateTime('d M Y, H:i')
-                    ->sortable(),
+                    ->dateTime('d M Y, H:i A')
+                    ->sortable()
+                    ->color('gray'),
+
+                Tables\Columns\TextColumn::make('author.name')
+                    ->label('Autor')
+                    ->icon('heroicon-s-user')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('content')
+                    ->label('Resumen')
+                    ->formatStateUsing(fn(string $state) => strip_tags($state))
+                    ->limit(60)
+                    ->wrap()
+                    ->tooltip(fn($record) => strip_tags($record->content)),
             ])
+            ->filters([])
             ->headerActions([
-                Tables\Actions\CreateAction::make()->slideOver(),
+                Tables\Actions\CreateAction::make()
+                    ->label('Agregar Nota')
+                    ->icon('heroicon-s-plus')
+                    ->slideOver()
+                    ->modalWidth('2xl')
+                    ->modalHeading('Crear Nueva Nota'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->slideOver(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-s-pencil-square')
+                    ->slideOver()
+                    ->modalWidth('2xl')
+                    ->modalHeading('Editar Nota'),
+
+                Tables\Actions\DeleteAction::make()
+                    ->icon('heroicon-s-trash')
+                    ->modalHeading('Borrar Nota'),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ])
             ->defaultSort('created_at', 'desc');
     }
