@@ -42,7 +42,6 @@ class Inbox extends Page implements HasTable
                     ->where('process_status', 'requires_revision')
                     ->latest('updated_at')
             )
-            ->poll('10s')
             ->columns([
                 TextColumn::make('applicant_name')
                     ->label('Nombre')
@@ -91,7 +90,6 @@ class Inbox extends Page implements HasTable
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    // Bulk Approve feature
                     BulkAction::make('markSelectedAsRead')
                         ->label('Marcar seleccionados como listos')
                         ->icon('heroicon-m-check-badge')

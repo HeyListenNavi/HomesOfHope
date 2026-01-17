@@ -83,7 +83,9 @@ class ApplicantResource extends Resource
                             ->options([
                                 'in_progress' => 'En Progreso',
                                 'approved' => 'Aprobado',
+                                "staff_approved" => "Aprobado por Staff",
                                 'rejected' => 'Rechazado',
+                                "staff_rejected" => "Rechazado por Staff",
                                 'requires_revision' => 'Requiere Revisión',
                                 'canceled' => 'Cancelado',
                             ])
@@ -98,8 +100,8 @@ class ApplicantResource extends Resource
                             ->searchable()
                             ->preload()
                             ->prefixIcon('heroicon-m-user-group')
-                            ->disabled(fn(Get $get) => $get('process_status') !== 'approved')
-                            ->helperText(fn(Get $get) => $get('process_status') !== 'approved' ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
+                            ->disabled(fn(Get $get) => !in_array($get('process_status'), ['approved', 'staff_approved']))
+                            ->helperText(fn(Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
                     ]),
 
                 Forms\Components\Section::make('Seguimiento')
@@ -127,7 +129,7 @@ class ApplicantResource extends Resource
 
                 Forms\Components\Section::make('Detalles de Rechazo')
                     ->icon('heroicon-m-x-circle')
-                    ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected']))
+                    ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected', 'staff_rejected']))
                     ->schema([
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Motivo')
@@ -175,7 +177,7 @@ class ApplicantResource extends Resource
                         })
                         ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
 
-                    // Botón de mensaje personalizado 
+                    // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
                         ->label("Enviar mensaje personalizado")
                         ->icon('heroicon-o-chat-bubble-bottom-center-text')
@@ -331,8 +333,10 @@ class ApplicantResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => match ($state) {
                         'in_progress' => 'En Progreso',
-                        'approved' => 'Aprobado',
-                        'rejected' => 'Rechazado',
+                        'approved' => 'IA: Aprobado',
+                        'rejected' => 'IA: Rechazado',
+                        'staff_approved' => 'Staff: Aprobado',
+                        'staff_rejected' => 'Staff: Rechazado',
                         'requires_revision' => 'Revisión',
                         'canceled' => 'Cancelado',
                         default => $state,
@@ -340,16 +344,21 @@ class ApplicantResource extends Resource
                     ->color(fn(string $state): string => match ($state) {
                         'in_progress' => 'info',
                         'approved' => 'success',
+                        'staff_approved' => 'success',
                         'rejected' => 'danger',
+                        'staff_rejected' => 'danger',
                         'requires_revision' => 'warning',
                         'canceled' => 'gray',
                         default => 'gray',
                     })
                     ->icon(fn(string $state): string => match ($state) {
                         'in_progress' => 'heroicon-m-arrow-path',
-                        'approved' => 'heroicon-m-check-circle',
+                        'approved' => 'heroicon-m-sparkles',
+                        'staff_approved' => 'heroicon-m-check-badge',
                         'rejected' => 'heroicon-m-x-circle',
+                        'staff_rejected' => 'heroicon-m-no-symbol',
                         'requires_revision' => 'heroicon-m-exclamation-triangle',
+                        'canceled' => 'heroicon-m-x-mark',
                         default => 'heroicon-m-minus',
                     })
                     ->sortable(),
@@ -360,7 +369,9 @@ class ApplicantResource extends Resource
                     ->options([
                         'in_progress' => 'En Progreso',
                         'approved' => 'Aprobado',
+                        "staff_approved" => "Aprobado por Staff",
                         'rejected' => 'Rechazado',
+                        "staff_rejected" => "Rechazado por Staff",
                         'requires_revision' => 'Requiere Revisión',
                     ]),
             ])
