@@ -83,7 +83,9 @@ class ApplicantResource extends Resource
                             ->options([
                                 'in_progress' => 'En Progreso',
                                 'approved' => 'Aprobado',
+                                "staff_approved" => "Aprobado por Staff",
                                 'rejected' => 'Rechazado',
+                                "staff_rejected" => "Rechazado por Staff",
                                 'requires_revision' => 'Requiere Revisión',
                                 'canceled' => 'Cancelado',
                             ])
@@ -360,7 +362,9 @@ class ApplicantResource extends Resource
                     ->options([
                         'in_progress' => 'En Progreso',
                         'approved' => 'Aprobado',
+                        "staff_approved" => "Aprobado por Staff",
                         'rejected' => 'Rechazado',
+                        "staff_rejected" => "Rechazado por Staff",
                         'requires_revision' => 'Requiere Revisión',
                     ]),
             ])
