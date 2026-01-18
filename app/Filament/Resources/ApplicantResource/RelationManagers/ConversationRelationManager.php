@@ -13,7 +13,7 @@ use Filament\Tables\Columns\IconColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class ApplicantConversationRelationManager extends RelationManager
+class ConversationRelationManager extends RelationManager
 {
     protected static string $relationship = 'conversation';
 

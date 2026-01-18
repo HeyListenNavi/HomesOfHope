@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ConversationResource\Pages;
 use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager;
+use App\Filament\Resources\ConversationResource\RelationManagers\MessagesRelationManager;
 use App\Models\Conversation;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -120,7 +121,7 @@ class ConversationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ConversationMessagesRelationManager::class,
+            MessagesRelationManager::class,
         ];
     }
 

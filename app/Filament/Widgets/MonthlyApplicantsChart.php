@@ -5,7 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Applicant;
 use Filament\Widgets\ChartWidget;
 
-class ApplicantChart extends ChartWidget
+class MonthlyApplicantsChart extends ChartWidget
 {
     protected static ?int $sort = 2;
 

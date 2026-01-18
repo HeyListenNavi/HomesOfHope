@@ -11,7 +11,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class ConversationMessagesRelationManager extends RelationManager
+class MessagesRelationManager extends RelationManager
 {
     protected static string $relationship = 'messages';
 

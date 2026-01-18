@@ -416,7 +416,7 @@ class ApplicantResource extends Resource
     {
         return [
             RelationManagers\ApplicantQuestionResponseRelationManager::class,
-            RelationManagers\ApplicantConversationRelationManager::class,
+            RelationManagers\ConversationRelationManager::class,
         ];
     }
 
