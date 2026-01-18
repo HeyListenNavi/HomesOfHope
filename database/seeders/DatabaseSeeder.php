@@ -26,14 +26,6 @@ class DatabaseSeeder extends Seeder
             GroupSeeder::class,
             ApplicantSeeder::class,
             MessageSeeder::class,
-            FamilyProfileSeeder::class,
-            FamilyMemberSeeder::class,
-            DocumentSeeder::class,
-            NoteSeeder::class,
-            VisitSeeder::class,
-            EvidenceSeeder::class,
-            TaskSeeder::class,
-            TestimonySeeder::class,
         ]);
     }
 }
