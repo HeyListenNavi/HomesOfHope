@@ -78,21 +78,38 @@ class ApplicantResource extends Resource
                     ->icon('heroicon-m-clipboard-document-check')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\Select::make('process_status')
+                        Forms\Components\ToggleButtons::make('process_status')
                             ->label('Estatus')
                             ->options([
                                 'in_progress' => 'En Progreso',
                                 'approved' => 'Aprobado',
-                                "staff_approved" => "Aprobado por Staff",
+                                'staff_approved' => 'Aprobado por Staff',
                                 'rejected' => 'Rechazado',
-                                "staff_rejected" => "Rechazado por Staff",
+                                'staff_rejected' => 'Rechazado por Staff',
                                 'requires_revision' => 'Requiere Revisión',
                                 'canceled' => 'Cancelado',
                             ])
+                            ->icons([
+                                'in_progress' => 'heroicon-m-arrow-path',
+                                'approved' => 'heroicon-m-sparkles',
+                                'staff_approved' => 'heroicon-m-check-badge',
+                                'rejected' => 'heroicon-m-x-circle',
+                                'staff_rejected' => 'heroicon-m-no-symbol',
+                                'requires_revision' => 'heroicon-m-exclamation-triangle',
+                                'canceled' => 'heroicon-m-x-mark',
+                            ])
+                            ->colors([
+                                'in_progress' => 'info',
+                                'approved' => 'success',
+                                'staff_approved' => 'success',
+                                'rejected' => 'danger',
+                                'staff_rejected' => 'danger',
+                                'requires_revision' => 'warning',
+                                'canceled' => 'gray',
+                            ])
+                            ->inline()
                             ->required()
-                            ->live()
-                            ->native(false)
-                            ->prefixIcon('heroicon-m-flag'),
+                            ->live(),
 
                         Forms\Components\Select::make('group_id')
                             ->relationship('group', 'name')
