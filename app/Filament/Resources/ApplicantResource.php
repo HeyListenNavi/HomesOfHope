@@ -324,7 +324,17 @@ class ApplicantResource extends Resource
             ->columns([
                 TextColumn::make('applicant_name')
                     ->label('Nombre')
-                    ->searchable(),
+                    ->searchable()
+                    ->description(function (Applicant $record): ?string {
+                        if (in_array($record->process_status, ['approved', 'staff_approved'])) {
+                            if ($record->group) {
+                                return $record->group->name;
+                            }
+
+                            return 'Sin grupo asignado';
+                        }
+                        return null;
+                    }),
 
                 TextColumn::make('chat_id')
                     ->label('Número de Telefono')
