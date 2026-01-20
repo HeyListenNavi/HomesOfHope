@@ -395,6 +395,17 @@ class ApplicantResource extends Resource
                         default => 'heroicon-m-minus',
                     })
                     ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Fecha de Registro')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Última Actualización')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')
