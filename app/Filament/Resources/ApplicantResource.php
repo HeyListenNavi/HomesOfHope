@@ -49,7 +49,12 @@ class ApplicantResource extends Resource
                             ->required()
                             ->prefixIcon('heroicon-m-finger-print')
                             ->maxLength(18)
-                            ->formatStateUsing(fn(?string $state) => strtoupper($state)),
+                            ->formatStateUsing(fn(?string $state) => strtoupper($state))
+                            ->unique(ignoreRecord: true)
+                            ->live(onBlur: true)
+                            ->validationMessages([
+                                'unique' => 'Este CURP ya existe. Por favor verifica el registro.',
+                            ]),
 
                         Forms\Components\TextInput::make('chat_id')
                             ->label('Número de Telefono')
