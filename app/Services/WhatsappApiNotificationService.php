@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
-class WhatsappApiNotificationService 
+class WhatsappApiNotificationService
 {
     protected string $apiUrl;
     protected string $apiKey;
@@ -86,7 +86,7 @@ class WhatsappApiNotificationService
             $url = "{$this->apiUrl}/messages";
 
             $response = Http::withHeaders([
-                'D360-API-KEY' => $this->apiKey,
+                'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->post($url, [
                 'messaging_product' => 'whatsapp',
