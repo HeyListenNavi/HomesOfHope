@@ -49,7 +49,12 @@ class ApplicantResource extends Resource
                             ->required()
                             ->prefixIcon('heroicon-m-finger-print')
                             ->maxLength(18)
-                            ->formatStateUsing(fn(?string $state) => strtoupper($state)),
+                            ->formatStateUsing(fn(?string $state) => strtoupper($state))
+                            ->unique(ignoreRecord: true)
+                            ->live(onBlur: true)
+                            ->validationMessages([
+                                'unique' => 'Este CURP ya existe. Por favor verifica el registro.',
+                            ]),
 
                         Forms\Components\TextInput::make('chat_id')
                             ->label('Número de Telefono')
@@ -313,12 +318,23 @@ class ApplicantResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('applicant_name')
                     ->label('Nombre')
-                    ->searchable(),
+                    ->searchable()
+                    ->description(function (Applicant $record): ?string {
+                        if (in_array($record->process_status, ['approved', 'staff_approved'])) {
+                            if ($record->group) {
+                                return $record->group->name;
+                            }
+
+                            return 'Sin grupo asignado';
+                        }
+                        return null;
+                    }),
 
                 TextColumn::make('chat_id')
                     ->label('Número de Telefono')
@@ -379,6 +395,17 @@ class ApplicantResource extends Resource
                         default => 'heroicon-m-minus',
                     })
                     ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('Fecha de Registro')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+
+                TextColumn::make('updated_at')
+                    ->label('Última Actualización')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')
