@@ -8,6 +8,9 @@ use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\Permission\Models\Role;
+
+
 
 
 class User extends Authenticatable implements FilamentUser

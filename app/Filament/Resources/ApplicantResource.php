@@ -29,6 +29,11 @@ class ApplicantResource extends Resource
     protected static ?string $pluralModelLabel = 'Aplicantes';
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasRole('admin');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

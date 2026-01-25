@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             EvidenceSeeder::class,
             TaskSeeder::class,
             TestimonySeeder::class,
+            RolesAndPermissionsSeeder::class,
         ]);
     }
 }

@@ -40,10 +40,10 @@ public static function form(Form $form): Form
                                     ->image()
                                     ->imagePreviewHeight('250')
                                     ->imageEditor()
-                                    ->disk('public')
-                                    ->directory('families')
-                                    ->visibility('public')
+                                    ->disk("r2")
+                                    ->visibility('private')
                                     ->columnSpan(2)
+                                    ->openable()
                                     ->extraAttributes(['class' => 'flex justify-center']),
 
                                 Forms\Components\Group::make()
@@ -161,8 +161,8 @@ public static function form(Form $form): Form
             ->columns([
                 Tables\Columns\ImageColumn::make('family_photo_path')
                     ->label('')
-                    ->disk('public')
-                    ->visibility('public')
+                    ->disk('r2')
+                    ->visibility('private')
                     ->height(100),
 
                 Tables\Columns\TextColumn::make('family_name')
