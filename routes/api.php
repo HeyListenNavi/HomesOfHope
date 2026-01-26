@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\VisitController;
 use App\Http\Controllers\Api\EvidenceController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TestimonyController;
-
+use App\Http\Controllers\Api\UserController;
 
 
 //Ruta para testing
@@ -23,8 +23,13 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+//Login Route
+Route::post('/login', [UserController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+
+    // Autenticación
+    Route::post('/logout', [UserController::class, 'logout']);
 
     //Routes for FamilyProfile
     Route::prefix('family-profiles')->group(function () {
@@ -93,6 +98,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [TestimonyController::class, 'show']);
         Route::put('/{id}', [TestimonyController::class, 'update']);
         Route::delete('/{id}', [TestimonyController::class, 'destroy']);
+    });
+
+    //Routes for Users
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);          
+        Route::post('/', [UserController::class, 'store']);         
+        Route::get('/{user}', [UserController::class, 'show']);    
+        Route::put('/{user}', [UserController::class, 'update']);  
+        Route::delete('/{user}', [UserController::class, 'destroy']); 
     });
 
 });

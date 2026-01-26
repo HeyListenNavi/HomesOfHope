@@ -13,7 +13,7 @@ class VisitController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Visit::with(['attendant:id,name', 'familyProfile:id,family_name']);
+        $query = Visit::with(['attendant:id,name', 'familyProfile:id,family_name', "notes"]);
 
         if ($request->has('family_profile_id')) {
             $query->where('family_profile_id', $request->family_profile_id);
