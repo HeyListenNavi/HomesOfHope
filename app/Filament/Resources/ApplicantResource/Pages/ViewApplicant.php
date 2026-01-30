@@ -16,7 +16,6 @@ use Illuminate\Support\HtmlString;
 use App\Models\ApplicantQuestionResponse;
 use App\Services\WhatsappApiNotificationService;
 
-
 class ViewApplicant extends ViewRecord
 {
     protected static string $resource = ApplicantResource::class;
@@ -43,9 +42,9 @@ class ViewApplicant extends ViewRecord
                     ->requiresConfirmation()
                     ->modalHeading('Enviar mensaje')
                     ->modalDescription('¿Seguro que deseas enviar el template de WhatsApp?')
-                    ->action( function($aplicant){
+                    ->action(function(Applicant $applicant){
                         $WhatsApp = new WhatsappApiNotificationService();
-                        $WhatsApp->sendTemplate($aplicant);
+                        $WhatsApp->sendTemplate($applicant);
                     }),
 
             Actions\EditAction::make(),
