@@ -70,6 +70,7 @@ class MessageResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->defaultSort('created_at', 'desc')
             ->columns([
                 IconColumn::make('role')

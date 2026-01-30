@@ -158,6 +158,8 @@ public static function form(Form $form): Form
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->columns([
                 Tables\Columns\ImageColumn::make('family_photo_path')
                     ->label('')

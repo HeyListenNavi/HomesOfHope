@@ -9,19 +9,24 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
+
 class WhatsappApiNotificationService 
 {
     protected string $apiUrl;
     protected string $apiKey;
     protected string $instance;
+    protected string $templateName;
+    protected string $templateLang;
 
     public function __construct()
     {
         $this->apiUrl = config('services.whatsapp.url');
         $this->apiKey = config('services.whatsapp.key');
+        $this->templateName = env('WHATSAPP_TEMPLATE_APPROVED');
+        $this->templateLang = env('WHATSAPP_TEMPLATE_LANG', 'es_MX');
     }
 
-    public function sendGroupSelectionLink(Applicant $applicant): bool
+    public function sendGroupSelectionLink(Applicant $applicant)
     {
         $selectionUrl = URL::temporarySignedRoute(
             'group.selection.form',
@@ -34,10 +39,10 @@ class WhatsappApiNotificationService
         $message .= $selectionUrl . "\n\n";
         $message .= "Este enlace es personal y expirará en 3 días. ¡No lo compartas!";
 
-        return $this->sendCustomMessage($applicant, $message);
+        $this->sendCustomMessage($applicant, $message);
     }
 
-    public function sendCurrentQuestion(Applicant $applicant): bool
+    public function sendCurrentQuestion(Applicant $applicant)
     {
         $currentQuestion = $applicant->currentQuestion;
 
@@ -48,7 +53,7 @@ class WhatsappApiNotificationService
 
         $message = $currentQuestion->question_text;
 
-        return $this->sendCustomMessage($applicant, $message);
+        $this->sendCustomMessage($applicant, $message);
     }
 
     public function sendSuccessInfo(Applicant $applicant)
@@ -67,7 +72,7 @@ class WhatsappApiNotificationService
     }
 
 
-    public function sendCustomMessage(Applicant $applicant, string $message): bool
+    public function sendCustomMessage(Applicant $applicant, string $message)
     {
         Message::create([
             'conversation_id' => $applicant->conversation->id,
@@ -77,7 +82,7 @@ class WhatsappApiNotificationService
             'name' => $applicant->applicant_name,
         ]);
 
-        return $this->sendText($applicant->chat_id, $message);
+        $this->sendText($applicant->chat_id, $message);
     }
 
     protected function sendText(string $recipientId, string $message): bool
@@ -110,4 +115,37 @@ class WhatsappApiNotificationService
             return false;
         }
     }
+
+    public function sendTemplate( Applicant $applicant, ?string $templateName = null, array $parameters = [] ) {
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $applicant->chat_id,
+            'type' => 'template',
+            'template' => [
+                'name' => $templateName ?? $this->templateName,
+                'language' => [
+                    'code' => $this->templateLang,
+                ],
+            ],
+        ];
+
+        if (!empty($parameters)) {
+            $payload['template']['components'][] = [
+                'type' => 'body',
+                'parameters' => collect($parameters)->map(fn ($value) => [
+                    'type' => 'text',
+                    'text' => $value,
+                ])->toArray(),
+            ];
+        }
+
+        Message::create([
+            'conversation_id' => $applicant->conversation->id,
+            'phone' => $applicant->chat_id,
+            'message' => '[TEMPLATE] ' . ($templateName ?? $this->templateName),
+            'role' => 'assistant',
+            'name' => $applicant->applicant_name,
+        ]);
+    }
+
 }

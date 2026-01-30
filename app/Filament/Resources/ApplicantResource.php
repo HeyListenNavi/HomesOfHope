@@ -366,7 +366,8 @@ class ApplicantResource extends Resource
                         'canceled' => 'heroicon-m-x-mark',
                         default => 'heroicon-m-minus',
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->paginated([25, 50, 100]),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')

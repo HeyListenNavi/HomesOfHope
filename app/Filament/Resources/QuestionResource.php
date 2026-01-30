@@ -112,6 +112,7 @@ class QuestionResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->defaultGroup('stage.name')
             ->defaultSort('order', 'asc')
             ->columns([

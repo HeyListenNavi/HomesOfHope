@@ -153,6 +153,8 @@ class VisitResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->columns([
                 Tables\Columns\TextColumn::make('familyProfile.family_name')
                     ->label('Familia')

@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             TaskSeeder::class,
             TestimonySeeder::class,
             RolesAndPermissionsSeeder::class,
+            ColonySeeder::class,
         ]);
     }
 }

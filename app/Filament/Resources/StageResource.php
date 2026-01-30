@@ -104,6 +104,7 @@ class StageResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->defaultSort('order', 'asc')
             ->reorderable('order') 
             ->columns([

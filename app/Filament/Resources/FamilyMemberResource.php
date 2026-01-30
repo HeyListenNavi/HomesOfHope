@@ -155,6 +155,8 @@ class FamilyMemberResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nombre Completo')

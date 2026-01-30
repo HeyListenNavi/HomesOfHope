@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\EvidenceController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TestimonyController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ColonyController;
 
 
 //Ruta para testing
@@ -143,4 +144,7 @@ Route::prefix('bot')->group(function () {
 
     // Ruta para actualizaciones manuales (ej. desde un panel de administración)
     Route::put('applicants/{applicantId}/update-manually', [BotApplicantManualController::class, 'updateManually']);
+
+    //Routes for Colonies
+    Route::get('/colonies', [ColonyController::class, 'index']);    
 });

@@ -97,6 +97,7 @@ class GroupResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->paginated([25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->columns([
                 TextColumn::make('name')
