@@ -10,14 +10,48 @@ use Illuminate\Support\Str;
 class FamilyProfileController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listar perfiles de familia con filtros avanzados y relaciones.
+     *
+     * Ejemplos de uso:
+     *
+     * - General:
+     * GET /api/family-profiles
+     *
+     * - Paginación (50 por página):
+     * GET /api/family-profiles?limit=50
+     *
+     * - Por Nombre de Familia:
+     * GET /api/family-profiles?family_name=Gomez
+     *
+     * - Por Responsable (Nombre o Apellidos):
+     * GET /api/family-profiles?responsible_name=Juan
+     *
+     * - Por CURP:
+     * GET /api/family-profiles?curp=ABCD123456
+     *
+     * - Combinado:
+     * GET /api/family-profiles?family_name=Gomez&responsible_name=Juan
      */
-    public function index()
+    public function index(Request $request)
     {
-        $profiles = FamilyProfile::query()
-            ->select('id', 'family_name', 'slug', 'status', 'opened_at')
+        $profiles = FamilyProfile::with('responsibleMember')
+            ->when($request->family_name, fn($q, $val) => 
+                $q->where('family_name', 'like', "%{$val}%")
+            )
+            ->when($request->curp, fn($q, $val) => 
+                $q->whereHas('responsibleMember', fn($sq) => 
+                    $sq->where('curp', 'like', "%{$val}%")
+                )
+            )
+            ->when($request->responsible_name, fn($q, $val) => 
+                $q->whereHas('responsibleMember', fn($sq) => 
+                    $sq->where('name', 'like', "%{$val}%")
+                       ->orWhere('paternal_surname', 'like', "%{$val}%")
+                       ->orWhere('maternal_surname', 'like', "%{$val}%")
+                )
+            )
             ->latest()
-            ->paginate(15);
+            ->paginate($request->input('limit', 15));
 
         return response()->json($profiles);
     }

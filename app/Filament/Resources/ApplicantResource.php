@@ -29,6 +29,11 @@ class ApplicantResource extends Resource
     protected static ?string $pluralModelLabel = 'Aplicantes';
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->hasRole('admin');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -320,6 +325,7 @@ class ApplicantResource extends Resource
         return $table
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('applicant_name')

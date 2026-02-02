@@ -21,11 +21,18 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            ApplicantQuestionResponseSeeder::class,
+            ApplicantSeeder::class,
             HomesofHopeSeeder::class,
             ConversationSeeder::class,
+            MessageSeeder::class,
+            QuestionSeeder::class,
+            StageSeeder::class,
             GroupSeeder::class,
             ApplicantSeeder::class,
             MessageSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            ColonySeeder::class,
         ]);
     }
 }

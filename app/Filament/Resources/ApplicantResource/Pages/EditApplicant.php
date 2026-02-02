@@ -5,6 +5,8 @@ namespace App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use App\Models\Applicant;
+use App\Services\WhatsappApiNotificationService;
 
 class EditApplicant extends EditRecord
 {
@@ -27,6 +29,17 @@ class EditApplicant extends EditRecord
                     return "https://wa.me/{$number}?text={$encodedMessage}";
                 })
                 ->openUrlInNewTab(),
+            Actions\Action::make('sendTemplate')
+                    ->label('Enviar template')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Enviar mensaje')
+                    ->modalDescription('¿Seguro que deseas enviar el template de WhatsApp?')
+                    ->action(function(Applicant $applicant){
+                        $WhatsApp = new WhatsappApiNotificationService();
+                        $WhatsApp->sendTemplate($applicant);
+                    }),
             Actions\ViewAction::make(),
             Actions\DeleteAction::make(),
         ];
