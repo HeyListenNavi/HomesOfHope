@@ -29,6 +29,7 @@ class EditApplicant extends EditRecord
                     return "https://wa.me/{$number}?text={$encodedMessage}";
                 })
                 ->openUrlInNewTab(),
+                
             Actions\Action::make('sendTemplate')
                     ->label('Enviar template')
                     ->icon('heroicon-o-paper-airplane')

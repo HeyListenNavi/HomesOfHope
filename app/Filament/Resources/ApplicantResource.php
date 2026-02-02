@@ -7,6 +7,7 @@ use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Models\Applicant;
 use App\Models\Question;
 use App\Services\ApplicantActions;
+use App\Services\WhatsappApiNotificationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -178,11 +179,12 @@ class ApplicantResource extends Resource
                             if (! $conversation) return true;
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
-
-                            return $last->created_at->lt(now()->subHours(23));
+                            if ( !$last ) return true;
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::approveStage($record)),
+                        ->action(function(Applicant $applicant){
+                            $WA = new WhatsappApiNotificationService();
+                            $WA->sendTemplate($applicant, "etapa_aprobada");
+                        }),
 
 
                     // Botón para aprobar al aplicante de forma definitiva
@@ -199,10 +201,11 @@ class ApplicantResource extends Resource
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-
-                            return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
+                        ->action(function(Applicant $applicant){
+                            $WA = new WhatsappApiNotificationService();
+                            $WA->sendTemplate($applicant, "aprobado_staff");
+                        }),
 
                     // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
@@ -243,10 +246,12 @@ class ApplicantResource extends Resource
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-
-                            return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
+                        ->action(function(Applicant $applicant){
+                            $WA = new WhatsappApiNotificationService();
+                            $WA->sendTemplate($applicant, "reenviar_pregunta");
+                            ApplicantActions::reSendCurrentQuestion($applicant);
+                        }),
 
                     // Botón para reenviar el enlace de selección de grupo
                     Action::make('resendGroupLink')
@@ -262,10 +267,12 @@ class ApplicantResource extends Resource
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-
-                            return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
+                        ->action(function(Applicant $applicant){
+                            $WA = new WhatsappApiNotificationService();
+                            $WA->sendTemplate($applicant, "reenviar_link_entrevista");
+                            ApplicantActions::reSendGroupSelectionLink($applicant);
+                        }),
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')
@@ -281,10 +288,12 @@ class ApplicantResource extends Resource
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-
-                            return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
+                        ->action(function(Applicant $applicant){
+                            $WA = new WhatsappApiNotificationService();
+                            $WA->sendTemplate($applicant, "reiniciar_aplicante");
+                            ApplicantActions::resetApplicant($applicant);
+                        }),
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
@@ -308,11 +317,11 @@ class ApplicantResource extends Resource
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
                             if (! $last) return true;
-
-                            return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(function (array $data, Applicant $record) {
-                            ApplicantActions::rejectApplicant($record, $data['reason']);
+                        ->action(function( array $data, Applicant $applicant){
+                            $WA = new WhatsappApiNotificationService();
+                            $WA->sendTemplate($applicant, "rechazo_solicitud");
+                            ApplicantActions::rejectApplicant($applicant, $data['reason']);
                         }),
                 ])
                     ->fullWidth()

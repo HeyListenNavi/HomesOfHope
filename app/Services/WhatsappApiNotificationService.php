@@ -117,13 +117,13 @@ class WhatsappApiNotificationService
         }
     }
 
-    public function sendTemplate( Applicant $applicant, ?string $templateName = null, array $parameters = [] ) {
+    public function sendTemplate( Applicant $applicant, string $templateName, array $parameters = [] ): bool {
         $payload = [
             'messaging_product' => 'whatsapp',
             'to' => $applicant->chat_id,
             'type' => 'template',
             'template' => [
-                'name' => $templateName ?? $this->templateName,
+                'name' => $templateName,
                 'language' => [
                     'code' => $this->templateLang,
                 ],
@@ -131,36 +131,35 @@ class WhatsappApiNotificationService
         ];
 
         if (!empty($parameters)) {
-            $payload['template']['components'][] = [
-                'type' => 'body',
-                'parameters' => collect($parameters)->map(fn ($value) => [
-                    'type' => 'text',
-                    'text' => $value,
-                ])->toArray(),
+            $payload['template']['components'] = [
+                [
+                    'type' => 'body',
+                    'parameters' => array_map(fn ($value) => [
+                        'type' => 'text',
+                        'text' => (string) $value,
+                    ], $parameters),
+                ],
             ];
         }
-
-        $url = "{$this->apiUrl}/messages";
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-Type' => 'application/json',
-        ])->post($url, $payload);
+        ])->post("{$this->apiUrl}/messages", $payload);
 
         if ($response->failed()) {
-            Log::error("Error al enviar template a {$applicant->chat_id}: " . $response->body());
-            return;
+            Log::error('Error enviando template WhatsApp', $response->json());
+            return false;
         }
-
-        Log::info("Template enviado correctamente a {$applicant->chat_id}.");
 
         Message::create([
             'conversation_id' => $applicant->conversation->id,
             'phone' => $applicant->chat_id,
-            'message' => '[TEMPLATE] ' . ($templateName ?? $this->templateName),
+            'message' => "[TEMPLATE] {$templateName}",
             'role' => 'assistant',
             'name' => $applicant->applicant_name,
         ]);
-    }
 
+        return true;
+    }
 }
