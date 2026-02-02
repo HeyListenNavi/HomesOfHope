@@ -302,6 +302,7 @@ class ApplicantResource extends Resource
     {
         return $table
             ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('applicant_name')
@@ -367,7 +368,6 @@ class ApplicantResource extends Resource
                         default => 'heroicon-m-minus',
                     })
                     ->sortable()
-                    ->paginated([25, 50, 100]),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')

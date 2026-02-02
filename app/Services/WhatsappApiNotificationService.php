@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 
-class WhatsappApiNotificationService 
+class WhatsappApiNotificationService
 {
     protected string $apiUrl;
     protected string $apiKey;
@@ -138,6 +138,20 @@ class WhatsappApiNotificationService
                 ])->toArray(),
             ];
         }
+
+        $url = "{$this->apiUrl}/messages";
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->post($url, $payload);
+
+        if ($response->failed()) {
+            Log::error("Error al enviar template a {$applicant->chat_id}: " . $response->body());
+            return;
+        }
+
+        Log::info("Template enviado correctamente a {$applicant->chat_id}.");
 
         Message::create([
             'conversation_id' => $applicant->conversation->id,
