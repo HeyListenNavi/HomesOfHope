@@ -434,7 +434,14 @@ class ApplicantResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Collection $records) {
+                            foreach ($records as $record) {
+                                if ($record->conversation) {
+                                    $record->conversation->delete();
+                                }
+                            }
+                        }),
                     Tables\Actions\BulkAction::make('exportSelected')
                         ->label('Exportar a CSV')
                         ->icon('heroicon-m-arrow-down-tray')
