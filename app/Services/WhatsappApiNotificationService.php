@@ -40,7 +40,7 @@ class WhatsappApiNotificationService
         $message .= $selectionUrl . "\n\n";
         $message .= "Este enlace es personal y expirará en 3 días. ¡No lo compartas!";
 
-        $this->sendCustomMessage($applicant, $message);
+        $this->sendCustomMessage($applicant, $message, 'enviar_link_de_entrevista', ['link_de_entrevista' => $selectionUrl, 'nombre' => $applicant->applicant_name]);
     }
 
     public function sendCurrentQuestion(Applicant $applicant)
@@ -54,7 +54,7 @@ class WhatsappApiNotificationService
 
         $message = $currentQuestion->question_text;
 
-        $this->sendCustomMessage($applicant, $message);
+        $this->sendCustomMessage($applicant, $message, 'enviar_pregunta', ['pregunta' => $message]);
     }
 
     public function sendSuccessInfo(Applicant $applicant)
@@ -69,7 +69,13 @@ class WhatsappApiNotificationService
 
         $message .= "No olvides leer la siguiente informacion importante: \n" . $applicant->group->message;
 
-        $this->sendCustomMessage($applicant, $message);
+        $this->sendCustomMessage($applicant, $message, 'enviar_informacion_de_entrevista', [
+            'dia' => $applicant->group->date_time->toDateString(),
+            'hora' => $applicant->group->date_time->toTimeString(),
+            'direccion' => $applicant->group->location,
+            'ubicacion' => $applicant->group->location_link,
+            'detalles_extra' => $applicant->group->message,
+        ]);
     }
 
 
@@ -84,7 +90,7 @@ class WhatsappApiNotificationService
         ]);
 
         if ($this->hasActiveSession($applicant)) {
-        $this->sendText($applicant->chat_id, $message);
+            $this->sendText($applicant->chat_id, $message);
             return;
         }
 
@@ -139,7 +145,8 @@ class WhatsappApiNotificationService
         }
     }
 
-    public function sendTemplate( Applicant $applicant, ?string $templateName = null, array $parameters = [] ) {
+    public function sendTemplate(Applicant $applicant, ?string $templateName = null, array $parameters = [])
+    {
         $payload = [
             'messaging_product' => 'whatsapp',
             'to' => $applicant->chat_id,
@@ -155,7 +162,7 @@ class WhatsappApiNotificationService
         if (!empty($parameters)) {
             $payload['template']['components'][] = [
                 'type' => 'body',
-                'parameters' => collect($parameters)->map(fn ($value) => [
+                'parameters' => collect($parameters)->map(fn($value) => [
                     'type' => 'text',
                     'text' => $value,
                 ])->toArray(),
@@ -184,5 +191,4 @@ class WhatsappApiNotificationService
             'name' => $applicant->applicant_name,
         ]);
     }
-
 }

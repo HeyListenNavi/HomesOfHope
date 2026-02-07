@@ -19,7 +19,7 @@ class ApplicantActions
 
         if (is_null($firstStage)) {
             $message = "Lo sentimos, no se puede reiniciar el proceso. No se encontraron etapas.";
-            $notificationService->sendCustomMessage($applicant, $message);
+            $notificationService->sendCustomMessage($applicant, $message, 'error_reinicio_etapa');
             Log::warning("No se encontraron etapas para reiniciar el proceso del aplicante con ID {$applicant->id}.");
             return;
         }
@@ -45,8 +45,8 @@ class ApplicantActions
         ]);
         Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null.");
 
-        $resetMessage = "Tu solicitud ha sido reiniciada. ¡Comencemos de nuevo!";
-        $notificationService->sendCustomMessage($applicant, $resetMessage);
+        $resetMessage = "Hola te saluda el equipo de Casas de Esperanza. Hemos reiniciado tu proceso para que puedas comenzar nuevamente desde el inicio. En breve recibirás las indicaciones de nuestro asistente virtual. Por favor sigue los pasos y responde con calma. Estamos para apoyarte.";
+        $notificationService->sendCustomMessage($applicant, $resetMessage, 'reiniciar_aplicante');
 
         if ($firstQuestion) {
             $notificationService->sendCurrentQuestion($applicant);
@@ -88,9 +88,9 @@ class ApplicantActions
         Log::info("Aplicante con ID {$applicant->id} movido a la siguiente etapa: {$nextStage->name}.");
 
         if ($firstQuestion) {
-            $confirmationMessage = "¡Excelente noticia! Tu información ha sido revisada por nuestro equipo y has sido aprobado(a) para avanzar a la siguiente etapa.";
-            $notificationService->sendCustomMessage($applicant, $confirmationMessage);
-            $notificationService->sendCustomMessage($applicant, $firstQuestion->question_text);
+            $confirmationMessage = "Hola te saluda el equipo de Casas de Esperanza, hemos revisado detenidamente sus respuestas y puede continuar con el proceso, le pedimos paciencia a nuestro asistente virtual.";
+            $notificationService->sendCustomMessage($applicant, $confirmationMessage, 'etapa_aprobada');
+            $notificationService->sendCustomMessage($applicant, $firstQuestion->question_text, 'enviar_pregunta', ['pregunta' => $firstQuestion->question_text]);
         }
     }
 
@@ -98,7 +98,17 @@ class ApplicantActions
     {
         Log::info("Reenviando la pregunta actual al aplicante con ID {$applicant->id}.");
         $notificationService = new WhatsappApiNotificationService();
-        $notificationService->sendCurrentQuestion($applicant);
+
+        $currentQuestion = $applicant->currentQuestion;
+
+        if (!$currentQuestion) {
+            Log::warning("No hay una pregunta actual para el aplicante con chat_id {$applicant->chat_id}.");
+            return;
+        }
+
+        $message = $currentQuestion->question_text;
+
+        $notificationService->sendCustomMessage($applicant, $message, 'reenviar_pregunta', ['pregunta' => $message]);
     }
 
     public static function reSendGroupSelectionLink(Applicant $applicant): void
@@ -132,13 +142,16 @@ class ApplicantActions
     public static function rejectApplicant(Applicant $applicant, string $reason): void
     {
         Log::info("Rechazando al aplicante con ID {$applicant->id}.");
-        
+
         $applicant->update([
             "process_status" => "rejected",
             "rejection_reason" => $reason,
         ]);
 
         $notificationService = new WhatsappApiNotificationService();
-        $notificationService->sendCustomMessage($applicant, "Lo sentimos! su solicitud ha sido rechazada por nuestro equipo");
+
+        $message = "Hola te saluda el equipo de Casas de Esperanza, agradecemos profundamente que hayas pensado en nosotros para buscar apoyo. Revisamos tu solicitud y, aunque quisiéramos ayudar a todos, en este momento no podemos avanzar con tu proceso para una Casa de Esperanza. Deseamos de corazón que encuentres pronto la ayuda que necesitas y oramos por bendición y fortaleza para ti y tu familia.";
+
+        $notificationService->sendCustomMessage($applicant, $message, 'rechazo_solicitud');
     }
 }
