@@ -154,4 +154,11 @@ class ApplicantActions
 
         $notificationService->sendCustomMessage($applicant, $message, 'rechazo_solicitud');
     }
+
+    public static function sendCustomMessage(Applicant $applicant, string $message): void
+    {
+        Log::info("Enviando mensaje personalizado al aplicante con ID {$applicant->id}.");
+        $notificationService = new WhatsappApiNotificationService();
+        $notificationService->sendCustomMessage($applicant, $message);
+    }
 }
