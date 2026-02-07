@@ -162,8 +162,9 @@ class WhatsappApiNotificationService
         if (!empty($parameters)) {
             $payload['template']['components'][] = [
                 'type' => 'body',
-                'parameters' => collect($parameters)->map(fn($value) => [
+                'parameters' => collect($parameters)->map(fn($value, $key) => [
                     'type' => 'text',
+                    'parameter_name' => $key,
                     'text' => $value,
                 ])->toArray(),
             ];
