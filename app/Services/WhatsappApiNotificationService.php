@@ -24,7 +24,7 @@ class WhatsappApiNotificationService
         $this->apiUrl = config('services.whatsapp.url');
         $this->apiKey = config('services.whatsapp.key');
         $this->templateName = env('WHATSAPP_TEMPLATE_APPROVED');
-        $this->templateLang = env('WHATSAPP_TEMPLATE_LANG', 'es_MX');
+        $this->templateLang = env('WHATSAPP_TEMPLATE_LANG', 'es');
     }
 
     public function sendGroupSelectionLink(Applicant $applicant)
