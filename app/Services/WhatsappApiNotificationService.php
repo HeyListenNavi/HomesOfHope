@@ -73,7 +73,7 @@ class WhatsappApiNotificationService
     }
 
 
-    public function sendCustomMessage(Applicant $applicant, string $message)
+    public function sendCustomMessage(Applicant $applicant, string $message, ?string $templateName = null, array $parameters = [])
     {
         Message::create([
             'conversation_id' => $applicant->conversation->id,
@@ -83,7 +83,29 @@ class WhatsappApiNotificationService
             'name' => $applicant->applicant_name,
         ]);
 
+        if ($this->hasActiveSession($applicant)) {
         $this->sendText($applicant->chat_id, $message);
+            return;
+        }
+
+        if ($templateName) {
+            Log::info("Sesión expirada para {$applicant->chat_id}. Usando template: {$templateName}");
+            $this->sendTemplate($applicant, $templateName, $parameters);
+        } else {
+            Log::warning("Sesión expirada para {$applicant->chat_id} y no se proporcionó un template de respaldo. El mensaje no se envió a Meta.");
+        }
+    }
+
+    private function hasActiveSession(Applicant $applicant): bool
+    {
+        $lastUserMessage = $applicant->conversation->messages()
+            ->where('role', 'user')
+            ->latest()
+            ->first();
+
+        if (!$lastUserMessage) return false;
+
+        return Carbon::parse($lastUserMessage->created_at)->diffInHours(now()) < 23;
     }
 
     protected function sendText(string $recipientId, string $message): bool
