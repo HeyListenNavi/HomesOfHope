@@ -129,13 +129,6 @@ class ApplicantActions
         $notificationService->sendGroupSelectionLink($applicant);
     }
 
-    public static function sendCustomMessage(Applicant $applicant, string $message): void
-    {
-        Log::info("Enviando mensaje personalizado al aplicante con ID {$applicant->id}.");
-        $notificationService = new WhatsappApiNotificationService();
-        $notificationService->sendCustomMessage($applicant, $message);
-    }
-
     public static function rejectApplicant(Applicant $applicant, string $reason): void
     {
         Log::info("Rechazando al aplicante con ID {$applicant->id}.");
