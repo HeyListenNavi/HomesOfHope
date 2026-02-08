@@ -183,13 +183,5 @@ class WhatsappApiNotificationService
         }
 
         Log::info("Template enviado correctamente a {$applicant->chat_id}.");
-
-        Message::create([
-            'conversation_id' => $applicant->conversation->id,
-            'phone' => $applicant->chat_id,
-            'message' => '[TEMPLATE] ' . ($templateName ?? $this->templateName),
-            'role' => 'assistant',
-            'name' => $applicant->applicant_name,
-        ]);
     }
 }
