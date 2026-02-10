@@ -82,7 +82,14 @@ class WhatsappApiNotificationService
     public function sendCustomMessage(Applicant $applicant, string $message, ?string $templateName = null, array $parameters = [])
     {
         if ($this->hasActiveSession($applicant)) {
-            $this->sendText($applicant->chat_id, $message);
+		 Message::create([
+            		'conversation_id' => $applicant->conversation->id,
+            		'phone' => $applicant->chat_id,
+            		'message' => $message,
+            		'role' => 'assistant',
+            		'name' => $applicant->applicant_name,
+        	]);
+		$this->sendText($applicant->chat_id, $message);
             return;
         }
 
@@ -108,13 +115,6 @@ class WhatsappApiNotificationService
 
     protected function sendText(string $recipientId, string $message): bool
     {
-        Message::create([
-            'conversation_id' => $applicant->conversation->id,
-            'phone' => $applicant->chat_id,
-            'message' => $message,
-            'role' => 'assistant',
-            'name' => $applicant->applicant_name,
-        ]);
         try {
             $url = "{$this->apiUrl}/messages";
 
