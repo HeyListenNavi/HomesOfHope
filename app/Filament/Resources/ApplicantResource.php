@@ -51,7 +51,6 @@ class ApplicantResource extends Resource
 
                         Forms\Components\TextInput::make('curp')
                             ->label('CURP')
-                            ->required()
                             ->prefixIcon('heroicon-m-finger-print')
                             ->maxLength(18)
                             ->formatStateUsing(fn(?string $state) => strtoupper($state))
