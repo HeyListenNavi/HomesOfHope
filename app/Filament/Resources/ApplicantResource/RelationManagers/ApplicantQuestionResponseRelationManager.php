@@ -67,7 +67,6 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('question_text_snapshot')
-            ->defaultSort('created_at', 'desc')
             ->defaultGroup('question.stage.name')
             ->columns([
                 TextColumn::make('ai_decision')
