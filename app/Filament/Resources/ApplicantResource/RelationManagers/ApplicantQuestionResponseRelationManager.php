@@ -67,8 +67,8 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('question_text_snapshot')
+            ->defaultSort('created_at', 'desc')
             ->defaultGroup('question.stage.name')
-            ->defaultSort('question.order', 'asc')
             ->columns([
                 TextColumn::make('question.order')
                     ->label('Orden')
