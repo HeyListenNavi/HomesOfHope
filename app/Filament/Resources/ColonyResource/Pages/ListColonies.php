@@ -36,7 +36,8 @@ class ListColonies extends ListRecords
 
                     Excel::import(
                         new ColoniesImport,
-                        $data['file']
+                        $data['file'],
+                        'public'
                     );
 
                     Notification::make()
