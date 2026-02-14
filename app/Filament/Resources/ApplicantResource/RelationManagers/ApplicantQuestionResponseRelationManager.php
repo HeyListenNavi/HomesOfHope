@@ -68,7 +68,13 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('question_text_snapshot')
             ->defaultGroup('question.stage.name')
+            ->defaultSort('question.order', 'asc')
             ->columns([
+                TextColumn::make('question.order')
+                    ->label('Orden')
+                    ->hidden()
+                    ->sortable(),
+
                 TextColumn::make('ai_decision')
                     ->label('Estatus IA')
                     ->badge()
