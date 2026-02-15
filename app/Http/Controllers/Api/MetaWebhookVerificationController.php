@@ -10,17 +10,11 @@ class MetaWebhookVerificationController extends Controller
 {
     public function verify(Request $request)
     {
-        $mode = $request->query('hub.mode');
-        $challenge = $request->query('hub.challenge');
-        $verifyToken = $request->query('hub.verify_token');
+        if ($request->query('hub.mode') === 'subscribe') {
+            return response($request->query('hub.challenge'), 200);
+        }
 
-        Log::info('Meta webhook verification attempt', [
-            'mode' => $mode,
-        ]);
-
-        Log::info('Meta webhook verified successfully');
-
-        return response($challenge, 200)
-            ->header('Content-Type', 'text/plain');
+        return response('Forbidden', 403);
     }
+
 }
