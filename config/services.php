@@ -44,8 +44,4 @@ return [
     'n8n' => [
         'webhook_url' => env('N8N_WEBHOOK_URL'),
     ],
-
-    'meta' => [
-        'verify_token' => env('META_VERIFY_TOKEN'),
-    ],
 ];

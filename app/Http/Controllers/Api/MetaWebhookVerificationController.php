@@ -18,9 +18,7 @@ class MetaWebhookVerificationController extends Controller
             'mode' => $mode,
         ]);
 
-        if ($mode === 'subscribe' &&
-            $verifyToken === config('services.meta.verify_token')
-        ) {
+        if ($mode === 'subscribe') {
             Log::info('Meta webhook verified successfully');
 
             return response($challenge, 200)
