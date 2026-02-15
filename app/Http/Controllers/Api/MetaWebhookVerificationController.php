@@ -10,7 +10,12 @@ class MetaWebhookVerificationController extends Controller
 {
     public function verify(Request $request)
     {
-        return response($request->query('hub.challenge'), 200);
+        $mode = $request->input('hub_mode');
+        $challenge = $request->input('hub_challenge');
+        
+        return response($challenge, 200)
+            ->header('Content-Type', 'text/plain');
+        
+        return response('Forbidden', 403);
     }
-
 }
