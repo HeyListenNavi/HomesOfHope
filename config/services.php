@@ -34,9 +34,18 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+
     'whatsapp' => [
         'key' => env('WHATSAPP_KEY'),
         'url' => env('WHATSAPP_URL'),
         'number' => env('WHATSAPP_NUMBER'),
-    ]
+    ],
+
+    'n8n' => [
+        'webhook_url' => env('N8N_WEBHOOK_URL'),
+    ],
+
+    'meta' => [
+        'verify_token' => env('META_VERIFY_TOKEN'),
+    ],
 ];

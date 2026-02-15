@@ -17,7 +17,12 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TestimonyController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ColonyController;
+use App\Http\Controllers\Api\HandleMessageController;
+use App\Http\Controllers\Api\MetaWebhookVerificationController;
 
+//Handle Messages to n8n
+Route::post('/handle-message', [HandleMessageController::class, 'handle']);
+Route::get('/handle-message', [MetaWebhookVerificationController::class, 'verify']);
 
 //Ruta para testing
 Route::get('/user', function (Request $request) {
