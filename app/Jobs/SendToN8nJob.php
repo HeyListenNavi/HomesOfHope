@@ -14,52 +14,51 @@ class SendToN8nJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $message;
+    public array $payload;
 
     public $tries = 4; // 1 inicial + 3 retries
 
-    public function __construct($message)
+    public function __construct(array $payload)
     {
-        $this->message = $message;
+        $this->payload = $payload;
     }
 
-    public function backoff()
+    public function backoff(): array
     {
         return [60, 180, 540];
     }
 
     public function handle(): void
     {
-        Log::info('Dispatching to n8n', [
-            'id' => $this->message['message_id'],
-            'type' => $this->message['type'],
-        ]);
+        Log::info('Forwarding webhook to n8n');
 
         $response = Http::timeout(10)
             ->retry(0, 0) // dejamos el retry a Laravel queue
-            ->post(config('services.n8n.webhook_url'), $this->message);
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post(
+                config('services.n8n.webhook_url'),
+                $this->payload
+            );
 
         if (!$response->successful()) {
 
             Log::error('n8n error', [
-                'id' => $this->message['message_id'],
                 'status' => $response->status(),
+                'body' => $response->body(),
             ]);
 
             throw new \Exception('n8n did not return success');
         }
 
-        Log::info('n8n success', [
-            'id' => $this->message['message_id'],
-        ]);
+        Log::info('n8n success');
     }
 
     public function failed(\Throwable $exception)
     {
-        Log::critical('Message permanently failed', [
-            'id' => $this->message['message_id'],
+        Log::critical('Webhook permanently failed', [
             'error' => $exception->getMessage(),
         ]);
     }
 }
-

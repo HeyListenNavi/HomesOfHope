@@ -48,29 +48,17 @@ class HandleMessageController extends Controller
             return response()->json(['ignored' => true]);
         }
 
-        // 🔥 Idempotencia (evita duplicados)
         if (Cache::has("whatsapp_message_$messageId")) {
-            Log::warning('Duplicate message ignored', ['id' => $messageId]);
             return response()->json(['duplicate' => true]);
         }
 
-        // Guardamos por 24h
         Cache::put("whatsapp_message_$messageId", true, now()->addHours(24));
 
-        Log::info('Message queued', [
-            'id' => $messageId,
-            'type' => $type,
-            'from' => $message['from'] ?? null,
-        ]);
-
-        SendToN8nJob::dispatch([
-            'message_id' => $messageId,
-            'from' => $message['from'] ?? null,
-            'type' => $type,
-            'payload' => $message,
-        ]);
+        // 🔥 Enviamos EXACTAMENTE lo que llegó
+        SendToN8nJob::dispatch($body);
 
         return response()->json(['queued' => true]);
     }
+
 
 }
