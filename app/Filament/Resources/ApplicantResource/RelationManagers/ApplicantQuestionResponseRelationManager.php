@@ -70,6 +70,11 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
             ->defaultSort('created_at', 'desc')
             ->defaultGroup('question.stage.name')
             ->columns([
+                TextColumn::make('question.order')
+                    ->label('Orden')
+                    ->hidden()
+                    ->sortable(),
+
                 TextColumn::make('ai_decision')
                     ->label('Estatus IA')
                     ->badge()

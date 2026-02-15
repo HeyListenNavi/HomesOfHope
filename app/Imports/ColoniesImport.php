@@ -5,8 +5,9 @@ namespace App\Imports;
 use App\Models\Colony;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 
-class ColoniesImport implements ToModel, WithHeadingRow
+class ColoniesImport implements ToModel, WithHeadingRow, SkipsEmptyRows
 {
     public function model(array $row)
     {
