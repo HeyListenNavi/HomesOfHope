@@ -16,30 +16,45 @@ class ColonyResource extends Resource
     protected static ?string $navigationLabel = 'Colonias';
     protected static ?string $navigationGroup = 'Catálogos';
 
+    protected static ?string $modelLabel = 'Colonia';
+    protected static ?string $pluralModelLabel = 'Colonias';
+
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('city'),
-                Forms\Components\TextInput::make('name')
-                    ->label('Colonia')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
+	     ->schema([
+                Forms\Components\Section::make('Datos de la Colonia')
+		    ->columns(2)
+	            ->schema([
+			Forms\Components\TextInput::make('city')
+			    ->label('Ciudad')
+		            ->required(),
+                        Forms\Components\TextInput::make('name')
+			    ->label('Colonia')
+			    ->required()
+			    ->unique(ignoreRecord: true)
+			    ->maxLength(255),
 
-                Forms\Components\Toggle::make('is_active')
-                    ->label('Activa')
-                    ->default(true),
+			Forms\Components\Toggle::make('is_active')
+			    ->label('Activa')
+			    ->default(true),
+		    ])
             ]);
     }
 
     public static function table(Tables\Table $table): Tables\Table
     {
-        return $table
+	return $table
+	    ->paginated([25, 50, 100])
+            ->defaultPaginationPageOption(25)
             ->columns([
-                Tables\Columns\TextColumn::make('city'),
+		Tables\Columns\TextColumn::make('city')
+		     ->sortable()
+                     ->badge()
+		     ->color('gray'),
+		
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Colonia')
+		    ->label('Colonia')
                     ->searchable()
                     ->sortable(),
 

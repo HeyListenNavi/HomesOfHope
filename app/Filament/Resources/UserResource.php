@@ -22,28 +22,42 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $modelLabel = 'Usuario';
+    protected static ?string $pluralModelLabel = 'Usuarios';
+    protected static ?string $navigationIcon = 'heroicon-o-user';
 
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                TextInput::make('name'),
-                TextInput::make("email"),
-                TextInput::make('password')
-                    ->password()
-                    ->revealable()
-                    ->required(fn ($context) => $context === 'create')
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->same('password_confirmation'),
-                TextInput::make('password_confirmation')
-                    ->password()
-                    ->label('Confirmar contraseña')
-                    ->dehydrated(false), 
-                Select::make("roles")
-                    ->relationship( name: "roles", titleAttribute: "name"),
-
+	    ->schema([
+                Forms\Components\Section::make('Datos del Usuario')
+		    ->columns(2)
+	            ->schema([
+			TextInput::make('name')
+			    ->label('Nombre'),
+		        TextInput::make("email")
+                            ->email()
+		            ->label('Correo electrónico'),
+			Select::make("roles")
+			    ->relationship( name: "roles", titleAttribute: "name"),
+		    ]),
+	        Forms\Components\Section::make('Cambiar contraseña')
+                     ->columns(2)
+	             ->schema([
+			TextInput::make('password')
+                            ->label('Contraseña')
+			    ->password()
+			    ->revealable()
+			    ->required(fn ($context) => $context === 'create')
+			    ->dehydrated(fn ($state) => filled($state))
+			    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+			    ->same('password_confirmation'),
+		       TextInput::make('password_confirmation')
+			    ->label('Confirmar contraseña')
+			    ->password()
+			    ->label('Confirmar contraseña')
+			    ->dehydrated(false), 
+		     ])
             ]);
     }
 
@@ -51,8 +65,14 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('roles.name')
+		Tables\Columns\TextColumn::make('name')
+		    ->label('Nombre de Usuario')
+		    ->searchable(),
+	    	Tables\Columns\TextColumn::make('roles.name')
+		    ->label('Rol')
+		    ->badge('primary')
+		    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state)))
+		    ->sortable(),
             ])
             ->filters([
                 //

@@ -52,7 +52,6 @@ class ApplicantResource extends Resource
 
                         Forms\Components\TextInput::make('curp')
                             ->label('CURP')
-                            ->required()
                             ->prefixIcon('heroicon-m-finger-print')
                             ->maxLength(18)
                             ->formatStateUsing(fn(?string $state) => strtoupper($state))
@@ -172,19 +171,9 @@ class ApplicantResource extends Resource
                         ->icon('heroicon-o-check-circle')
                         ->requiresConfirmation()
                         ->modalHeading('Pasar a la siguiente etapa')
-                        ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.")
+                        ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->modalSubmitActionLabel('Sí, aprobar!')
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if ( !$last ) return true;
-                        })
-                        ->action(function(Applicant $applicant){
-                            $WA = new WhatsappApiNotificationService();
-                            $WA->sendTemplate($applicant, "etapa_aprobada");
-                        }),
+                        ->action(fn(Applicant $record) => ApplicantActions::approveStage($record)),
 
 
                     // Botón para aprobar al aplicante de forma definitiva
@@ -194,18 +183,8 @@ class ApplicantResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalHeading('Aprobar aplicante')
-                        ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?")
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
-                        })
-                        ->action(function(Applicant $applicant){
-                            $WA = new WhatsappApiNotificationService();
-                            $WA->sendTemplate($applicant, "aprobado_staff");
-                        }),
+                        ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
 
                     // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
@@ -239,19 +218,8 @@ class ApplicantResource extends Resource
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar pregunta')
-                        ->modalDescription('¿Estás seguro de reenviar la pregunta actual a este aplicante?')
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
-                        })
-                        ->action(function(Applicant $applicant){
-                            $WA = new WhatsappApiNotificationService();
-                            $WA->sendTemplate($applicant, "reenviar_pregunta");
-                            ApplicantActions::reSendCurrentQuestion($applicant);
-                        }),
+                        ->modalDescription("¿Estás seguro de reenviar la pregunta actual a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(fn(Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
 
                     // Botón para reenviar el enlace de selección de grupo
                     Action::make('resendGroupLink')
@@ -260,19 +228,8 @@ class ApplicantResource extends Resource
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar enlace de grupo')
-                        ->modalDescription('¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?')
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
-                        })
-                        ->action(function(Applicant $applicant){
-                            $WA = new WhatsappApiNotificationService();
-                            $WA->sendTemplate($applicant, "reenviar_link_entrevista");
-                            ApplicantActions::reSendGroupSelectionLink($applicant);
-                        }),
+                        ->modalDescription("¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(fn(Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')
@@ -281,19 +238,8 @@ class ApplicantResource extends Resource
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Reiniciar proceso del aplicante')
-                        ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.")
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
-                        })
-                        ->action(function(Applicant $applicant){
-                            $WA = new WhatsappApiNotificationService();
-                            $WA->sendTemplate($applicant, "reiniciar_aplicante");
-                            ApplicantActions::resetApplicant($applicant);
-                        }),
+                        ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
@@ -307,21 +253,11 @@ class ApplicantResource extends Resource
                                 ->rows(5)
                                 ->placeholder('Escribe la razon...'),
                         ])
-
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar al aplicante')
-                        ->modalDescription("¿Estás seguro de rechazar a este aplicante?")
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
-                        })
-                        ->action(function( array $data, Applicant $applicant){
-                            $WA = new WhatsappApiNotificationService();
-                            $WA->sendTemplate($applicant, "rechazo_solicitud");
-                            ApplicantActions::rejectApplicant($applicant, $data['reason']);
+                        ->modalDescription("¿Estás seguro de rechazar a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(function (array $data, Applicant $record) {
+                            ApplicantActions::rejectApplicant($record, $data['reason']);
                         }),
                 ])
                     ->fullWidth()
@@ -443,7 +379,14 @@ class ApplicantResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Collection $records) {
+                            foreach ($records as $record) {
+                                if ($record->conversation) {
+                                    $record->conversation->delete();
+                                }
+                            }
+                        }),
                     Tables\Actions\BulkAction::make('exportSelected')
                         ->label('Exportar a CSV')
                         ->icon('heroicon-m-arrow-down-tray')
