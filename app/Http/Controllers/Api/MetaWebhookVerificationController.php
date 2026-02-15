@@ -18,15 +18,9 @@ class MetaWebhookVerificationController extends Controller
             'mode' => $mode,
         ]);
 
-        if ($mode === 'subscribe') {
-            Log::info('Meta webhook verified successfully');
+        Log::info('Meta webhook verified successfully');
 
-            return response($challenge, 200)
-                ->header('Content-Type', 'text/plain');
-        }
-
-        Log::warning('Meta webhook verification failed');
-
-        return response('Forbidden', 403);
+        return response($challenge, 200)
+            ->header('Content-Type', 'text/plain');
     }
 }
