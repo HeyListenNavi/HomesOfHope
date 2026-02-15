@@ -10,11 +10,7 @@ class MetaWebhookVerificationController extends Controller
 {
     public function verify(Request $request)
     {
-        if ($request->query('hub.mode') === 'subscribe') {
-            return response($request->query('hub.challenge'), 200);
-        }
-
-        return response('Forbidden', 403);
+        return response($request->query('hub.challenge'), 200);
     }
 
 }
