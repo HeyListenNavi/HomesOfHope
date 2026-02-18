@@ -13,11 +13,11 @@ class ColonyResource extends Resource
     protected static ?string $model = Colony::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
-    protected static ?string $navigationLabel = 'Colonias';
+    protected static ?string $navigationLabel = 'Colonias No Atendidas';
     protected static ?string $navigationGroup = 'Catálogos';
 
     protected static ?string $modelLabel = 'Colonia';
-    protected static ?string $pluralModelLabel = 'Colonias';
+    protected static ?string $pluralModelLabel = 'Colonias No Atendidas';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -52,7 +52,7 @@ class ColonyResource extends Resource
 		     ->sortable()
                      ->badge()
 		     ->color('gray'),
-		
+
                 Tables\Columns\TextColumn::make('name')
 		    ->label('Colonia')
                     ->searchable()
