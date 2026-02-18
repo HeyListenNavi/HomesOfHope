@@ -39,8 +39,6 @@ class SendApplicantReminder implements ShouldQueue
         try {
             $whatsappService->sendCustomMessage($this->applicant, 'Hola! Somos del equipo de Casas de Esperanza, te contactamos para recordarte que aún no has terminado tu solicitud. Por favor, completa el proceso para que podamos ayudarte. Si necesitas ayuda, no dudes en contactarnos. ¡Gracias!');
 
-            $whatsappService->sendCurrentQuestion($this->applicant);
-
             Log::info("Reminder sent to applicant: {$this->applicant->id}");
         } catch (Exception $e) {
             Log::error("Failed to remind applicant {$this->applicant->id}: " . $e->getMessage());
