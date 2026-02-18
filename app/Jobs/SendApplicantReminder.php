@@ -37,7 +37,7 @@ class SendApplicantReminder implements ShouldQueue
         }
 
         try {
-            $whatsappService->sendCustomMessage($this->applicant, 'Hola! Somos del equipo de Casas de Esperanza, te contactamos para recordarte que aún no has terminado tu solicitud. Por favor, completa el proceso para que podamos ayudarte a encontrar un hogar seguro. Si necesitas ayuda, no dudes en contactarnos. ¡Gracias!');
+            $whatsappService->sendCustomMessage($this->applicant, 'Hola! Somos del equipo de Casas de Esperanza, te contactamos para recordarte que aún no has terminado tu solicitud. Por favor, completa el proceso para que podamos ayudarte. Si necesitas ayuda, no dudes en contactarnos. ¡Gracias!');
 
             $whatsappService->sendCurrentQuestion($this->applicant);
 
