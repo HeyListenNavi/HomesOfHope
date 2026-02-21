@@ -61,3 +61,29 @@ Schedule::call(function () {
             }
         });
 })->hourly();
+
+Schedule::call(function () {
+    Applicant::where('process_status', 'in_progress')
+        ->chunk(100, function ($applicants) {
+
+            $applicants->load('conversation.latestMessage');
+
+            foreach ($applicants as $applicant) {
+                $conversation = $applicant->conversation;
+
+                if (!$conversation || !$conversation->latestMessage) continue;
+
+                $lastMessage = $conversation->latestMessage;
+
+                if ($lastMessage->role !== 'user') continue;
+
+                $minutesSinceLastMessage = $lastMessage->created_at->diffInMinutes(now());
+
+                if ($minutesSinceLastMessage >= 60) {
+                    $applicant->update([
+                        'process_status' => 'requires_revision',
+                    ]);
+                }
+            }
+        });
+})->hourly();
