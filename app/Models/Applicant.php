@@ -23,6 +23,7 @@ class Applicant extends Model
         'rejection_reason',
         'group_id',
         'confirmation_status',
+        'reminder_level',
     ];
 
     protected $casts = [
@@ -33,7 +34,7 @@ class Applicant extends Model
     {
         return $this->belongsTo(Group::class);
     }
-    
+
     public function currentStage(): BelongsTo
     {
         return $this->belongsTo(Stage::class, 'current_stage_id');
@@ -48,7 +49,7 @@ class Applicant extends Model
     {
         return $this->hasOne(Conversation::class, 'chat_id', 'chat_id');
     }
-    
+
     public function responses(): HasMany
     {
         return $this->hasMany(ApplicantQuestionResponse::class);
