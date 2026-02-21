@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Applicant;
 use App\Models\Message;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,11 @@ class BotMessageController extends Controller
 
         $message = Message::create($request->all());
 
+        if ($request->role === 'user') {
+            Applicant::where('chat_id', $request->phone)
+                ->update(['reminder_level' => 0]);
+        }
+
         return response()->json([
             'status' => 'success',
             'message_id' => $message->id
@@ -48,17 +54,17 @@ class BotMessageController extends Controller
     {
         $limit = $request->query('limit', 5); // Por defecto 5 mensajes
         $messages = Message::where('conversation_id', $conversationId)
-                            ->orderBy('created_at', 'desc')
-                            ->limit($limit)
-                            ->get()
-                            ->sortBy('created_at') // Ordena de nuevo ascendente para el historial
-                            ->map(function($message) {
-                                return [
-                                    'role' => $message->role,
-                                    'message' => $message->message,
-                                ];
-                            })
-                            ->values(); // Para reindexar el array
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->sortBy('created_at') // Ordena de nuevo ascendente para el historial
+            ->map(function ($message) {
+                return [
+                    'role' => $message->role,
+                    'message' => $message->message,
+                ];
+            })
+            ->values(); // Para reindexar el array
 
         return response()->json($messages);
     }
