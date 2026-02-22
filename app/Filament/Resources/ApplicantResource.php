@@ -31,6 +31,36 @@ class ApplicantResource extends Resource
     protected static ?string $pluralModelLabel = 'Aplicantes';
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
+    protected static ?string $recordTitleAttribute = 'applicant_name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['applicant_name', 'curp', 'chat_id'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->applicant_name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'CURP' => $record->curp ?? 'N/A',
+            'Teléfono' => str_starts_with($record->chat_id, '521') ? substr($record->chat_id, 3) : $record->chat_id,
+            'Estatus' => match($record->process_status) {
+                'in_progress' => 'En Progreso',
+                'approved' => 'Aprobado',
+                'staff_approved' => 'Aprobado por Staff',
+                'rejected' => 'Rechazado',
+                'staff_rejected' => 'Rechazado por Staff',
+                'requires_revision' => 'Requiere Revisión',
+                'canceled' => 'Cancelado',
+                default => 'Otro',
+            },
+        ];
+    }
+
     public static function canViewAny(): bool
     {
         return auth()->user()?->hasRole('admin');

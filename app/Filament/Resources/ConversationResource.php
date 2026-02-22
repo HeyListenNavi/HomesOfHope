@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ConversationResource extends Resource
 {
@@ -25,11 +26,29 @@ class ConversationResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-bottom-center-text';
     protected static ?string $navigationGroup = 'Auditoría y Logs';
 
+    protected static ?string $recordTitleAttribute = 'user_name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['user_name', 'chat_id'];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->user_name;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Teléfono' => str_starts_with($record->chat_id, '521') ? substr($record->chat_id, 3) : $record->chat_id,
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                // --- SECTION 1: CONTACT INFO ---
                 Forms\Components\Section::make('Información del Contacto')
                     ->description('Identificación del usuario en el chat.')
                     ->icon('heroicon-m-user-circle')
