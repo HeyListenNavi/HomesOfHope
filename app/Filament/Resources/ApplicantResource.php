@@ -247,17 +247,30 @@ class ApplicantResource extends Resource
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->form([
-                            Forms\Components\Textarea::make('reason')
-                                ->label('Razon')
+                            Forms\Components\Select::make('predefined_reason')
+                                ->label('Motivo de rechazo')
+                                ->options([
+                                    'No cumple con los requisitos mínimos' => 'No cumple con los requisitos mínimos',
+                                    'Fuera de la zona de cobertura' => 'Fuera de la zona de cobertura',
+                                    'Condiciones del terreno inadecuadas' => 'Condiciones del terreno inadecuadas',
+                                    'Falta de documentación o abandono' => 'Falta de documentación o abandono',
+                                    'other' => 'Otro (Especificar)',
+                                ])
                                 ->required()
-                                ->rows(5)
-                                ->placeholder('Escribe la razon...'),
+                                ->live(),
+
+                            Forms\Components\Textarea::make('reason')
+                                ->label('Especificar razón')
+                                ->required(fn (Get $get) => $get('predefined_reason') === 'other')
+                                ->visible(fn (Get $get) => $get('predefined_reason') === 'other')
+                                ->rows(3)
+                                ->placeholder('Escribe la razón detallada...'),
                         ])
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar al aplicante')
                         ->modalDescription("¿Estás seguro de rechazar a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->action(function (array $data, Applicant $record) {
-                            ApplicantActions::rejectApplicant($record, $data['reason']);
+                            ApplicantActions::rejectApplicant($record, $data['predefined_reason'] === 'other' ? $data['reason'] : $data['predefined_reason']);
                         }),
                 ])
                     ->fullWidth()
