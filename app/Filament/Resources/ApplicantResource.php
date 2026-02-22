@@ -275,9 +275,16 @@ class ApplicantResource extends Resource
                                     'other' => 'Otro (Especificar)',
                                 ])
                                 ->required()
+                                ->native(false)
                                 ->live(),
 
-                            Forms\Components\Textarea::make('reason')->label('Especificar razón')->required(fn(Get $get) => $get('predefined_reason') === 'other')->visible(fn(Get $get) => $get('predefined_reason') === 'other')->rows(3)->placeholder('Escribe la razón detallada...'),
+                            Forms\Components\Textarea::make('reason')
+                                ->label('Especificar razón')
+                                ->required(fn(Get $get) => $get('predefined_reason') === 'other')
+                                ->visible(fn(Get $get) => $get('predefined_reason') === 'other')
+                                ->rows(3)
+                                ->autoSize()
+                                ->placeholder('Escribe la razón detallada...'),
                         ])
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar al aplicante')
