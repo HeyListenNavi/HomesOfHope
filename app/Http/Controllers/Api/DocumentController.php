@@ -27,7 +27,7 @@ class DocumentController extends Controller
         $validTypes = [
             'family_profile' => \App\Models\FamilyProfile::class,
             'family_member' => \App\Models\FamilyMember::class,
-            // Agrega más aquí conforme crezcas (visitas, tareas)
+	        'visit' => \App\Models\Visit::class,
         ];
 
         // Normalizar el tipo si viene como alias
