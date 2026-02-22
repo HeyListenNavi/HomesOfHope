@@ -65,7 +65,7 @@ class VisitController extends Controller
     public function show(string $id)
     {
         // Cargamos relaciones útiles para la vista de detalle
-        $visit = Visit::with(['familyProfile', 'attendant', 'notes', 'documents'])
+        $visit = Visit::with(['familyProfile.responsibleMember', 'attendant', 'notes.author:id,name', 'documents', 'tasks'])
             ->findOrFail($id);
 
         return response()->json($visit);
