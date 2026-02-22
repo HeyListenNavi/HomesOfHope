@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TestimonyController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ColonyController;
-
+use App\Http\Controllers\Api\AuthController;
 
 //Ruta para testing
 Route::get('/user', function (Request $request) {
@@ -25,16 +25,16 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 //Login Route
-Route::post('/login', [UserController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
     // Autenticación
-    Route::post('/logout', [UserController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     //Routes for FamilyProfile
     Route::prefix('family-profiles')->group(function () {
-        Route::get('/', [FamilyProfileController::class, 'index']);        
+        Route::get('/', [FamilyProfileController::class, 'index']);
         Route::post('/', [FamilyProfileController::class, 'store']);
         Route::get('/{id}', [FamilyProfileController::class, 'show']);
         Route::put('/{id}', [FamilyProfileController::class, 'update']);
@@ -78,8 +78,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Routes for evidence
     Route::prefix('evidence')->group(function () {
-        Route::post('/', [EvidenceController::class, 'store']);        
-        Route::get('/{id}', [EvidenceController::class, 'show']);        
+        Route::post('/', [EvidenceController::class, 'store']);
+        Route::get('/{id}', [EvidenceController::class, 'show']);
         Route::delete('/{id}', [EvidenceController::class, 'destroy']);
     });
 
@@ -103,15 +103,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Routes for Users
     Route::prefix('users')->group(function () {
-        Route::get('/', [UserController::class, 'index']);          
-        Route::post('/', [UserController::class, 'store']);         
-        Route::get('/{user}', [UserController::class, 'show']);    
-        Route::put('/{user}', [UserController::class, 'update']);  
-        Route::delete('/{user}', [UserController::class, 'destroy']); 
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/{user}', [UserController::class, 'show']);
+        Route::put('/{user}', [UserController::class, 'update']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
     });
 
 });
-
 
 // Rutas de API para el bot conversacional
 Route::prefix('bot')->group(function () {
@@ -146,5 +145,5 @@ Route::prefix('bot')->group(function () {
     Route::put('applicants/{applicantId}/update-manually', [BotApplicantManualController::class, 'updateManually']);
 
     //Routes for Colonies
-    Route::get('/colonies', [ColonyController::class, 'index']);    
+    Route::get('/colonies', [ColonyController::class, 'index']);
 });
