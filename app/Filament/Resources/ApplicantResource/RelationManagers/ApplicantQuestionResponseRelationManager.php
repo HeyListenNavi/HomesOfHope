@@ -9,6 +9,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Illuminate\Database\Eloquent\Model;
 
 class ApplicantQuestionResponseRelationManager extends RelationManager
@@ -75,15 +76,8 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->hidden()
                     ->sortable(),
 
-                TextColumn::make('ai_decision')
-                    ->label('Estatus IA')
-                    ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'valid' => 'Válido',
-                        'not_valid' => 'Inválido',
-                        'requires_supervision' => 'Revisión',
-                        default => $state,
-                    })
+                IconColumn::make('ai_decision')
+                    ->label('IA')
                     ->color(fn(string $state): string => match ($state) {
                         'valid' => 'success',
                         'requires_supervision' => 'warning',
@@ -96,14 +90,25 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                         'not_valid' => 'heroicon-m-x-circle',
                         default => 'heroicon-m-minus',
                     })
+                    ->size(IconColumn\IconColumnSize::Small)
+                    ->wrap()
                     ->sortable(),
 
                 TextColumn::make('question_text_snapshot')
                     ->label('Pregunta')
                     ->color('gray')
-                    ->limit(90)
-                    ->tooltip(fn(Model $record) => $record->user_response)
+                    ->size(TextColumn\TextColumnSize::ExtraSmall)
+                    ->limit(50)
                     ->searchable(),
+
+                TextColumn::make('user_response')
+                    ->label('Respuesta')
+                    ->size(TextColumn\TextColumnSize::ExtraSmall)
+                    ->searchable()
+                    ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
+                    ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)
+                    ->url(fn (string $state) => self::extractLocationUrl($state))
+                    ->openUrlInNewTab()
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('ai_decision')
@@ -132,5 +137,31 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function extractLocationUrl(?string $state): ?string
+    {
+        if (empty($state)) return null;
+
+        $cleanState = trim($state);
+
+        // Notas de Vero real:
+
+        // Match a un link de maps
+        if (preg_match('/(https?:\/\/(www\.)?google\.[a-z.]+\/maps\/[^\s]+|https?:\/\/goo\.gl\/maps\/[^\s]+|https?:\/\/maps\.app\.goo\.gl\/[^\s]+)/i', $cleanState, $matches)) {
+            return $matches[0];
+        }
+
+        // Match a coordenadas
+        if (preg_match('/(?<![\d.\-+])[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)(?![\d.])/', $cleanState, $matches)) {
+            return $cache[$state] = "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
+        }
+
+        // Match a Plus Code
+        if (preg_match('/([23456789C][23456789CFGHJMPQRV][23456789CFGHJMPQRVWX]{6}\+[23456789CFGHJMPQRVWX]{2,7}|[23456789CFGHJMPQRVWX]{4,6}\+[23456789CFGHJMPQRVWX]{2,3})/i', $cleanState, $matches)) {
+            return "https://maps.google.com/?q=" . urlencode($matches[0]);
+        }
+
+        return $cache[$state] = null;
     }
 }
