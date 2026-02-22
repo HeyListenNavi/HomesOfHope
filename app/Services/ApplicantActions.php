@@ -72,7 +72,7 @@ class ApplicantActions
         if (is_null($nextStage)) {
             Log::info("El proceso del aplicante con ID {$applicant->id} ha finalizado. Enviando enlace de selección de grupo.");
             $applicant->update([
-                "process_status" => "approved",
+                "process_status" => "staff_approved",
             ]);
             $notificationService->sendGroupSelectionLink($applicant);
             return;
@@ -117,7 +117,7 @@ class ApplicantActions
         $notificationService = new WhatsappApiNotificationService();
 
         $applicant->update([
-            "process_status" => "approved",
+            "process_status" => "staff_approved",
             "group_id" => null,
         ]);
         Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null antes de reenviar el enlace.");
@@ -131,7 +131,7 @@ class ApplicantActions
         $notificationService = new WhatsappApiNotificationService();
 
         $applicant->update([
-            "process_status" => "approved",
+            "process_status" => "staff_approved",
             "group_id" => null,
         ]);
         Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null después de la aprobación final.");
@@ -144,7 +144,7 @@ class ApplicantActions
         Log::info("Rechazando al aplicante con ID {$applicant->id}.");
 
         $applicant->update([
-            "process_status" => "rejected",
+            "process_status" => "staff_rejected",
             "rejection_reason" => $reason,
         ]);
 
