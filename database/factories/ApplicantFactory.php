@@ -31,8 +31,8 @@ class ApplicantFactory extends Factory
             'process_status' => $processStatus,
             
             // El motivo de rechazo solo se genera si el estado es 'rejected'.
-            'rejection_reason' => $processStatus === 'rejected' ? $this->faker->sentence : null,
-            
+            'rejection_reason' => $processStatus === 'rejected' ? $this->faker->randomElement(['no_children', 'contract_issues', 'not_owner', 'lives_too_far', 'less_than_a_year', 'late_payments', 'out_of_coverage', 'other']) : null,
+
             // Se asigna un grupo solo si el estado es 'approved'.
             'group_id' => $processStatus === 'approved' ? Group::inRandomOrder()->first() : null,
             
@@ -61,7 +61,7 @@ class ApplicantFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             'process_status' => 'rejected',
-            'rejection_reason' => $this->faker->sentence,
+            'rejection_reason' => $this->faker->randomElement(['no_children', 'contract_issues', 'not_owner', 'lives_too_far', 'less_than_a_year', 'late_payments', 'out_of_coverage', 'other']),
             'group_id' => null,
             'confirmation_status' => 'canceled',
         ]);

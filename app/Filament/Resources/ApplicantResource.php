@@ -160,8 +160,22 @@ class ApplicantResource extends Resource
                     ->schema([
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Motivo')
+                            ->formatStateUsing(function (?string $state) {
+                                $reasons = [
+                                    'no_children' => 'No tiene hijos',
+                                    'contract_issues' => 'Problemas con el contrato',
+                                    'not_owner' => 'No es dueño del terreno',
+                                    'lives_too_far' => 'Vive muy lejos del terreno',
+                                    'less_than_a_year' => 'Tiene menos de un año con el terreno',
+                                    'late_payments' => 'Atrasado con los pagos',
+                                    'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
+                                ];
+
+                                return $reasons[$state] ?? $state;
+                            })
                             ->columnSpanFull()
-                            ->rows(3),
+                            ->autoSize()
+                            ->disabled(),
                     ]),
 
                 Forms\Components\Actions::make([
@@ -243,22 +257,33 @@ class ApplicantResource extends Resource
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
-                        ->label("Rechazar")
+                        ->label('Rechazar')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->form([
-                            Forms\Components\Textarea::make('reason')
-                                ->label('Razon')
+                            Forms\Components\Select::make('predefined_reason')
+                                ->label('Motivo de rechazo')
+                                ->options([
+                                    'no_children' => 'No tiene hijos',
+                                    'contract_issues' => 'Problemas con el contrato',
+                                    'not_owner' => 'No es dueño del terreno',
+                                    'lives_too_far' => 'Vive muy lejos del terreno',
+                                    'less_than_a_year' => 'Tiene menos de un año con el terreno',
+                                    'late_payments' => 'Atrasado con los pagos',
+                                    'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
+                                    'other' => 'Otro (Especificar)',
+                                ])
                                 ->required()
-                                ->rows(5)
-                                ->placeholder('Escribe la razon...'),
+                                ->live(),
+
+                            Forms\Components\Textarea::make('reason')->label('Especificar razón')->required(fn(Get $get) => $get('predefined_reason') === 'other')->visible(fn(Get $get) => $get('predefined_reason') === 'other')->rows(3)->placeholder('Escribe la razón detallada...'),
                         ])
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar al aplicante')
                         ->modalDescription("¿Estás seguro de rechazar a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->action(function (array $data, Applicant $record) {
-                            ApplicantActions::rejectApplicant($record, $data['reason']);
-                        }),
+                                ApplicantActions::rejectApplicant($record, $data['predefined_reason'] === 'other' ? $data['reason'] : $data['predefined_reason']);
+                            }),
                 ])
                     ->fullWidth()
                     ->columnSpanFull(),
