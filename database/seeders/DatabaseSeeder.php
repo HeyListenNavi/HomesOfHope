@@ -21,8 +21,6 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            ApplicantQuestionResponseSeeder::class,
-            ApplicantSeeder::class,
             HomesofHopeSeeder::class,
             ConversationSeeder::class,
             MessageSeeder::class,
@@ -30,6 +28,7 @@ class DatabaseSeeder extends Seeder
             StageSeeder::class,
             GroupSeeder::class,
             ApplicantSeeder::class,
+            ApplicantQuestionResponseSeeder::class,
             MessageSeeder::class,
             RolesAndPermissionsSeeder::class,
             ColonySeeder::class,
