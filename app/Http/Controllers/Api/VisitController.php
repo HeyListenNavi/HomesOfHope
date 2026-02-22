@@ -22,7 +22,15 @@ class VisitController extends Controller
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
-        
+
+        if ($request->has('date')) {
+            $query->whereDate('scheduled_at', $request->date);
+        }
+
+        if ($request->has('min_date')) {
+            $query->whereDate('scheduled_at', '>=', $request->min_date);
+        }
+
         // Ordenar: Próximas visitas primero, luego las recientes
         // O simplemente cronológico descendente
         $query->orderBy('scheduled_at', 'desc');
