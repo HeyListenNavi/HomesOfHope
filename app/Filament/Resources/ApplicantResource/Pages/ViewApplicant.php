@@ -36,18 +36,6 @@ class ViewApplicant extends ViewRecord
                 })
                 ->openUrlInNewTab(),
 
-                Actions\Action::make('sendTemplate')
-                    ->label('Enviar template')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->modalHeading('Enviar mensaje')
-                    ->modalDescription('¿Seguro que deseas enviar el template de WhatsApp?')
-                    ->action(function(Applicant $applicant){
-                        $WhatsApp = new WhatsappApiNotificationService();
-                        $WhatsApp->sendTemplate($applicant);
-                    }),
-
             Actions\EditAction::make(),
         ];
     }
