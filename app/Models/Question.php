@@ -15,6 +15,7 @@ class Question extends Model implements Sortable
     use HasFactory;
     use SortableTrait;
 
+    
     public $sortable = [
         'order_column_name' => 'order',
         'sort_when_creating' => true,
@@ -25,12 +26,10 @@ class Question extends Model implements Sortable
         'question_text',
         'approval_criteria',
         'order',
-        'show_in_table',
     ];
 
     protected $casts = [
         'approval_criteria' => 'json',
-        'show_in_table' => 'boolean',
     ];
 
     public function stage(): BelongsTo

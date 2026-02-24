@@ -21,7 +21,6 @@ use Filament\Support\Enums\FontFamily;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Illuminate\Database\Eloquent\Builder;
 
 class ApplicantResource extends Resource
 {
@@ -330,7 +329,12 @@ class ApplicantResource extends Resource
 
     public static function table(Table $table): Table
     {
-        $columns = [
+        return $table
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
+            ->paginated([25, 50, 100])
+            ->defaultSort('created_at', 'desc')
+            ->columns([
                 TextColumn::make('applicant_name')
                     ->label('Nombre')
                     ->searchable()
@@ -356,91 +360,66 @@ class ApplicantResource extends Resource
                     })
                     ->url(fn($state) => 'https://wa.me/' . $state)
                     ->openUrlInNewTab(),
-        ];
 
-        $dynamicQuestions = Question::where('show_in_table', true)->get();
+                TextColumn::make('curp')
+                    ->label('CURP')
+                    ->fontFamily(FontFamily::Mono)
+                    ->formatStateUsing(fn(string $state) => strtoupper($state))
+                    ->color('gray')
+                    ->searchable(),
 
-        foreach ($dynamicQuestions->values() as $index => $question) {
-            $columns[] =
-            TextColumn::make('dynamic_question_' . $question->id)
-                ->label('Pregunta ' . ($index + 1))
-                ->size(TextColumn\TextColumnSize::ExtraSmall)
-                ->searchable()
-                ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
-                ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)
-                ->url(fn (string $state) => self::extractLocationUrl($state))
-                ->openUrlInNewTab()
-                ->state(function (Applicant $record) use ($question) {
-                    $response = $record->responses->firstWhere('question_id', $question->id);
-
-                    return $response ? $response->user_response : null;
-                })
-                ->placeholder('No respondida')
-                ->limit(30)
-                ->toggleable();
-        }
-
-        array_push($columns,
-            TextColumn::make('currentStage.name')
+                TextColumn::make('currentStage.name')
                     ->label('Etapa')
                     ->badge()
                     ->color('gray')
                     ->sortable(),
 
-            TextColumn::make('process_status')
-                ->label('Estatus')
-                ->badge()
-                ->formatStateUsing(fn(string $state): string => match ($state) {
-                    'in_progress' => 'En Progreso',
-                    'approved' => 'IA: Aprobado',
-                    'rejected' => 'IA: Rechazado',
-                    'staff_approved' => 'Staff: Aprobado',
-                    'staff_rejected' => 'Staff: Rechazado',
-                    'requires_revision' => 'Revisión',
-                    'canceled' => 'Cancelado',
-                    default => $state,
-                })
-                ->color(fn(string $state): string => match ($state) {
-                    'in_progress' => 'info',
-                    'approved' => 'success',
-                    'staff_approved' => 'success',
-                    'rejected' => 'danger',
-                    'staff_rejected' => 'danger',
-                    'requires_revision' => 'warning',
-                    'canceled' => 'gray',
-                    default => 'gray',
-                })
-                ->icon(fn(string $state): string => match ($state) {
-                    'in_progress' => 'heroicon-m-arrow-path',
-                    'approved' => 'heroicon-m-sparkles',
-                    'staff_approved' => 'heroicon-m-check-badge',
-                    'rejected' => 'heroicon-m-x-circle',
-                    'staff_rejected' => 'heroicon-m-no-symbol',
-                    'requires_revision' => 'heroicon-m-exclamation-triangle',
-                    'canceled' => 'heroicon-m-x-mark',
-                    default => 'heroicon-m-minus',
-                })
-                ->sortable(),
+                TextColumn::make('process_status')
+                    ->label('Estatus')
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'in_progress' => 'En Progreso',
+                        'approved' => 'IA: Aprobado',
+                        'rejected' => 'IA: Rechazado',
+                        'staff_approved' => 'Staff: Aprobado',
+                        'staff_rejected' => 'Staff: Rechazado',
+                        'requires_revision' => 'Revisión',
+                        'canceled' => 'Cancelado',
+                        default => $state,
+                    })
+                    ->color(fn(string $state): string => match ($state) {
+                        'in_progress' => 'info',
+                        'approved' => 'success',
+                        'staff_approved' => 'success',
+                        'rejected' => 'danger',
+                        'staff_rejected' => 'danger',
+                        'requires_revision' => 'warning',
+                        'canceled' => 'gray',
+                        default => 'gray',
+                    })
+                    ->icon(fn(string $state): string => match ($state) {
+                        'in_progress' => 'heroicon-m-arrow-path',
+                        'approved' => 'heroicon-m-sparkles',
+                        'staff_approved' => 'heroicon-m-check-badge',
+                        'rejected' => 'heroicon-m-x-circle',
+                        'staff_rejected' => 'heroicon-m-no-symbol',
+                        'requires_revision' => 'heroicon-m-exclamation-triangle',
+                        'canceled' => 'heroicon-m-x-mark',
+                        default => 'heroicon-m-minus',
+                    })
+                    ->sortable(),
 
-            TextColumn::make('created_at')
-                ->label('Fecha de Registro')
-                ->dateTime('d/m/Y H:i')
-                ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Fecha de Registro')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
 
-            TextColumn::make('updated_at')
-                ->label('Última Actualización')
-                ->dateTime('d/m/Y H:i')
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-        );
-
-        return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('responses'))
-            ->paginated([10, 25, 50, 100])
-            ->defaultPaginationPageOption(25)
-            ->paginated([25, 50, 100])
-            ->defaultSort('created_at', 'desc')
-            ->columns($columns)
+                TextColumn::make('updated_at')
+                    ->label('Última Actualización')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')
                     ->label('Filtrar por Estatus')
@@ -495,32 +474,6 @@ class ApplicantResource extends Resource
                         }),
                 ]),
             ]);
-    }
-
-    public static function extractLocationUrl(?string $state): ?string
-    {
-        if (empty($state)) return null;
-
-        $cleanState = trim($state);
-
-        // Notas de Vero real:
-
-        // Match a un link de maps
-        if (preg_match('/(https?:\/\/(www\.)?google\.[a-z.]+\/maps\/[^\s]+|https?:\/\/goo\.gl\/maps\/[^\s]+|https?:\/\/maps\.app\.goo\.gl\/[^\s]+)/i', $cleanState, $matches)) {
-            return $matches[0];
-        }
-
-        // Match a coordenadas
-        if (preg_match('/(?<![\d.\-+])[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)(?![\d.])/', $cleanState, $matches)) {
-            return $cache[$state] = "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
-        }
-
-        // Match a Plus Code
-        if (preg_match('/([23456789C][23456789CFGHJMPQRV][23456789CFGHJMPQRVWX]{6}\+[23456789CFGHJMPQRVWX]{2,7}|[23456789CFGHJMPQRVWX]{4,6}\+[23456789CFGHJMPQRVWX]{2,3})/i', $cleanState, $matches)) {
-            return "https://maps.google.com/?q=" . urlencode($matches[0]);
-        }
-
-        return $cache[$state] = null;
     }
 
     public static function getRelations(): array

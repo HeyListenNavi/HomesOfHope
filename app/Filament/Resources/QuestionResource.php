@@ -11,7 +11,6 @@ use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Columns\TextColumn\TextColumnFontFamily;
 
 class QuestionResource extends Resource
@@ -46,11 +45,6 @@ class QuestionResource extends Resource
                             ->placeholder('¿Cuál es tu ingreso mensual aproximado?')
                             ->rows(3)
                             ->autosize(),
-
-                        Forms\Components\Toggle::make('show_in_table')
-                            ->label('Mostrar en tabla de Aplicantes')
-                            ->helperText('Crea una columna en la vista principal para leer estas respuestas sin tener que entrar al perfil.')
-                            ->default(false),
                     ]),
 
                 Forms\Components\Section::make('Lógica de Evaluación (IA)')
@@ -134,10 +128,6 @@ class QuestionResource extends Resource
                     ->badge()
                     ->color('info')
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                ToggleColumn::make('show_in_table')
-                    ->label('Mostrar en tabla')
-                    ->sortable(),
             ])
             ->filters([
                 //
