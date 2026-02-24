@@ -19,7 +19,7 @@ class SendApplicantReminder implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public Applicant $applicant)
+    public function __construct(public int $applicantId)
     {
         //
     }
@@ -27,22 +27,45 @@ class SendApplicantReminder implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(WhatsappApiNotificationService $whatsappService): void
+    public function handle(WhatsappApiNotificationService $notificationService): void
     {
-        $lastMessage = $this->applicant->conversation->messages()->latest()->first();
+        $applicant = Applicant::where('process_status', 'in_progress')->find($this->applicantId);
 
-        if ($lastMessage && $lastMessage->created_at->diffInMinutes(now()) < 5)
-            {
+        if (!$applicant) return;
+
+        $applicant->load('conversation.latestMessage');
+
+        $conversation = $applicant->conversation;
+
+        if (!$conversation || !$conversation->latestMessage) return;
+
+        if ($conversation->latestMessage->role === 'user') return;
+
+        $latestUserMessage = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+
+        $referenceTime = $latestUserMessage ? $latestUserMessage->created_at : $applicant->created_at;
+
+        $hoursSinceLastMessage = $referenceTime->diffInHours(now());
+
+        if ($applicant->reminder_level === 0 && $hoursSinceLastMessage >= 23) {
+            $notificationService->sendCustomMessage($applicant, 'Hola! Somos parte del equipo de Casas de Esperanza, seguimos esperando tu respuesta para continuar con tu proceso. Si tienes alguna duda o necesitas ayuda, no dudes en escribirnos. ¡Estamos aquí para apoyarte! ❤️', 'primer_recontacto');
+
+            $applicant->update(['reminder_level' => 1]);
             return;
         }
 
-        try {
-            $whatsappService->sendCustomMessage($this->applicant, 'Hola! Somos del equipo de Casas de Esperanza, te contactamos para recordarte que aún no has terminado tu solicitud. Por favor, completa el proceso para que podamos ayudarte. Si necesitas ayuda, no dudes en contactarnos. ¡Gracias!');
+        if ($applicant->reminder_level === 1 && $hoursSinceLastMessage >= 48) {
+            $notificationService->sendCustomMessage($applicant, 'Hola! Somos parte del equipo de Casas de Esperanza, te mandamos este mensaje para recordarte que tienes pendiente terminar con tu aplicación, tienes 3 días para continuar tu proceso de aplicación antes de que sea cancelada, esperamos tu respuesta ❤️', 'recontacto_final');
 
-            Log::info("Reminder sent to applicant: {$this->applicant->id}");
-        } catch (Exception $e) {
-            Log::error("Failed to remind applicant {$this->applicant->id}: " . $e->getMessage());
-            throw $e;
+            $applicant->update(['reminder_level' => 2]);
+            return;
+        }
+
+        if ($applicant->reminder_level === 2 && $hoursSinceLastMessage >= 72) {
+            $applicant->update([
+                'process_status' => 'canceled',
+            ]);
+            return;
         }
     }
 }
