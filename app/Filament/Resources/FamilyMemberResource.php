@@ -115,12 +115,12 @@ class FamilyMemberResource extends Resource
                                 Forms\Components\Select::make('relationship')
                                     ->label('Rol Familiar')
                                     ->options([
-                                        'padre' => '👨 Padre de Familia',
-                                        'madre' => '👩 Madre de Familia',
-                                        'hijo' => '👶 Hijo(a)',
-                                        'abuelo' => '👴 Abuelo(a)',
-                                        'nieto' => '🧸 Nieto(a)',
-                                        'otro' => '👤 Otro',
+                                        'father' => '👨 Padre de Familia',
+                                        'mother' => '👩 Madre de Familia',
+                                        'child' => '👶 Hijo(a)',
+                                        'grandparent' => '👴 Abuelo(a)',
+                                        'grandchild' => '🧸 Nieto(a)',
+                                        'other' => '👤 Otro',
                                     ])
                                     ->required()
                                     ->native(false),
@@ -178,8 +178,8 @@ class FamilyMemberResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => ucfirst($state))
                     ->color(fn(string $state): string => match ($state) {
-                        'padre', 'madre' => 'primary',
-                        'hijo', 'nieto' => 'info',
+                        'father', 'mother' => 'primary',
+                        'child', 'grandchild' => 'info',
                         default => 'gray',
                     }),
 
