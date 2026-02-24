@@ -11,11 +11,9 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class ApplicantsList extends BaseWidget
 {
-    protected static ?int $sort = 4;
-
-    protected int | string | array $columnSpan = 'full';
-
     protected static ?string $heading = 'Últimos Aplicantes Registrados';
+    protected static ?int $sort = 8;
+    protected int | string | array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
