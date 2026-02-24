@@ -3,63 +3,40 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Applicant;
+use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
+use Flowframe\Trend\Trend;
+use Flowframe\Trend\TrendValue;
 
 class MonthlyApplicantsChart extends ChartWidget
 {
-    protected static ?int $sort = 2;
-
+    protected static ?string $heading = 'Total de Solicitantes por Mes';
+    protected static ?int $sort = 4;
     protected static ?string $maxHeight = '300px';
-
-    protected static ?string $heading = 'Distribución de Estatus';
 
     protected function getData(): array
     {
-        // 1. Obtenemos los conteos de la BD en una sola consulta agrupada
-        $data = Applicant::query()
-            ->selectRaw('process_status, count(*) as count')
-            ->groupBy('process_status')
-            ->pluck('count', 'process_status')
-            ->toArray();
-
-        // 2. Definimos la configuración visual para cada estado posible
-        $statuses = [
-            'staff_approved'    => ['label' => 'Staff: Aprobado', 'color' => '#15803d'], // Verde Oscuro
-            'approved'          => ['label' => 'IA: Aprobado',    'color' => '#4ade80'], // Verde Claro
-            'in_progress'       => ['label' => 'En Progreso',     'color' => '#3b82f6'], // Azul
-            'requires_revision' => ['label' => 'Revisión Manual', 'color' => '#f59e0b'], // Naranja
-            'rejected'          => ['label' => 'IA: Rechazado',   'color' => '#f87171'], // Rojo Claro
-            'staff_rejected'    => ['label' => 'Staff: Rechazado','color' => '#b91c1c'], // Rojo Oscuro
-            'canceled'          => ['label' => 'Cancelado',       'color' => '#9ca3af'], // Gris
-        ];
-
-        // 3. Construimos los arrays finales asegurando el orden
-        $labels = [];
-        $counts = [];
-        $colors = [];
-
-        foreach ($statuses as $key => $config) {
-            // Solo mostramos en la gráfica si hay al menos 1 caso (opcional)
-            // Si quieres mostrar ceros, quita el 'if'
-            $count = $data[$key] ?? 0;
-
-            if ($count > 0 || in_array($key, ['in_progress', 'requires_revision'])) {
-                $labels[] = $config['label'];
-                $counts[] = $count;
-                $colors[] = $config['color'];
-            }
-        }
+        $data = Trend::model(Applicant::class)
+            ->between(
+                start: now()->startOfYear(),
+                end: now()->endOfYear(),
+            )
+            ->perMonth()
+            ->count();
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Solicitantes',
-                    'data' => $counts,
-                    'backgroundColor' => $colors,
-                    'hoverOffset' => 4,
+                    'label' => 'Nuevos Solicitantes',
+                    'data' => $data->map(fn (TrendValue $value) => $value->aggregate),
+                    'fill' => 'start',
+                    'pointBackgroundColor' => '#ffffff',
+                    'pointBorderWidth' => 2,
+                    'pointRadius' => 4,
+                    'pointHoverRadius' => 6,
                 ],
             ],
-            'labels' => $labels,
+            'labels' => $data->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat('M')),
         ];
     }
 
@@ -68,8 +45,29 @@ class MonthlyApplicantsChart extends ChartWidget
         return [
             'plugins' => [
                 'legend' => [
-                    'display' => true,
-                    'position' => 'right', // 'right' suele verse mejor en pies pequeños
+                    'display' => false,
+                ],
+                'tooltip' => [
+                    'enabled' => true,
+                ],
+            ],
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'grid' => [
+                        'display' => true,
+                        'borderDash' => [2, 2],
+                        'drawBorder' => false,
+                        'color' => 'rgba(0, 0, 0, 0.05)',
+                    ],
+                    'ticks' => [
+                        'precision' => 0,
+                    ],
+                ],
+                'x' => [
+                    'grid' => [
+                        'display' => false,
+                    ],
                 ],
             ],
         ];
@@ -77,6 +75,6 @@ class MonthlyApplicantsChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'doughnut'; // 'doughnut' suele verse más moderno que 'pie', pero puedes regresar a 'pie'
+        return 'line';
     }
 }
