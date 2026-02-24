@@ -34,6 +34,7 @@ class BotMessageController extends Controller
 
         if ($request->role === 'user') {
             Applicant::where('chat_id', $request->phone)
+                ->where('reminder_level', '!=', 0)
                 ->update(['reminder_level' => 0]);
         }
 
