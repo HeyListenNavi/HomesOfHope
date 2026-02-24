@@ -64,8 +64,8 @@ class FamilyProfileController extends Controller
         $validated = $request->validate([
             'family_name' => 'required|string|max:255',
             'status' => 'required|string|in:prospect,active,in_follow_up,closed',
-            'current_address' => 'required|array',
-            'construction_address' => 'nullable|array',
+            'current_address' => 'required|string',
+            'construction_address' => 'nullable|string',
             'opened_at' => 'required|date',
             'general_observations' => 'nullable|string',
         ]);
@@ -85,7 +85,7 @@ class FamilyProfileController extends Controller
      */
     public function show(string $id)
     {
-        $profile = FamilyProfile::with(['members', 'responsibleMember']) 
+        $profile = FamilyProfile::with(['members', 'responsibleMember', 'documents']) 
             ->findOrFail($id);
 
         return response()->json($profile);
