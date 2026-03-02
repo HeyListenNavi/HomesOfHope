@@ -47,7 +47,7 @@ class SendApplicantReminder implements ShouldQueue
 
         $hoursSinceLastMessage = $referenceTime->diffInHours(now());
 
-        if ($applicant->reminder_level === 0 && $hoursSinceLastMessage >= 23) {
+        if ($applicant->reminder_level === 0 && $hoursSinceLastMessage >= 22) {
             $notificationService->sendCustomMessage($applicant, 'Hola! Somos parte del equipo de Casas de Esperanza, seguimos esperando tu respuesta para continuar con tu proceso. Si tienes alguna duda o necesitas ayuda, no dudes en escribirnos. ¡Estamos aquí para apoyarte! ❤️', 'primer_recontacto');
 
             $applicant->update(['reminder_level' => 1]);
