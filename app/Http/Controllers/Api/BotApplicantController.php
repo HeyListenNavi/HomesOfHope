@@ -40,6 +40,16 @@ class BotApplicantController extends Controller
             'chat_id' => 'required|string|unique:applicants,chat_id',
         ]);
 
+        $applicant = Applicant::where('chat_id', $validated['chat_id']);
+
+        if ($applicant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ya tienes una aplicacion en curso',
+                'applicant' => $applicant
+            ]);
+        }
+
         // Crea un nuevo Applicant y lo asocia a la primera etapa y pregunta
         $firstStage = Stage::orderBy('order')->first();
         $firstQuestion = $firstStage ? $firstStage->questions()->orderBy('order')->first() : null;
@@ -53,6 +63,7 @@ class BotApplicantController extends Controller
             'current_stage_id' => $firstStage->id,
             'current_question_id' => $firstQuestion->id,
             'process_status' => 'in_progress',
+            'current_step' => 'ask_name'
         ]);
 
         // Crea un registro de respuesta vacío para todas las preguntas para el historial
@@ -93,30 +104,50 @@ class BotApplicantController extends Controller
 
         $applicant = Applicant::where('chat_id', $chatId)
                               ->where('process_status', 'in_progress')
-                              ->firstOrFail();
+                              ->first();
 
-        $question = Question::find($validated['question_id']);
-        if (!$question) {
-            return response()->json(['error' => 'La pregunta no fue encontrada.'], 404);
+        if ($applicant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aplicacion no encontrada'
+            ], 404);
         }
 
-        ApplicantQuestionResponse::updateOrCreate(
-            [
-                'applicant_id' => $applicant->id,
-                'question_id' => $question->id,
-            ],
-            [
-                'question_text_snapshot' => $question->question_text,
-                'user_response' => $validated['user_response'],
-                'ai_decision' => $validated['ai_decision'],
-                'ai_decision_reason' => $validated['ai_explanation'],
-            ]
-        );
+        $current_step = $applicant->current_step;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.'
-        ]);
+        switch ($current_step) {
+            case 'ask_name':
+
+                break;
+            case 'ask_curp'
+
+                break;
+            case 'ask_question':
+                $question = Question::find($validated['question_id']);
+
+                if (!$question) {
+                    return response()->json(['error' => 'La pregunta no fue encontrada.'], 404);
+                }
+
+                ApplicantQuestionResponse::updateOrCreate(
+                    [
+                        'applicant_id' => $applicant->id,
+                        'question_id' => $question->id,
+                    ],
+                    [
+                        'question_text_snapshot' => $question->question_text,
+                        'user_response' => $validated['user_response'],
+                        'ai_decision' => $validated['ai_decision'],
+                        'ai_decision_reason' => $validated['ai_explanation'],
+                    ]
+                );
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.'
+                ]);
+                break;
+        }
     }
 
     /**
@@ -135,27 +166,39 @@ class BotApplicantController extends Controller
             return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'], 404);
         }
 
-        $currentStage = $applicant->currentStage;
-        $currentQuestion = $applicant->currentQuestion;
-        $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
+        $current_step = $applicant->current_step;
 
-        if (!$nextQuestion) {
-            // Se debe decidir la aprobación de la etapa
-            return response()->json([
-                'status' => 'waiting_for_approval',
-                'stage_id' => $currentStage->id,
-                'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
-            ]);
-        } else {
-            // Avanza a la siguiente pregunta de la misma etapa
-            $applicant->update(['current_question_id' => $nextQuestion->id]);
+        switch ($current_step) {
+            case 'ask_name':
 
-            return response()->json([
-                'status' => 'next_question',
-                'question' => $nextQuestion,
-                'next_question_text' => $nextQuestion->question_text,
-                'validation_rules' => $nextQuestion->validation_rules,
-            ]);
+                break;
+            case 'ask_curp':
+
+                break;
+            case 'ask_question':
+                $currentStage = $applicant->currentStage;
+                $currentQuestion = $applicant->currentQuestion;
+                $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
+
+                if (!$nextQuestion) {
+                    // Se debe decidir la aprobación de la etapa
+                    return response()->json([
+                        'status' => 'waiting_for_approval',
+                        'stage_id' => $currentStage->id,
+                        'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
+                    ]);
+                } else {
+                    // Avanza a la siguiente pregunta de la misma etapa
+                    $applicant->update(['current_question_id' => $nextQuestion->id]);
+
+                    return response()->json([
+                        'status' => 'next_question',
+                        'question' => $nextQuestion,
+                        'next_question_text' => $nextQuestion->question_text,
+                        'validation_rules' => $nextQuestion->validation_rules,
+                    ]);
+                }
+                break;
         }
     }
 
