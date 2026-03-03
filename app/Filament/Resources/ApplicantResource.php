@@ -39,7 +39,7 @@ class ApplicantResource extends Resource
 
     public static function getGlobalSearchResultTitle(Model $record): string
     {
-        return $record->applicant_name;
+        return $record->applicant_name ?? "Aplicante sin nombre ({$record->chat_id})";
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
