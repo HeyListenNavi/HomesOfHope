@@ -9,17 +9,18 @@ use App\Models\Question;
 use App\Services\ApplicantActions;
 use App\Services\WhatsappApiNotificationService;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\Actions\Action;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\FontFamily;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantResource extends Resource
@@ -433,6 +434,28 @@ class ApplicantResource extends Resource
                         "staff_rejected" => "Rechazado por Staff",
                         'requires_revision' => 'Requiere Revisión',
                     ]),
+
+                    Tables\Filters\SelectFilter::make('current_stage_id')
+                ->label('Etapa del Bot')
+                ->relationship('currentStage', 'name')
+                ->preload(),
+
+                Tables\Filters\SelectFilter::make('gender')
+                    ->label('Género')
+                    ->options([
+                        'man' => 'Hombre',
+                        'woman' => 'Mujer',
+                    ]),
+
+                Tables\Filters\Filter::make('ai_not_responded_stale')
+                    ->label('IA no ha respondido (+30 min)')
+                    ->query(function (Builder $query) {
+                        return $query->whereHas('conversation.latestMessage', function (Builder $q) {
+                            $q->where('role', 'user')
+                            ->where('created_at', '<=', now()->subMinutes(30));
+                        });
+                    })
+                    ->indicator('IA Pendiente (>30m)')
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
