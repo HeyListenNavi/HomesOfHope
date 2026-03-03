@@ -39,8 +39,6 @@ class SendApplicantReminder implements ShouldQueue
 
         if (!$conversation || !$conversation->latestMessage) return;
 
-        if ($conversation->latestMessage->role === 'user') return;
-
         $latestUserMessage = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
 
         $referenceTime = $latestUserMessage ? $latestUserMessage->created_at : $applicant->created_at;
