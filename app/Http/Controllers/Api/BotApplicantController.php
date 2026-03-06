@@ -7,6 +7,7 @@ use App\Models\Applicant;
 use App\Models\Stage;
 use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
+use App\Models\BotSetting;
 use App\Services\GroupAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -106,7 +107,7 @@ class BotApplicantController extends Controller
                               ->where('process_status', 'in_progress')
                               ->first();
 
-        if ($applicant) {
+        if (!$applicant) {
             return response()->json([
                 'success' => false,
                 'message' => 'Aplicacion no encontrada'
@@ -117,10 +118,22 @@ class BotApplicantController extends Controller
 
         switch ($current_step) {
             case 'ask_name':
-
+                $applicant->update([
+                    'applicant_name' => $validated['user_response'],
+                    'current_step' => 'ask_curp'
+                ]);
                 break;
-            case 'ask_curp'
-
+            case 'ask_curp':
+                $applicant->update([
+                    'curp' => $validated['user_response'],
+                    'current_step' => 'ask_gender'
+                ]);
+                break;
+            case 'ask_gender':
+                $applicant->update([
+                    'gender' => $validated['user_response'],
+                    'current_step' => 'ask_question'
+                ]);
                 break;
             case 'ask_question':
                 $question = Question::find($validated['question_id']);
@@ -170,10 +183,46 @@ class BotApplicantController extends Controller
 
         switch ($current_step) {
             case 'ask_name':
+                $nextQuestion = BotSetting::where('name', '=', 'ask_name')->first();
 
+                if (!$nextQuestion) {
+                    return response()->json([
+                        'error' => 'No question found'
+                    ], 404);
+                }
+
+                return response()->json([
+                        'status' => 'next_question',
+                        'question' => $nextQuestion,
+                    ]);
                 break;
             case 'ask_curp':
+                $nextQuestion = BotSetting::where('name', '=', 'ask_curp')->first();
 
+                if (!$nextQuestion) {
+                    return response()->json([
+                        'error' => 'No question found'
+                    ], 404);
+                }
+
+                return response()->json([
+                        'status' => 'next_question',
+                        'question' => $nextQuestion,
+                    ]);
+                break;
+            case 'ask_gender':
+                $nextQuestion = BotSetting::where('name', '=', 'ask_gender')->first();
+
+                if (!$nextQuestion) {
+                    return response()->json([
+                        'error' => 'No question found'
+                    ], 404);
+                }
+
+                return response()->json([
+                        'status' => 'next_question',
+                        'question' => $nextQuestion,
+                    ]);
                 break;
             case 'ask_question':
                 $currentStage = $applicant->currentStage;
