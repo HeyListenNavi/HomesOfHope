@@ -84,7 +84,6 @@ class BotApplicantController extends Controller
     public function submitAnswer(Request $request, string $chatId)
     {
         $validated = $request->validate([
-            'question_id' => 'required|integer|exists:questions,id',
             'user_response' => 'required|string',
             'ai_decision' => ['required', 'string', Rule::in(['valid', 'not_valid', 'requires_supervision'])],
             'ai_explanation' => 'nullable|string',
@@ -132,7 +131,7 @@ class BotApplicantController extends Controller
                 ]);
                 break;
             case 'ask_question':
-                $question = Question::find($validated['question_id']);
+                $question = Question::find($applicant->current_question_id);
 
                 if (!$question) {
                     return response()->json(['error' => 'La pregunta no fue encontrada.'], 404);
@@ -393,7 +392,6 @@ class BotApplicantController extends Controller
             "current_stage" => $applicant->current_stage_id,
             "status" => $applicant->process_status,
             "current_question" => [
-                "question_id" => $current->name,
                 "question_text" => $current->value,
                 "question_criteria" => null,
             ],
