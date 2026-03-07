@@ -25,6 +25,7 @@ class Applicant extends Model
         'confirmation_status',
         'reminder_level',
         'last_reminded_at',
+        'current_step',
     ];
 
     protected $casts = [

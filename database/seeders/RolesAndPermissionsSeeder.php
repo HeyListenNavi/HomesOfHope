@@ -80,6 +80,9 @@ class RolesAndPermissionsSeeder extends Seeder
         $userUpdate = Permission::firstOrCreate(['name' => 'user.update']);
         $userDelete = Permission::firstOrCreate(['name' => 'user.delete']);
 
+        $botSettingViewAny = Permission::firstOrCreate(['name' => 'bot_setting.view_any']);
+        $botSettingUpdate = Permission::firstOrCreate(['name' => 'bot_setting.update']);
+
         $connection->givePermissionTo([
             $applicantViewAny,
             $applicantView,
@@ -232,6 +235,9 @@ class RolesAndPermissionsSeeder extends Seeder
             $userCreate,
             $userUpdate,
             $userDelete,
+
+            $botSettingViewAny,
+            $botSettingUpdate,
         ]);
 
         $adminEmails = [
