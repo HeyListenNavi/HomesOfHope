@@ -69,7 +69,6 @@ class ApplicantsRelationManager extends RelationManager
             TextColumn::make('dynamic_question_' . $question->id)
                 ->label('Pregunta ' . ($index + 1))
                 ->size(TextColumn\TextColumnSize::ExtraSmall)
-                ->searchable()
                 ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
                 ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)
                 ->url(fn (?string $state) => self::extractLocationUrl($state))
@@ -85,13 +84,6 @@ class ApplicantsRelationManager extends RelationManager
         }
 
         array_push($columns,
-            TextColumn::make('currentStage.name')
-                    ->label('Etapa')
-                    ->badge()
-                    ->color('gray')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
             TextColumn::make('process_status')
                 ->label('Estatus')
                 ->badge()

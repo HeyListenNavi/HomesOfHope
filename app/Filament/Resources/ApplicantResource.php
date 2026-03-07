@@ -389,7 +389,6 @@ class ApplicantResource extends Resource
             TextColumn::make('dynamic_question_' . $question->id)
                 ->label('Pregunta ' . ($index + 1))
                 ->size(TextColumn\TextColumnSize::ExtraSmall)
-                ->searchable()
                 ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
                 ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)
                 ->url(fn (?string $state) => self::extractLocationUrl($state))
@@ -462,7 +461,7 @@ class ApplicantResource extends Resource
         );
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('responses'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'group', 'currentStage']))
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
