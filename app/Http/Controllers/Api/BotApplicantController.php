@@ -41,14 +41,14 @@ class BotApplicantController extends Controller
             'chat_id' => 'required|string|unique:applicants,chat_id',
         ]);
 
-        $applicant = Applicant::where('chat_id', $validated['chat_id']);
+        $applicant = Applicant::where('chat_id', $validated['chat_id'])->first();
 
         if ($applicant) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ya tienes una aplicacion en curso',
                 'applicant' => $applicant
-            ]);
+            ], 404);
         }
 
         // Crea un nuevo Applicant y lo asocia a la primera etapa y pregunta
