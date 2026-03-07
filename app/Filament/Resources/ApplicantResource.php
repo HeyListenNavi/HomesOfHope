@@ -372,6 +372,14 @@ class ApplicantResource extends Resource
                     })
                     ->url(fn($state) => 'https://wa.me/' . $state)
                     ->openUrlInNewTab(),
+
+                TextColumn::make('curp')
+                    ->label('CURP')
+                    ->fontFamily(FontFamily::Mono)
+                    ->formatStateUsing(fn(string $state) => strtoupper($state))
+                    ->color('gray')
+                    ->searchable()
+                    ->toggleable(),
         ];
 
         $dynamicQuestions = Question::orderBy('order', 'asc')->get();
