@@ -274,7 +274,7 @@ class BotApplicantController extends Controller
                 ]);
                 return response()->json([
                     'status' => 'stage_approved',
-                    'message' => $applicant->currentStage->approval_message ?? 'Has pasado a la siguiente etapa.',
+                    'message' => $applicant->currentStage->approval_message,
                     'next_question' => $firstQuestionOfNextStage,
                 ]);
             } else {
