@@ -392,7 +392,7 @@ class ApplicantResource extends Resource
                 ->searchable()
                 ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
                 ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)
-                ->url(fn (string $state) => self::extractLocationUrl($state))
+                ->url(fn (?string $state) => self::extractLocationUrl($state))
                 ->openUrlInNewTab()
                 ->state(function (Applicant $record) use ($question) {
                     $response = $record->responses->firstWhere('question_id', $question->id);
@@ -561,7 +561,7 @@ class ApplicantResource extends Resource
 
         // Match a coordenadas
         if (preg_match('/(?<![\d.\-+])[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)(?![\d.])/', $cleanState, $matches)) {
-            return $cache[$state] = "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
+            return "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
         }
 
         // Match a Plus Code
@@ -569,7 +569,7 @@ class ApplicantResource extends Resource
             return "https://maps.google.com/?q=" . urlencode($matches[0]);
         }
 
-        return $cache[$state] = null;
+        return $state;
     }
 
     public static function getRelations(): array
