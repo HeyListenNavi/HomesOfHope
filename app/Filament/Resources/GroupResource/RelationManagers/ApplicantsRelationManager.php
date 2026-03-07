@@ -249,7 +249,7 @@ class ApplicantsRelationManager extends RelationManager
             return "https://maps.google.com/?q=" . urlencode($matches[0]);
         }
 
-        return $state;
+        return null;
     }
 
     public function canView(Model $record): bool

@@ -569,7 +569,7 @@ class ApplicantResource extends Resource
             return "https://maps.google.com/?q=" . urlencode($matches[0]);
         }
 
-        return $state;
+        return null;
     }
 
     public static function getRelations(): array
