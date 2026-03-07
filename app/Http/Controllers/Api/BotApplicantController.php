@@ -193,7 +193,9 @@ class BotApplicantController extends Controller
 
                 return response()->json([
                         'status' => 'next_question',
-                        'question' => $nextQuestion,
+                        'question' => $nextQuestion->name,
+                        'next_question_text' => $nextQuestion->value,
+                        'validation_rules' => null,
                     ]);
                 break;
             case 'ask_curp':
@@ -207,7 +209,9 @@ class BotApplicantController extends Controller
 
                 return response()->json([
                         'status' => 'next_question',
-                        'question' => $nextQuestion,
+                        'question' => $nextQuestion->name,
+                        'next_question_text' => $nextQuestion->value,
+                        'validation_rules' => null,
                     ]);
                 break;
             case 'ask_gender':
@@ -221,7 +225,9 @@ class BotApplicantController extends Controller
 
                 return response()->json([
                         'status' => 'next_question',
-                        'question' => $nextQuestion,
+                        'question' => $nextQuestion->name,
+                        'next_question_text' => $nextQuestion->value,
+                        'validation_rules' => null,
                     ]);
                 break;
             case 'ask_question':
