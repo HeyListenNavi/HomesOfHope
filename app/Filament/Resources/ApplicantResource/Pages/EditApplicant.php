@@ -34,4 +34,11 @@ class EditApplicant extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $this->redirect(
+            $this->getResource()::getUrl('view', ['record' => $this->getRecord()])
+        );
+    }
 }
