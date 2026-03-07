@@ -176,79 +176,43 @@ class BotApplicantController extends Controller
 
         $current_step = $applicant->current_step;
 
-        switch ($current_step) {
-            case 'ask_name':
-                $nextQuestion = BotSetting::where('name', '=', 'ask_name')->first();
+        if ($current_step !== 'ask_question') {
+            $nextQuestion = BotSetting::where('name', '=', $current_step)->first();
 
-                if (!$nextQuestion) {
-                    return response()->json([
-                        'error' => 'No question found'
-                    ], 404);
-                }
-
+            if (!$nextQuestion) {
                 return response()->json([
-                        'status' => 'next_question',
-                        'question' => $nextQuestion->name,
-                        'next_question_text' => $nextQuestion->value,
+                    'error' => 'No question found'
+                ], 404);
+            }
+
+            return response()->json([
+                    'status' => 'next_question',
+                    'question' => [
+                        'question_text' => $nextQuestion->value,
                         'validation_rules' => null,
-                    ]);
-                break;
-            case 'ask_curp':
-                $nextQuestion = BotSetting::where('name', '=', 'ask_curp')->first();
+                    ]
+                ]);
+        }
 
-                if (!$nextQuestion) {
-                    return response()->json([
-                        'error' => 'No question found'
-                    ], 404);
-                }
+        $currentStage = $applicant->currentStage;
+        $currentQuestion = $applicant->currentQuestion;
+        $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
 
-                return response()->json([
-                        'status' => 'next_question',
-                        'question' => $nextQuestion->name,
-                        'next_question_text' => $nextQuestion->value,
-                        'validation_rules' => null,
-                    ]);
-                break;
-            case 'ask_gender':
-                $nextQuestion = BotSetting::where('name', '=', 'ask_gender')->first();
+        if (!$nextQuestion) {
+            // Se debe decidir la aprobación de la etapa
+            return response()->json([
+                'status' => 'waiting_for_approval',
+                'stage_id' => $currentStage->id,
+                'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
+            ]);
+        } else {
+            // Avanza a la siguiente pregunta de la misma etapa
+            $applicant->update(['current_question_id' => $nextQuestion->id]);
 
-                if (!$nextQuestion) {
-                    return response()->json([
-                        'error' => 'No question found'
-                    ], 404);
-                }
-
-                return response()->json([
-                        'status' => 'next_question',
-                        'question' => $nextQuestion->name,
-                        'next_question_text' => $nextQuestion->value,
-                        'validation_rules' => null,
-                    ]);
-                break;
-            case 'ask_question':
-                $currentStage = $applicant->currentStage;
-                $currentQuestion = $applicant->currentQuestion;
-                $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
-
-                if (!$nextQuestion) {
-                    // Se debe decidir la aprobación de la etapa
-                    return response()->json([
-                        'status' => 'waiting_for_approval',
-                        'stage_id' => $currentStage->id,
-                        'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
-                    ]);
-                } else {
-                    // Avanza a la siguiente pregunta de la misma etapa
-                    $applicant->update(['current_question_id' => $nextQuestion->id]);
-
-                    return response()->json([
-                        'status' => 'next_question',
-                        'question' => $nextQuestion,
-                        'next_question_text' => $nextQuestion->question_text,
-                        'validation_rules' => $nextQuestion->validation_rules,
-                    ]);
-                }
-                break;
+            return response()->json([
+                'status' => 'next_question',
+                'question' => $nextQuestion,
+            ]);
         }
     }
 
