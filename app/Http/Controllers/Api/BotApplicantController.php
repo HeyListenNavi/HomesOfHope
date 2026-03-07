@@ -51,18 +51,8 @@ class BotApplicantController extends Controller
             ], 404);
         }
 
-        // Crea un nuevo Applicant y lo asocia a la primera etapa y pregunta
-        $firstStage = Stage::orderBy('order')->first();
-        $firstQuestion = $firstStage ? $firstStage->questions()->orderBy('order')->first() : null;
-
-        if (!$firstStage || !$firstQuestion) {
-            return response()->json(['error' => 'No hay etapas o preguntas configuradas.'], 404);
-        }
-
         $applicant = Applicant::create([
             'chat_id' => $validated['chat_id'],
-            'current_stage_id' => $firstStage->id,
-            'current_question_id' => $firstQuestion->id,
             'process_status' => 'in_progress',
             'current_step' => 'ask_name'
         ]);
@@ -81,9 +71,6 @@ class BotApplicantController extends Controller
 
         return response()->json([
             'applicant_id' => $applicant->id,
-            'question' => $firstQuestion,
-            'next_question_text' => $firstQuestion->question_text,
-            'validation_rules' => $firstQuestion->validation_rules,
         ]);
     }
 
@@ -130,9 +117,18 @@ class BotApplicantController extends Controller
                 ]);
                 break;
             case 'ask_gender':
+                $firstStage = Stage::orderBy('order')->first();
+                $firstQuestion = $firstStage ? $firstStage->questions()->orderBy('order')->first() : null;
+
+                if (!$firstStage || !$firstQuestion) {
+                    return response()->json(['error' => 'No hay etapas o preguntas configuradas.'], 404);
+                }
+
                 $applicant->update([
                     'gender' => $validated['user_response'],
-                    'current_step' => 'ask_question'
+                    'current_step' => 'ask_question',
+                    'current_stage_id' => $firstStage->id,
+                    'current_question_id' => $firstQuestion->id,
                 ]);
                 break;
             case 'ask_question':
@@ -374,6 +370,34 @@ class BotApplicantController extends Controller
 
         if (!$applicant) {
             return response()->json(['error' => 'Solicitante no encontrado.'], 404);
+        }
+
+        $applicant = Applicant::where('chat_id', $chatId)
+                        ->where('process_status', 'in_progress')
+                        ->first();
+
+        if (!$applicant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aplicacion no encontrada'
+            ], 404);
+        }
+
+        $current_step = $applicant->current_step;
+
+        if ($current_step != 'ask_question') {
+            $current = BotSetting::where('name', '=', $current_step)->first();
+
+            return response()->json([
+            "applicant_name" => $applicant->applicant_name,
+            "current_stage" => $applicant->current_stage_id,
+            "status" => $applicant->process_status,
+            "current_question" => [
+                "question_id" => $current->name,
+                "question_text" => $current->value,
+                "question_criteria" => null,
+            ],
+        ]);
         }
 
         return response()->json([
