@@ -3,13 +3,14 @@
 namespace App\Filament\Pages;
 
 use App\Models\BotSetting;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Actions\Action;
 use Filament\Support\Enums\MaxWidth;
+use Illuminate\Database\Eloquent\Model;
 
 class BotSettings extends Page
 {
@@ -19,10 +20,17 @@ class BotSettings extends Page
     protected static ?string $navigationGroup = 'Configuración';
     protected ?string $heading = 'Configuración';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->can('bot_setting.view_any');
+    }
+
     public ?array $data = [];
 
     public function mount(): void
     {
+        abort_unless(self::shouldRegisterNavigation(), 403);
+
         $settings = BotSetting::whereIn('name', ['ask_name', 'ask_curp', 'ask_gender'])
             ->pluck('value', 'name')
             ->toArray();
@@ -67,14 +75,23 @@ class BotSettings extends Page
     {
         return [
             Action::make('save')
-                ->label('Guardar')
-                ->icon('heroicon-m-check')
+                ->label('Guardar Cambios')
+                ->visible(fn() => auth()->user()->can('bot_setting.update'))
                 ->submit('save'),
         ];
     }
 
     public function save(): void
     {
+        if (!auth()->user()->can('bot_setting.update')) {
+            Notification::make()
+                ->title('Acceso denegado')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $state = $this->form->getState();
 
         foreach ($state as $name => $value) {
