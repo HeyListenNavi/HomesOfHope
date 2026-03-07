@@ -85,13 +85,17 @@ class BotApplicantController extends Controller
     {
         $validated = $request->validate([
             'user_response' => 'required|string',
-            'ai_decision' => ['required', 'string', Rule::in(['valid', 'not_valid', 'requires_supervision'])],
+            'ai_decision' => [
+                'required',
+                'string',
+                Rule::in(['valid', 'not_valid', 'requires_supervision'])
+            ],
             'ai_explanation' => 'nullable|string',
         ]);
 
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->first();
+            ->where('process_status', 'in_progress')
+            ->first();
 
         if (!$applicant) {
             return response()->json([
@@ -149,13 +153,13 @@ class BotApplicantController extends Controller
                         'ai_decision_reason' => $validated['ai_explanation'],
                     ]
                 );
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.'
-                ]);
                 break;
         }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.'
+        ]);
     }
 
     /**
@@ -167,8 +171,8 @@ class BotApplicantController extends Controller
     public function getNextQuestion(string $chatId)
     {
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->first();
+            ->where('process_status', 'in_progress')
+            ->first();
 
         if (!$applicant) {
             return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'], 404);
@@ -186,12 +190,12 @@ class BotApplicantController extends Controller
             }
 
             return response()->json([
-                    'status' => 'next_question',
-                    'question' => [
-                        'question_text' => $nextQuestion->value,
-                        'validation_rules' => null,
-                    ]
-                ]);
+                'status' => 'next_question',
+                'question' => [
+                    'question_text' => $nextQuestion->value,
+                    'validation_rules' => null,
+                ]
+            ]);
         }
 
         $currentStage = $applicant->currentStage;
@@ -205,15 +209,15 @@ class BotApplicantController extends Controller
                 'stage_id' => $currentStage->id,
                 'message' => 'Llegaste al final de la etapa. Evaluando tu solicitud...',
             ]);
-        } else {
-            // Avanza a la siguiente pregunta de la misma etapa
-            $applicant->update(['current_question_id' => $nextQuestion->id]);
-
-            return response()->json([
-                'status' => 'next_question',
-                'question' => $nextQuestion,
-            ]);
         }
+
+        // Avanza a la siguiente pregunta de la misma etapa
+        $applicant->update(['current_question_id' => $nextQuestion->id]);
+
+        return response()->json([
+            'status' => 'next_question',
+            'question' => $nextQuestion,
+        ]);
     }
 
     /**
@@ -230,12 +234,12 @@ class BotApplicantController extends Controller
         ]);
 
         $applicant = Applicant::where('chat_id', $validated['chat_id'])
-                             ->where('process_status', 'in_progress')
-                             ->firstOrFail();
+            ->where('process_status', 'in_progress')
+            ->firstOrFail();
 
         $responses = $applicant->responses()
-                               ->whereIn('question_id', $applicant->currentStage->questions->pluck('id'))
-                               ->get();
+            ->whereIn('question_id', $applicant->currentStage->questions->pluck('id'))
+            ->get();
 
         $rejectionFound = $responses->contains('ai_decision', 'not_valid');
         $supervisionNeeded = $responses->contains('ai_decision', 'requires_supervision');
@@ -300,8 +304,8 @@ class BotApplicantController extends Controller
     public function getStageDataForAi(string $chatId)
     {
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->firstOrFail();
+            ->where('process_status', 'in_progress')
+            ->firstOrFail();
 
         $currentStage = $applicant->currentStage;
 
@@ -328,7 +332,8 @@ class BotApplicantController extends Controller
         return response()->json($stageData);
     }
 
-    public function applicantCurrentStatus( $chatId ){
+    public function applicantCurrentStatus($chatId)
+    {
         $applicant = Applicant::where("chat_id", $chatId)->first();
 
         if (!$applicant) {
@@ -336,8 +341,8 @@ class BotApplicantController extends Controller
         }
 
         $applicant = Applicant::where('chat_id', $chatId)
-                        ->where('process_status', 'in_progress')
-                        ->first();
+            ->where('process_status', 'in_progress')
+            ->first();
 
         if (!$applicant) {
             return response()->json([
@@ -352,14 +357,14 @@ class BotApplicantController extends Controller
             $current = BotSetting::where('name', '=', $current_step)->first();
 
             return response()->json([
-            "applicant_name" => $applicant->applicant_name,
-            "current_stage" => $applicant->current_stage_id,
-            "status" => $applicant->process_status,
-            "current_question" => [
-                "question_text" => $current->value,
-                "question_criteria" => null,
-            ],
-        ]);
+                "applicant_name" => $applicant->applicant_name,
+                "current_stage" => $applicant->current_stage_id,
+                "status" => $applicant->process_status,
+                "current_question" => [
+                    "question_text" => $current->value,
+                    "question_criteria" => null,
+                ],
+            ]);
         }
 
         return response()->json([
@@ -374,7 +379,8 @@ class BotApplicantController extends Controller
         ]);
     }
 
-    public function currentStageQuestions( $stageId ){
+    public function currentStageQuestions($stageId)
+    {
         $stage = Stage::find($stageId);
 
         if (!$stage) {
@@ -386,7 +392,8 @@ class BotApplicantController extends Controller
         return response()->json($questions);
     }
 
-    public function sendInitialData( Request $request ){
+    public function sendInitialData(Request $request)
+    {
         $validated = $request->validate([
             "chat_id" => "required|string",
             "applicant_name" => "required|string",
@@ -413,7 +420,8 @@ class BotApplicantController extends Controller
         return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);
     }
 
-    public function updateAnswer( Request $request ){
+    public function updateAnswer(Request $request)
+    {
         $request->validate([
             'chat_id' => 'required|integer',
             'question_id' => 'required|integer',
@@ -427,8 +435,8 @@ class BotApplicantController extends Controller
         }
 
         $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
-                                             ->where('question_id', $request->input('question_id'))
-                                             ->first();
+            ->where('question_id', $request->input('question_id'))
+            ->first();
 
         if (!$response) {
             return response()->json(['error' => 'No se encontró una respuesta para esa pregunta.'], 404);
@@ -440,4 +448,3 @@ class BotApplicantController extends Controller
         return response()->json(['message' => 'Respuesta actualizada exitosamente.'], 200);
     }
 }
-
