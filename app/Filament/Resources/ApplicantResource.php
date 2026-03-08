@@ -10,6 +10,8 @@ use App\Services\ApplicantActions;
 use App\Services\WhatsappApiNotificationService;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
@@ -18,9 +20,9 @@ use Filament\Support\Enums\FontFamily;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantResource extends Resource
@@ -65,144 +67,148 @@ class ApplicantResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Datos Personales')
-                    ->description('Información de identificación del aplicante.')
-                    ->icon('heroicon-m-identification')
-                    ->columns(2)
+                Grid::make(3)
                     ->schema([
-                        Forms\Components\TextInput::make('applicant_name')
-                            ->label('Nombre Completo')
-                            ->required()
-                            ->prefixIcon('heroicon-m-user')
-                            ->maxLength(255),
+                        Group::make()
+                            ->columnSpan(2)
+                            ->schema([
+                                Forms\Components\Section::make('Datos Personales')
+                                    ->description('Información de identificación del aplicante.')
+                                    ->icon('heroicon-m-identification')
+                                    ->columns(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('applicant_name')
+                                            ->label('Nombre Completo')
+                                            ->prefixIcon('heroicon-m-user')
+                                            ->maxLength(255),
 
-                        Forms\Components\TextInput::make('curp')
-                            ->label('CURP')
-                            ->prefixIcon('heroicon-m-finger-print')
-                            ->maxLength(18)
-                            ->formatStateUsing(fn(?string $state) => strtoupper($state))
-                            ->unique(ignoreRecord: true)
-                            ->live(onBlur: true)
-                            ->validationMessages([
-                                'unique' => 'Este CURP ya existe. Por favor verifica el registro.',
+                                        Forms\Components\TextInput::make('curp')
+                                            ->label('CURP')
+                                            ->prefixIcon('heroicon-m-finger-print')
+                                            ->maxLength(18)
+                                            ->formatStateUsing(fn(?string $state) => strtoupper($state))
+                                            ->unique(ignoreRecord: true)
+                                            ->live(onBlur: true)
+                                            ->validationMessages([
+                                                'unique' => 'Este CURP ya existe. Por favor verifica el registro.',
+                                            ]),
+
+                                        Forms\Components\TextInput::make('chat_id')
+                                            ->label('Número de Telefono')
+                                            ->required()
+                                            ->tel()
+                                            ->prefixIcon('heroicon-m-phone')
+                                            ->formatStateUsing(function ($state, string $operation) {
+                                                if (!$state) return '-';
+                                                if ($operation !== 'view') return $state;
+
+                                                return str_starts_with($state, '521') ? substr($state, 3) : $state;
+                                            }),
+
+                                        Forms\Components\Select::make('gender')
+                                            ->label('Género')
+                                            ->options([
+                                                'man' => 'Hombre',
+                                                'woman' => 'Mujer',
+                                            ])
+                                            ->native(false),
+                                    ]),
+
+
+                                Forms\Components\Section::make('Seguimiento')
+                                    ->description('Control de la etapa actual del bot.')
+                                    ->columns(1)
+                                    ->schema([
+                                        Forms\Components\Select::make('current_stage_id')
+                                            ->relationship('currentStage', 'name')
+                                            ->label('Etapa Actual')
+                                            ->native(false)
+                                            ->live()
+                                            ->afterStateUpdated(fn(callable $set) => $set('current_question_id', null)),
+
+                                        Forms\Components\Select::make('current_question_id')
+                                            ->label('Pregunta Actual')
+                                            ->native(false)
+                                            ->options(function (Get $get) {
+                                                $stageId = $get('current_stage_id');
+                                                if (!$stageId) return [];
+                                                return Question::where('stage_id', $stageId)->pluck('question_text', 'id');
+                                            }),
+                                    ]),
                             ]),
+                        Group::make()
+                            ->columnSpan(1)
+                            ->schema([
+                                Forms\Components\Section::make('Estado del Proceso')
+                                    ->description('Gestión del grupo y estatus actual.')
+                                    ->icon('heroicon-m-clipboard-document-check')
+                                    ->columns(1)
+                                    ->schema([
+                                        Forms\Components\ToggleButtons::make('process_status')
+                                            ->label('Estatus')
+                                            ->options([
+                                                'in_progress' => 'En Progreso',
+                                                'approved' => 'Aprobado',
+                                                'staff_approved' => 'Aprobado por Staff',
+                                                'rejected' => 'Rechazado',
+                                                'staff_rejected' => 'Rechazado por Staff',
+                                                'requires_revision' => 'Requiere Revisión',
+                                                'canceled' => 'Cancelado',
+                                            ])
+                                            ->icons([
+                                                'in_progress' => 'heroicon-m-arrow-path',
+                                                'approved' => 'heroicon-m-sparkles',
+                                                'staff_approved' => 'heroicon-m-check-badge',
+                                                'rejected' => 'heroicon-m-x-circle',
+                                                'staff_rejected' => 'heroicon-m-no-symbol',
+                                                'requires_revision' => 'heroicon-m-exclamation-triangle',
+                                                'canceled' => 'heroicon-m-x-mark',
+                                            ])
+                                            ->colors([
+                                                'in_progress' => 'info',
+                                                'approved' => 'success',
+                                                'staff_approved' => 'success',
+                                                'rejected' => 'danger',
+                                                'staff_rejected' => 'danger',
+                                                'requires_revision' => 'warning',
+                                                'canceled' => 'gray',
+                                            ])
+                                            ->inline()
+                                            ->required()
+                                            ->live(),
 
-                        Forms\Components\TextInput::make('chat_id')
-                            ->label('Número de Telefono')
-                            ->required()
-                            ->tel()
-                            ->prefixIcon('heroicon-m-phone')
-                            ->formatStateUsing(function ($state, string $operation) {
-                                if (!$state) return '-';
-                                if ($operation !== 'view') return $state;
+                                        Forms\Components\Select::make('group_id')
+                                            ->relationship('group', 'name')
+                                            ->label('Grupo Asignado')
+                                            ->searchable()
+                                            ->preload()
+                                            ->prefixIcon('heroicon-m-user-group')
+                                            ->disabled(fn(Get $get) => !in_array($get('process_status'), ['approved', 'staff_approved']))
+                                            ->helperText(fn(Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
 
-                                return str_starts_with($state, '521') ? substr($state, 3) : $state;
-                            }),
+                                        Forms\Components\Textarea::make('rejection_reason')
+                                            ->label('Detalles de Rechazo')
+                                            ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected', 'staff_rejected']))
+                                            ->formatStateUsing(function (?string $state) {
+                                                $reasons = [
+                                                    'no_children' => 'No tiene hijos',
+                                                    'contract_issues' => 'Problemas con el contrato',
+                                                    'not_owner' => 'No es dueño del terreno',
+                                                    'lives_too_far' => 'Vive muy lejos del terreno',
+                                                    'less_than_a_year' => 'Tiene menos de un año con el terreno',
+                                                    'late_payments' => 'Atrasado con los pagos',
+                                                    'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
+                                                ];
 
-                        Forms\Components\Select::make('gender')
-                            ->label('Género')
-                            ->required()
-                            ->options([
-                                'man' => 'Hombre',
-                                'woman' => 'Mujer',
-                            ])
-                            ->native(false),
+                                                return $reasons[$state] ?? $state;
+                                            })
+                                            ->columnSpanFull()
+                                            ->autoSize()
+                                            ->disabled(),
+                                    ]),
+                            ]),
                     ]),
 
-                Forms\Components\Section::make('Estado del Proceso')
-                    ->description('Gestión del grupo y estatus actual.')
-                    ->icon('heroicon-m-clipboard-document-check')
-                    ->columns(2)
-                    ->schema([
-                        Forms\Components\ToggleButtons::make('process_status')
-                            ->label('Estatus')
-                            ->options([
-                                'in_progress' => 'En Progreso',
-                                'approved' => 'Aprobado',
-                                'staff_approved' => 'Aprobado por Staff',
-                                'rejected' => 'Rechazado',
-                                'staff_rejected' => 'Rechazado por Staff',
-                                'requires_revision' => 'Requiere Revisión',
-                                'canceled' => 'Cancelado',
-                            ])
-                            ->icons([
-                                'in_progress' => 'heroicon-m-arrow-path',
-                                'approved' => 'heroicon-m-sparkles',
-                                'staff_approved' => 'heroicon-m-check-badge',
-                                'rejected' => 'heroicon-m-x-circle',
-                                'staff_rejected' => 'heroicon-m-no-symbol',
-                                'requires_revision' => 'heroicon-m-exclamation-triangle',
-                                'canceled' => 'heroicon-m-x-mark',
-                            ])
-                            ->colors([
-                                'in_progress' => 'info',
-                                'approved' => 'success',
-                                'staff_approved' => 'success',
-                                'rejected' => 'danger',
-                                'staff_rejected' => 'danger',
-                                'requires_revision' => 'warning',
-                                'canceled' => 'gray',
-                            ])
-                            ->inline()
-                            ->required()
-                            ->live(),
-
-                        Forms\Components\Select::make('group_id')
-                            ->relationship('group', 'name')
-                            ->label('Grupo Asignado')
-                            ->searchable()
-                            ->preload()
-                            ->prefixIcon('heroicon-m-user-group')
-                            ->disabled(fn(Get $get) => !in_array($get('process_status'), ['approved', 'staff_approved']))
-                            ->helperText(fn(Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
-                    ]),
-
-                Forms\Components\Section::make('Seguimiento')
-                    ->description('Control de la etapa actual del bot.')
-                    ->columns(1)
-                    ->schema([
-                        Forms\Components\Select::make('current_stage_id')
-                            ->relationship('currentStage', 'name')
-                            ->required()
-                            ->label('Etapa Actual')
-                            ->native(false)
-                            ->live()
-                            ->afterStateUpdated(fn(callable $set) => $set('current_question_id', null)),
-
-                        Forms\Components\Select::make('current_question_id')
-                            ->label('Pregunta Actual')
-                            ->required()
-                            ->native(false)
-                            ->options(function (Get $get) {
-                                $stageId = $get('current_stage_id');
-                                if (!$stageId) return [];
-                                return Question::where('stage_id', $stageId)->pluck('question_text', 'id');
-                            }),
-                    ]),
-
-                Forms\Components\Section::make('Detalles de Rechazo')
-                    ->icon('heroicon-m-x-circle')
-                    ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected', 'staff_rejected']))
-                    ->schema([
-                        Forms\Components\Textarea::make('rejection_reason')
-                            ->label('Motivo')
-                            ->formatStateUsing(function (?string $state) {
-                                $reasons = [
-                                    'no_children' => 'No tiene hijos',
-                                    'contract_issues' => 'Problemas con el contrato',
-                                    'not_owner' => 'No es dueño del terreno',
-                                    'lives_too_far' => 'Vive muy lejos del terreno',
-                                    'less_than_a_year' => 'Tiene menos de un año con el terreno',
-                                    'late_payments' => 'Atrasado con los pagos',
-                                    'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
-                                ];
-
-                                return $reasons[$state] ?? $state;
-                            })
-                            ->columnSpanFull()
-                            ->autoSize()
-                            ->disabled(),
-                    ]),
 
                 Forms\Components\Actions::make([
                     // Botón para aprobar una etapa y pasar a la siguiente
