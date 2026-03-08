@@ -79,7 +79,6 @@ class ApplicantResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('applicant_name')
                                             ->label('Nombre Completo')
-                                            ->required()
                                             ->prefixIcon('heroicon-m-user')
                                             ->maxLength(255),
 
@@ -108,7 +107,6 @@ class ApplicantResource extends Resource
 
                                         Forms\Components\Select::make('gender')
                                             ->label('Género')
-                                            ->required()
                                             ->options([
                                                 'man' => 'Hombre',
                                                 'woman' => 'Mujer',
@@ -123,7 +121,6 @@ class ApplicantResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('current_stage_id')
                                             ->relationship('currentStage', 'name')
-                                            ->required()
                                             ->label('Etapa Actual')
                                             ->native(false)
                                             ->live()
@@ -131,7 +128,6 @@ class ApplicantResource extends Resource
 
                                         Forms\Components\Select::make('current_question_id')
                                             ->label('Pregunta Actual')
-                                            ->required()
                                             ->native(false)
                                             ->options(function (Get $get) {
                                                 $stageId = $get('current_stage_id');
