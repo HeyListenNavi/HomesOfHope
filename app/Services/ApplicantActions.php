@@ -149,6 +149,18 @@ class ApplicantActions
     {
         Log::info("Rechazando al aplicante con ID {$applicant->id}.");
 
+        $rejectionMessages = [
+            'no_children' => 'Nuestro programa está enfocado en apoyar a familias que tengan hijos menores de edad viviendo con ellos. En el caso de personas adultas mayores, es posible aplicar únicamente si tienen menores bajo su tutela legal y pueden presentar la documentación que lo compruebe. Además, los menores deben estar actualmente inscritos en primaria o secundaria.',
+            'contract_issues' => 'Para nosotros es indispensable que usted o su pareja sea el propietario del terreno, cuente con documentación legal que lo acredite, esperamos que usted pueda encontrar la ayuda que usted necesita.',
+            'not_owner' => 'Para nosotros es indispensable que usted o su pareja sea el propietario del terreno, cuente con documentación legal que lo acredite, esperamos que usted pueda encontrar la ayuda que usted necesita.',
+            'lives_too_far' => 'Solo estamos considerando a las familias que viven en su terreno o en la misma colonia. Esperamos que encuentre la ayuda que usted necesita. Si esta situación cambia en el futuro, usted podrá volver a aplicar después de tener más de 8 meses viviendo cerca de su terreno o en el mismo.',
+            'less_than_a_year' => 'Necesitas tener una antigüedad mínima de un año con tu terreno o vivir en tu terreno por al menos 8 meses para poder aplicar y quedando sujeto a revisiones o espera dependiendo del cumplimiento de tus pagos mensuales por tu terreno.',
+            'late_payments' => 'Vimos que tienes pagos atrasados con tu terreno. Por ahora no podemos seguir con tu proceso, ya que el programa pide que estés al corriente con tus pagos para participar.',
+            'out_of_coverage' => 'Lamentablemente, no estamos construyendo en la colonia donde se encuentra su terreno 😔. Nos encantaría poder ayudar a todos, pero nuestros recursos son limitados. ¡No somos la única organización construyendo hogares 🏠! Le animamos a que continúe investigando para ver si hay otras organizaciones trabajando en su colonia. ¡Gracias por su comprensión y esperamos que encuentre la ayuda que necesita!',
+        ];
+
+        $reasonMessage = $rejectionMessages[$reason] ?? $reason;
+
         $applicant->update([
             "process_status" => "staff_rejected",
             "rejection_reason" => $reason,
@@ -156,9 +168,9 @@ class ApplicantActions
 
         $notificationService = new WhatsappApiNotificationService();
 
-        $message = "Hola te saluda el equipo de Casas de Esperanza, agradecemos profundamente que hayas pensado en nosotros para buscar apoyo. Revisamos tu solicitud y, aunque quisiéramos ayudar a todos, en este momento no podemos avanzar con tu proceso para una Casa de Esperanza. Deseamos de corazón que encuentres pronto la ayuda que necesitas y oramos por bendición y fortaleza para ti y tu familia.";
+        $message = "Hola te saluda el equipo de Casas de Esperanza, agradecemos profundamente que hayas pensado en nosotros para buscar apoyo. Revisamos tu solicitud y, aunque quisiéramos ayudar a todos, en este momento no podemos avanzar con tu proceso para una Casa de Esperanza.\n" . $reasonMessage . "\nDeseamos de corazón que encuentres pronto la ayuda que necesitas y oramos por bendición y fortaleza para ti y tu familia.";
 
-        $notificationService->sendCustomMessage($applicant, $message, 'rechazo_solicitud');
+        $notificationService->sendCustomMessage($applicant, $message, 'rechazar_aplicante', ['razon' => $reasonMessage]);
     }
 
     public static function sendCustomMessage(Applicant $applicant, string $message): void
