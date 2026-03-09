@@ -377,7 +377,8 @@ class ApplicantResource extends Resource
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
                     ->url(fn($state) => 'https://wa.me/' . $state)
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->toggleable(),
 
                 TextColumn::make('curp')
                     ->label('CURP')
