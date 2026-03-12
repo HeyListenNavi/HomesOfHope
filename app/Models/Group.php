@@ -16,7 +16,6 @@ class Group extends Model
         'name',
         "message",
         'capacity',
-        'current_members_count',
         'date_time',
         "location",
         "location_link",
