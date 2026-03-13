@@ -9,11 +9,13 @@ use App\Services\GroupActions;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Group as ComponentsGroup;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -32,65 +34,92 @@ class GroupResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(3)
             ->schema([
-                Forms\Components\Section::make('Detalles del Grupo')
-                    ->description('Configuración principal de la logística y capacidad.')
-                    ->icon('heroicon-m-clipboard-document-list')
-                    ->columns(2)
+                Forms\Components\Group::make()
+                    ->columnSpan(2)
                     ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nombre del Grupo')
-                            ->required()
-                            ->maxLength(255)
-                            ->prefixIcon('heroicon-m-user-group'),
+                        Forms\Components\Section::make('Detalles del Grupo')
+                            ->description('Configuración principal de la logística y capacidad.')
+                            ->icon('heroicon-m-clipboard-document-list')
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nombre del Grupo')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->placeholder('Ej: Entrevistas Turno Mañana')
+                                    ->columnSpan(1),
 
-                        Forms\Components\DateTimePicker::make('date_time')
-                            ->label('Fecha de Entrevista')
-                            ->required()
-                            ->seconds(false)
-                            ->prefixIcon('heroicon-m-calendar-days')
-                            ->native(false),
+                                Forms\Components\DateTimePicker::make('date_time')
+                                    ->label('Fecha de Entrevista')
+                                    ->required()
+                                    ->seconds(false)
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y H:i')
+                                    ->minutesStep(15),
 
-                        Forms\Components\TextInput::make('capacity')
-                            ->label('Capacidad Máxima')
-                            ->required()
-                            ->numeric()
-                            ->default(25)
-                            ->prefixIcon('heroicon-m-ticket')
-                            ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('location')
+                                            ->label('Dirección')
+                                            ->placeholder('Av. Principal #123...')
+                                            ->prefixIcon('heroicon-m-map-pin')
+                                            ->columnSpan(1),
+                                        Forms\Components\TextInput::make('location_link')
+                                            ->label('Link de Google Maps')
+                                            ->url()
+                                            ->placeholder('https://maps.google.com/...')
+                                            ->prefixIcon('heroicon-m-link')
+                                            ->columnSpan(1),
+                                    ]),
+                            ]),
 
-                        Forms\Components\TextInput::make('current_members_count')
-                            ->label('Miembros Actuales')
-                            ->numeric()
-                            ->readOnly()
-                            ->disabled()
-                            ->default(0)
-                            ->prefixIcon('heroicon-m-users'),
-
-                        Forms\Components\TextInput::make('location')
-                            ->label("Dirección Física")
-                            ->placeholder('Calle, Número, Colonia...')
-                            ->prefixIcon('heroicon-m-map-pin')
-                            ->columnSpanFull(),
-
-                        Forms\Components\TextInput::make('location_link')
-                            ->label('Enlace de Google Maps')
-                            ->placeholder('https://maps.google.com/...')
-                            ->prefixIcon('heroicon-m-link')
-                            ->url()
-                            ->columnSpanFull(),
+                        Forms\Components\Section::make('Instrucciones para Aplicantes')
+                            ->collapsible()
+                            ->schema([
+                                Forms\Components\Textarea::make('message')
+                                    ->label('Mensaje de Bienvenida')
+                                    ->rows(5)
+                                    ->helperText('Este mensaje será enviado por WhatsApp al confirmar.'),
+                            ]),
                     ]),
 
-                Forms\Components\Section::make('Comunicación')
-                    ->description('Mensaje de bienvenida e instrucciones para el grupo.')
-                    ->icon('heroicon-m-chat-bubble-left-right')
-                    ->collapsible()
+                Forms\Components\Group::make()
+                    ->columnSpan(1)
                     ->schema([
-                        Forms\Components\Textarea::make("message")
-                            ->hiddenLabel()
-                            ->placeholder('Escribe aquí las instrucciones que verán los aplicantes...')
-                            ->rows(6)
-                            ->columnSpanFull(),
+                        Forms\Components\Section::make('Estado y Capacidad')
+                            ->schema([
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('Aceptar Registros')
+                                    ->helperText('Activa o desactiva la visibilidad del grupo.')
+                                    ->onColor('success')
+                                    ->default(true),
+
+                                Forms\Components\TextInput::make('capacity')
+                                    ->label('Capacidad Máxima')
+                                    ->default(25)
+                                    ->numeric()
+                                    ->required()
+                                    ->prefixIcon('heroicon-m-ticket')
+                                    ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
+                            ]),
+
+                        Forms\Components\Section::make('Datos')
+                            ->description('Información del sistema')
+                            ->schema([
+                                Forms\Components\Placeholder::make('created_at')
+                                    ->label('Creado')
+                                    ->content(fn($record) => $record?->created_at?->diffForHumans() ?? '-'),
+
+                                Forms\Components\TextInput::make('current_members_count')
+                                    ->label('Miembros Actuales')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->columnSpan(5)
+                                    ->disabled()
+                                    ->prefixIcon('heroicon-m-users'),
+                            ])->visible(fn($record) => $record !== null),
                     ]),
             ]);
     }
@@ -125,6 +154,11 @@ class GroupResource extends Resource
                     ->sortable()
                     ->icon('heroicon-m-calendar-days')
                     ->description(fn(Group $record) => ucfirst($record->date_time->locale('es')->diffForHumans())),
+
+                ToggleColumn::make('is_active')
+                    ->label('Activo')
+                    ->onColor('success')
+                    ->offColor('danger'),
 
                 TextColumn::make('created_at')
                     ->dateTime()

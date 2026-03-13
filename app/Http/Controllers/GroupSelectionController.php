@@ -18,7 +18,7 @@ class GroupSelectionController extends Controller
     {
         // La ruta firmada ya protege contra manipulación de URL.
         // Verificamos el estado lógico del aplicante.
-        if ( $applicant->group_id !== null) {
+        if ($applicant->group_id !== null) {
             return view('selection.invalid', [
                 'message' => 'Este enlace no es válido o ya has seleccionado un grupo.'
             ]);
@@ -26,10 +26,11 @@ class GroupSelectionController extends Controller
 
         // Buscamos todos los grupos que tengan cupo disponible.
         $availableGroups = Group::where('current_members_count', '<', DB::raw('capacity'))
-                               ->whereNotNull('date_time')
-                               ->where('date_time', '>=', Carbon::tomorrow())
-                               ->orderBy('date_time', 'asc')
-                               ->get();
+            ->where('is_active', '=', true)
+            ->whereNotNull('date_time')
+            ->where('date_time', '>=', Carbon::tomorrow())
+            ->orderBy('date_time', 'asc')
+            ->get();
 
         return view('selection.form', compact('applicant', 'availableGroups'));
     }
@@ -40,7 +41,7 @@ class GroupSelectionController extends Controller
     public function assignToGroup(Request $request, Applicant $applicant)
     {
         // Validación inicial
-        if ( $applicant->group_id !== null) {
+        if ($applicant->group_id !== null) {
             return redirect()->route('selection.invalid')->with('error', 'Acción no permitida.');
         }
 
@@ -55,11 +56,12 @@ class GroupSelectionController extends Controller
             // Bloqueamos la fila del grupo para evitar que dos personas
             // tomen el último lugar al mismo tiempo (race condition).
             $group = Group::where('id', $groupId)
-                          ->whereNotNull('date_time')
-                          ->where('date_time', '>=', Carbon::tomorrow())
-                          ->where('current_members_count', '<', DB::raw('capacity'))
-                          ->lockForUpdate()
-                          ->first();
+                ->where('current_members_count', '<', DB::raw('capacity'))
+                ->where('is_active', '=', true)
+                ->whereNotNull('date_time')
+                ->where('date_time', '>=', Carbon::tomorrow())
+                ->lockForUpdate()
+                ->first();
 
             if (!$group) {
                 // Si el grupo se llenó mientras el usuario decidía.
@@ -75,7 +77,6 @@ class GroupSelectionController extends Controller
             $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
 
             return redirect()->route('selection.success')->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
-
         });
     }
 

@@ -24,16 +24,15 @@ class GroupFactory extends Factory
             // El campo 'message' es nullable, usamos optional() para que a veces sea null.
             // Genera un párrafo de texto para simular un mensaje largo.
             'message' => $this->faker->optional()->paragraph(),
-            
+
             // La capacidad es un número fijo para los datos de prueba.
             'capacity' => 50,
-            
-            // El contador de miembros será un número aleatorio entre 0 y la capacidad.
-            'current_members_count' => $this->faker->numberBetween(0, 50),
-            
+
             // El campo 'date' es nullable, usamos optional() para que a veces sea null.
             // Genera una fecha aleatoria en los próximos 2 años.
             'date_time' => $this->faker->dateTimeBetween('+0 days', '+2 years')->format('Y-m-d'),
+
+            'is_active' => $this->faker->boolean()
         ];
     }
 }
