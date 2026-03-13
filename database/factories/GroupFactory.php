@@ -34,6 +34,8 @@ class GroupFactory extends Factory
             // El campo 'date' es nullable, usamos optional() para que a veces sea null.
             // Genera una fecha aleatoria en los próximos 2 años.
             'date_time' => $this->faker->dateTimeBetween('+0 days', '+2 years')->format('Y-m-d'),
+
+            'is_active' => $this->faker->boolean()
         ];
     }
 }
