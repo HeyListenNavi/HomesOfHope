@@ -19,6 +19,7 @@ class Group extends Model
         'date_time',
         "location",
         "location_link",
+        'is_active'
     ];
 
 
@@ -26,6 +27,7 @@ class Group extends Model
     {
         return [
             'date_time' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
 
