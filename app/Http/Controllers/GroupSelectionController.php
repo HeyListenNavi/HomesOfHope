@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\WhatsappApiNotificationService;
 use Illuminate\Support\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class GroupSelectionController extends Controller
 {
@@ -76,18 +77,31 @@ class GroupSelectionController extends Controller
             $EvolutionApiNotificaiton = new WhatsappApiNotificationService();
             $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
 
-            return redirect()->route('selection.success')->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
+            return redirect()->route('selection.success', $applicant->id)->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
         });
     }
 
     /**
      * Muestra una página de éxito genérica.
      */
-    public function showSuccess()
+    public function showSuccess(Applicant $applicant)
     {
         $number = config('services.whatsapp.number');
         $whatsAppUrl = "https://wa.me/{$number}";
-        return view('selection.success', compact('whatsAppUrl'));
+
+        $applicant->load('group');
+
+        return view('selection.success', compact('whatsAppUrl', 'applicant'));
+    }
+
+    public function downloadInvitation(Applicant $applicant)
+    {
+        $applicant->load('group');
+
+        $pdf = Pdf::loadView('pdf.invitation', compact('applicant'))
+            ->setPaper('letter', 'portrait');;
+
+        return $pdf->download("Invitacion_CasasDeEsperanza_{$applicant->id}.pdf");
     }
 
     /**

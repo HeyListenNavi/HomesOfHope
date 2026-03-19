@@ -35,18 +35,25 @@
             <h1 class="text-headline-large md:text-display-medium text-center">¡Registro completado con éxito! </h1>
         </div>
 
-        <p>
-            @if (session('success'))
-                {{ session('success') }}
-            @else
-                Tu información se guardó de manera segura y tu fecha de entrevista quedó confirmada. ¡Te esperamos!
+        <div class="space-y-4">
+            @if ($applicant->group && $applicant->group->message)
+            <p class="text-md leading-8">
+                {!! nl2br(e($applicant->group->message)) !!}
+            </p>
             @endif
-        </p>
+        </div>
 
-        <x-button class="text-label-large mx-auto" href="{{ $whatsAppUrl }}">
-            <span>Volver </span>
-            <x-bx-arrow-up-right></x-bx-arrow-up-right>
-        </x-button>
+        <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <x-button class="text-label-large" href="{{ route('selection.invitation.download', $applicant) }}">
+                <box-icon name='download' color='currentColor' class="mr-2 w-5"></box-icon>
+                <span>Descargar Invitación</span>
+            </x-button>
+
+            <x-button.outline class="text-label-large" href="{{ $whatsAppUrl }}">
+                <span>Volver a WhatsApp</span>
+                <x-bx-arrow-up-right></x-bx-arrow-up-right>
+            </x-button.outline>
+        </div>
     </div>
 </body>
 

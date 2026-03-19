@@ -16,7 +16,10 @@ Route::get('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class
 Route::post('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'assignToGroup'])
     ->name('group.selection.assign');
 
-Route::get('/seleccion/confirmado', [GroupSelectionController::class, 'showSuccess'])
+Route::get('/seleccion/invitacion/{applicant:id}', [GroupSelectionController::class, 'downloadInvitation'])
+    ->name('selection.invitation.download');
+
+Route::get('/seleccion/confirmado/{applicant:id}', [GroupSelectionController::class, 'showSuccess'])
     ->name('selection.success');
 
 Route::get('/seleccion/enlace-invalido', [GroupSelectionController::class, 'showInvalidLink'])
