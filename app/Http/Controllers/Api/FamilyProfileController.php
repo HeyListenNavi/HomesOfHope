@@ -101,8 +101,8 @@ class FamilyProfileController extends Controller
         $validated = $request->validate([
             'family_name' => 'sometimes|string|max:255',
             'status' => 'sometimes|string|in:prospect,active,in_follow_up,closed',
-            'current_address' => 'sometimes|array',
-            'construction_address' => 'nullable|array',
+            'current_address' => 'sometimes|string',
+            'construction_address' => 'nullable|string',
             'responsible_member_id' => 'nullable|exists:family_members,id', // Validación segura
             'opened_at' => 'sometimes|date',
             'closed_at' => 'nullable|date',
