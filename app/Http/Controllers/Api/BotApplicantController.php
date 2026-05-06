@@ -341,7 +341,6 @@ class BotApplicantController extends Controller
         }
 
         $applicant = Applicant::where('chat_id', $chatId)
-            ->where('process_status', 'in_progress')
             ->first();
 
         if (!$applicant) {
