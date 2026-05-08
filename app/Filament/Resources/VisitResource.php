@@ -52,24 +52,21 @@ class VisitResource extends Resource
                                             ->prefixIcon('heroicon-s-users'),
 
                                         ToggleButtons::make('location_type')
-                                            ->label('Modalidad')
+                                            ->label('Lugar')
                                             ->options([
-                                                'home' => 'Domicilio',
+                                                'home' => 'Terreno',
                                                 'office' => 'Oficina',
                                                 'virtual' => 'Virtual',
-                                                'field' => 'Campo',
                                             ])
                                             ->icons([
                                                 'home' => 'heroicon-s-home',
                                                 'office' => 'heroicon-s-building-office',
-                                                'virtual' => 'heroicon-s-video-camera',
-                                                'field' => 'heroicon-s-map',
+                                                'virtual' => 'heroicon-s-phone',
                                             ])
                                             ->colors([
                                                 'home' => 'success',   // Verde = Ideal
                                                 'office' => 'info',    // Azul = Formal
                                                 'virtual' => 'warning', // Naranja = Distancia
-                                                'field' => 'gray',     // Gris = Otro
                                             ])
                                             ->inline()
                                             ->required(),
@@ -96,10 +93,11 @@ class VisitResource extends Resource
                                 Forms\Components\Section::make('Agenda')
                                     ->icon('heroicon-s-calendar')
                                     ->schema([
-                                        Forms\Components\DateTimePicker::make('scheduled_at')
+                                        Forms\Components\DatePicker::make('scheduled_at')
                                             ->label('Fecha Programada')
                                             ->required()
                                             ->native(false)
+                                            ->format('Y-m-d')
                                             ->prefixIcon('heroicon-s-clock'),
 
                                         Forms\Components\Select::make('attended_by')
@@ -127,7 +125,7 @@ class VisitResource extends Resource
                                                 'completed' => 'Completada',
                                                 'cancelled' => 'Cancelada',
                                                 'no_show' => 'No se presentó',
-                                                'rescheduled' => 'Reprogramada',
+                                                'rescheduled' => 'Reprogramar',
                                             ])
                                             ->colors([
                                                 'scheduled' => 'info',
@@ -169,18 +167,18 @@ class VisitResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('location_type')
-                    ->label('Tipo')
+                    ->label('Lugar')
                     ->icon(fn(string $state): string => match ($state) {
                         'home' => 'heroicon-s-home',
                         'office' => 'heroicon-s-building-office',
-                        'virtual' => 'heroicon-s-video-camera',
+                        'virtual' => 'heroicon-s-phone',
                         default => 'heroicon-s-map-pin',
                     })
                     ->tooltip(fn(string $state): string => match ($state) {
-                        'home' => 'Domiciliaria',
+                        'home' => 'Terreno',
                         'office' => 'Oficina',
                         'virtual' => 'Virtual',
-                        default => 'Campo',
+                        default => 'Otro',
                     })
                     ->color(fn(string $state): string => match ($state) {
                         'home' => 'success',
@@ -198,7 +196,7 @@ class VisitResource extends Resource
                         'completed' => 'Completada',
                         'cancelled' => 'Cancelada',
                         'no_show' => 'Ausente',
-                        'rescheduled' => 'Reprogramada',
+                        'rescheduled' => 'Reprogramar',
                         default => $state,
                     })
                     ->color(fn(string $state): string => match ($state) {
@@ -213,6 +211,7 @@ class VisitResource extends Resource
                         'completed' => 'heroicon-s-check-circle',
                         'cancelled' => 'heroicon-s-x-circle',
                         'no_show' => 'heroicon-s-eye-slash',
+                        'rescheduled' => 'heroicon-s-arrow-path',
                         default => null,
                     }),
 
@@ -229,6 +228,8 @@ class VisitResource extends Resource
                         'scheduled' => 'Programada',
                         'completed' => 'Completada',
                         'cancelled' => 'Cancelada',
+                        'no_show' => 'No se presentó',
+                        'rescheduled' => 'Reprogramar',
                     ]),
 
                 Tables\Filters\Filter::make('scheduled_at')

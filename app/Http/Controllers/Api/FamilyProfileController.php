@@ -70,8 +70,6 @@ class FamilyProfileController extends Controller
             'general_observations' => 'nullable|string',
         ]);
 
-        $validated['slug'] = Str::slug($validated['family_name']) . '-' . uniqid();
-
         $profile = FamilyProfile::create($validated);
 
         return response()->json([
@@ -108,10 +106,6 @@ class FamilyProfileController extends Controller
             'closed_at' => 'nullable|date',
             'general_observations' => 'nullable|string',
         ]);
-
-        if (isset($validated['family_name'])) {
-            $validated['slug'] = Str::slug($validated['family_name']) . '-' . $profile->id;
-        }
 
         $profile->update($validated);
 

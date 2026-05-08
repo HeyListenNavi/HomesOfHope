@@ -13,10 +13,10 @@ class VisitFactory extends Factory
 {
     public function definition(): array
     {
-        $status = fake()->randomElement(['scheduled', 'completed', 'canceled']);
-        
-        $scheduledDate = $status === 'completed' 
-            ? fake()->dateTimeBetween('-1 month', 'yesterday') 
+        $status = fake()->randomElement(['scheduled', 'completed', 'canceled', 'no_show', 'rescheduled']);
+
+        $scheduledDate = $status === 'completed'
+            ? fake()->dateTimeBetween('-1 month', 'yesterday')
             : fake()->dateTimeBetween('now', '+1 month');
 
         return [
@@ -24,7 +24,7 @@ class VisitFactory extends Factory
             'status' => $status,
             'scheduled_at' => $scheduledDate,
             'completed_at' => $status === 'completed' ? $scheduledDate : null,
-            'location_type' => fake()->randomElement(['current_address', 'construction_site', 'office']),
+            'location_type' => fake()->randomElement(['home', 'office', 'virtual']),
             'outcome_summary' => $status === 'completed' ? fake()->paragraph() : null,
         ];
     }

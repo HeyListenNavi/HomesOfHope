@@ -17,7 +17,7 @@ class VisitsRelationManager extends RelationManager
 {
     protected static string $relationship = 'visits';
 
-    protected static ?string $title = 'Visitas y Seguimiento';
+    protected static ?string $title = 'Visitas';
 
     protected static ?string $icon = 'heroicon-s-map-pin';
 
