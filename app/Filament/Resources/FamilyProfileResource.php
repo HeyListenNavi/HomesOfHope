@@ -23,8 +23,8 @@ class FamilyProfileResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-home';
     protected static ?string $navigationGroup = 'Familias';
-    protected static ?string $label = 'Perfil Familiar';
-    protected static ?string $pluralLabel = 'Perfiles Familiares';
+    protected static ?string $label = 'Perfil';
+    protected static ?string $pluralLabel = 'Perfiles';
 
 public static function form(Form $form): Form
     {
@@ -52,7 +52,7 @@ public static function form(Form $form): Form
                                             ->label('Nombre de la Familia')
                                             ->required()
                                             ->maxLength(255)
-                                            ->placeholder('Ej. Familia Pérez López')
+                                            ->placeholder('Ej. Pérez López')
                                             ->extraInputAttributes(['style' => 'font-size: 1.5rem; font-weight: 800;']),
 
                                         Forms\Components\TextInput::make('slug')
@@ -97,13 +97,14 @@ public static function form(Form $form): Form
                                                 ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->paternal_surname}")
                                                 ->searchable()
                                                 ->preload()
-                                                ->label('Líder de Hogar')
+                                                ->label('Aplicante')
                                                 ->prefixIcon('heroicon-s-user'), // Sólido
 
                                             Forms\Components\DatePicker::make('opened_at')
-                                                ->label('Fecha de Apertura')
+                                                ->label('Fecha de entrevista')
                                                 ->native(false)
                                                 ->displayFormat('d/m/Y')
+                                                ->required()
                                                 ->prefixIcon('heroicon-s-calendar'), // Sólido
                                         ]),
                                     ]),
@@ -160,6 +161,7 @@ public static function form(Form $form): Form
         return $table
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
+            ->defaultSort('opened_at', 'desc')
             ->columns([
                 Tables\Columns\ImageColumn::make('family_photo_path')
                     ->label('')
