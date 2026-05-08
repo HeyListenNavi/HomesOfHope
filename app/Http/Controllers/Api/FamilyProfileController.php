@@ -63,7 +63,7 @@ class FamilyProfileController extends Controller
     {
         $validated = $request->validate([
             'family_name' => 'required|string|max:255',
-            'status' => 'required|string|in:prospect,active,in_follow_up,closed',
+            'status' => 'required|string|in:new,approved,in_process,not_eligible,potential,built,dont_build',
             'current_address' => 'required|string',
             'construction_address' => 'nullable|string',
             'opened_at' => 'required|date',
@@ -98,7 +98,7 @@ class FamilyProfileController extends Controller
 
         $validated = $request->validate([
             'family_name' => 'sometimes|string|max:255',
-            'status' => 'sometimes|string|in:prospect,active,in_follow_up,closed',
+            'status' => 'sometimes|string|in:new,approved,in_process,not_eligible,potential,built,dont_build',
             'current_address' => 'sometimes|string',
             'construction_address' => 'nullable|string',
             'responsible_member_id' => 'nullable|exists:family_members,id', // Validación segura
