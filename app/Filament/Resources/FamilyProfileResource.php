@@ -26,7 +26,7 @@ class FamilyProfileResource extends Resource
     protected static ?string $label = 'Perfil';
     protected static ?string $pluralLabel = 'Perfiles';
 
-public static function form(Form $form): Form
+    public static function form(Form $form): Form
     {
         return $form
             ->schema([
@@ -70,22 +70,31 @@ public static function form(Form $form): Form
                                         ToggleButtons::make('status')
                                             ->label('Estado Actual')
                                             ->options([
-                                                'prospect' => 'Prospecto',
-                                                'active' => 'Activo',
-                                                'in_follow_up' => 'Seguimiento',
-                                                'closed' => 'Cerrado',
+                                                'new' => 'Nuevo',
+                                                'approved' => 'Aprobado',
+                                                'in_process' => 'En Espera',
+                                                'not_eligible' => 'No Califica',
+                                                'potential' => 'Potencial',
+                                                'built' => 'Construido',
+                                                'dont_build' => 'No Construir',
                                             ])
                                             ->colors([
-                                                'prospect' => 'gray',
-                                                'active' => 'success',
-                                                'in_follow_up' => 'warning',
-                                                'closed' => 'danger',
+                                                'new' => 'gray',
+                                                'approved' => 'success',
+                                                'in_process' => 'warning',
+                                                'not_eligible' => 'danger',
+                                                'potential' => 'info',
+                                                'built' => 'primary',
+                                                'dont_build' => 'danger',
                                             ])
                                             ->icons([
-                                                'prospect' => 'heroicon-s-eye',
-                                                'active' => 'heroicon-s-bolt',
-                                                'in_follow_up' => 'heroicon-s-clock',
-                                                'closed' => 'heroicon-s-lock-closed',
+                                                'new' => 'heroicon-s-plus-circle',
+                                                'approved' => 'heroicon-s-check-circle',
+                                                'in_process' => 'heroicon-s-clock',
+                                                'not_eligible' => 'heroicon-s-lock-closed',
+                                                'potential' => 'heroicon-s-eye',
+                                                'built' => 'heroicon-s-building-office-2',
+                                                'dont_build' => 'heroicon-s-x-circle',
                                             ])
                                             ->inline()
                                             ->required()
@@ -179,26 +188,35 @@ public static function form(Form $form): Form
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'prospect' => 'Prospecto',
-                        'active' => 'Activo',
-                        'in_follow_up' => 'Seguimiento',
-                        'closed' => 'Cerrado',
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'new' => 'Nuevo',
+                        'approved' => 'Aprobado',
+                        'in_process' => 'En Proceso',
+                        'not_eligible' => 'No Califica',
+                        'potential' => 'Potencial',
+                        'built' => 'Construido',
+                        'dont_build' => 'No Construir',
                         default => $state,
                     })
                     ->color(fn(string $state): string => match ($state) {
-                        'prospect' => 'gray',
-                        'active' => 'success',
-                        'in_follow_up' => 'warning',
-                        'closed' => 'danger',
+                        'new' => 'gray',
+                        'approved' => 'success',
+                        'in_process' => 'warning',
+                        'not_eligible' => 'danger',
+                        'potential' => 'info',
+                        'built' => 'primary',
+                        'dont_build' => 'danger',
                         default => 'gray',
                     })
                     ->icon(fn(string $state): string => match ($state) {
-                        'prospect' => 'heroicon-s-eye',
-                        'active' => 'heroicon-s-bolt',
-                        'in_follow_up' => 'heroicon-s-clock',
-                        'closed' => 'heroicon-s-lock-closed',
-                        default => 'heroicon-s-question-mark-circle',
+                        'new' => 'heroicon-s-plus-circle',
+                        'approved' => 'heroicon-s-check-circle',
+                        'in_process' => 'heroicon-s-clock',
+                        'not_eligible' => 'heroicon-s-lock-closed',
+                        'potential' => 'heroicon-s-eye',
+                        'built' => 'heroicon-s-building-office-2',
+                        'dont_build' => 'heroicon-s-x-circle',
+                        default => '',
                     }),
 
                 Tables\Columns\TextColumn::make('responsibleMember.name')
@@ -212,9 +230,9 @@ public static function form(Form $form): Form
                     ->counts('visits')
                     ->label('Historial')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state . ' Visita(s)') // Formato más humano
-                    ->color(fn ($state) => $state > 0 ? 'info' : 'danger') // Rojo si es 0 (necesita atención)
-                    ->icon(fn ($state) => $state > 0 ? 'heroicon-s-check-circle' : 'heroicon-s-exclamation-circle')
+                    ->formatStateUsing(fn($state) => $state . ' Visita(s)') // Formato más humano
+                    ->color(fn($state) => $state > 0 ? 'info' : 'danger') // Rojo si es 0 (necesita atención)
+                    ->icon(fn($state) => $state > 0 ? 'heroicon-s-check-circle' : 'heroicon-s-exclamation-circle')
                     ->sortable(),
             ])
             ->actions([
@@ -224,7 +242,7 @@ public static function form(Form $form): Form
                     ->icon('heroicon-s-calendar-days')
                     ->color('primary')
                     ->button()
-                    ->url(fn (FamilyProfile $record) => VisitResource::getUrl('create', ['family_profile_id' => $record->id])),
+                    ->url(fn(FamilyProfile $record) => VisitResource::getUrl('create', ['family_profile_id' => $record->id])),
 
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')

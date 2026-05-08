@@ -14,7 +14,7 @@ class FamilyProfileFactory extends Factory
 
         return [
             'family_name' => $familyName,
-            'status' => fake()->randomElement(['prospect', 'active', 'in_follow_up', 'closed']),
+            'status' => fake()->randomElement(['new', 'approved', 'in_process', 'not_eligible', 'potential', 'built', 'dont_build']),
             'family_photo_path' => "https://picsum.photos/200", // O usar fake()->imageUrl() si deseas
             'current_address' => fake()->streetName() . " " . fake()->buildingNumber() . " ," . fake()->city() . " " .  fake()->postcode(),
             'construction_address' => fake()->streetName() . ' Lote ' . fake()->randomDigit() . 'city' . fake()->city(),
