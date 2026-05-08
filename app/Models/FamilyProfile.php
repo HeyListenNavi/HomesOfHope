@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Str;
 
 class FamilyProfile extends Model
 {
@@ -29,6 +30,21 @@ class FamilyProfile extends Model
         'opened_at' => 'date',
         'closed_at' => 'date',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($familyProfile) {
+            if (empty($familyProfile->slug)) {
+                $familyProfile->slug = uniqid('familia-' . Str::slug($familyProfile->family_name) . '-');
+            }
+        });
+
+        static::updating(function ($familyProfile) {
+            if ($familyProfile->isDirty('family_name')) {
+                $familyProfile->slug = uniqid('familia-' . Str::slug($familyProfile->family_name) . '-');
+            }
+        });
+    }
 
     /* -------------------------------------------------------------------------- */
     /*                                Relationships                               */

@@ -10,11 +10,10 @@ class FamilyProfileFactory extends Factory
 {
     public function definition(): array
     {
-        $familyName = 'Familia ' . fake()->lastName() . ' ' . fake()->lastName();
+        $familyName = fake()->lastName() . ' ' . fake()->lastName();
 
         return [
             'family_name' => $familyName,
-            'slug' => Str::slug($familyName) . '-' . Str::random(5),
             'status' => fake()->randomElement(['prospect', 'active', 'in_follow_up', 'closed']),
             'family_photo_path' => "https://picsum.photos/200", // O usar fake()->imageUrl() si deseas
             'current_address' => fake()->streetName() . " " . fake()->buildingNumber() . " ," . fake()->city() . " " .  fake()->postcode(),
