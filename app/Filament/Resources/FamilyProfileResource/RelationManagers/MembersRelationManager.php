@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
 
+use App\Models\FamilyMember;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use App\Models\FamilyMember;
-use Filament\Support\Enums\FontWeight;
 
 class MembersRelationManager extends RelationManager
 {
@@ -66,7 +65,7 @@ class MembersRelationManager extends RelationManager
                                             ->prefixIcon('heroicon-s-finger-print')
                                             ->placeholder('CURP')
                                             ->required()
-                                            ->formatStateUsing(fn(?string $state) => strtoupper($state)),
+                                            ->formatStateUsing(fn (?string $state) => strtoupper($state)),
 
                                         Forms\Components\TextInput::make('occupation')
                                             ->label('Ocupación')
@@ -131,11 +130,6 @@ class MembersRelationManager extends RelationManager
                                     ->label('Teléfono (WhatsApp)')
                                     ->required()
                                     ->prefixIcon('heroicon-s-chat-bubble-left-right'),
-
-                                Forms\Components\TextInput::make('email')
-                                    ->label('Correo (Opcional)')
-                                    ->email()
-                                    ->placeholder('correo@ejemplo.com'),
                             ]),
                     ])
                     ->columnSpan(['lg' => 1]),
@@ -149,10 +143,10 @@ class MembersRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nombre Completo')
-                    ->formatStateUsing(fn(FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
+                    ->formatStateUsing(fn (FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
                     ->searchable(['name', 'paternal_surname', 'maternal_surname'])
                     ->sortable()
-                    ->icon(fn($record) => $record->is_responsible ? 'heroicon-s-star' : null)
+                    ->icon(fn ($record) => $record->is_responsible ? 'heroicon-s-star' : null)
                     ->iconColor('warning'),
 
                 Tables\Columns\TextColumn::make('familyProfile.family_name')
@@ -165,8 +159,8 @@ class MembersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('relationship')
                     ->label('Rol')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => ucfirst($state))
-                    ->color(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->color(fn (string $state): string => match ($state) {
                         'father', 'mother' => 'primary',
                         'child', 'grandchild' => 'info',
                         default => 'gray',
@@ -175,14 +169,14 @@ class MembersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
                     ->sortable()
-                    ->formatStateUsing(fn($state) => $state ? $state->age . ' años' : '-')
-                    ->description(fn(FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
+                    ->formatStateUsing(fn ($state) => $state ? $state->age.' años' : '-')
+                    ->description(fn (FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
 
                 // CAMBIO AQUÍ: Lógica de WhatsApp
                 Tables\Columns\TextColumn::make('phone')
                     ->label('WhatsApp')
                     ->icon('heroicon-s-chat-bubble-left-right')
-                    ->url(fn($state) => $state ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $state) : null)
+                    ->url(fn ($state) => $state ? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $state) : null)
                     ->openUrlInNewTab(),
             ])
             ->filters([

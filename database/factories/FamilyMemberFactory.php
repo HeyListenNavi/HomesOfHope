@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\FamilyMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FamilyMember>
+ * @extends Factory<FamilyMember>
  */
 class FamilyMemberFactory extends Factory
 {
@@ -21,7 +22,6 @@ class FamilyMemberFactory extends Factory
             'relationship' => fake()->randomElement(['hijo', 'hija', 'sobrino']),
             'is_responsible' => false,
             'phone' => fake()->phoneNumber(),
-            'email' => fake()->unique()->safeEmail(),
             'occupation' => fake()->jobTitle(),
             'medical_notes' => fake()->boolean(30) ? fake()->sentence() : null,
         ];
