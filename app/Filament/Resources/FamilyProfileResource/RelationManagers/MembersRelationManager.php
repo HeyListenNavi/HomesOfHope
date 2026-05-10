@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
 
+use App\Enums\Occupation;
 use App\Models\FamilyMember;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -67,10 +68,12 @@ class MembersRelationManager extends RelationManager
                                             ->required()
                                             ->formatStateUsing(fn (?string $state) => strtoupper($state)),
 
-                                        Forms\Components\TextInput::make('occupation')
+                                        Forms\Components\Select::make('occupation')
                                             ->label('Ocupación')
+                                            ->options(Occupation::class)
                                             ->columnSpanFull()
-                                            ->maxLength(255)
+                                            ->searchable()
+                                            ->native(false)
                                             ->prefixIcon('heroicon-s-briefcase'),
                                     ]),
                             ]),

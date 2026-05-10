@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Occupation;
 use App\Models\FamilyMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,7 +23,7 @@ class FamilyMemberFactory extends Factory
             'relationship' => fake()->randomElement(['hijo', 'hija', 'sobrino']),
             'is_responsible' => false,
             'phone' => fake()->phoneNumber(),
-            'occupation' => fake()->jobTitle(),
+            'occupation' => fake()->randomElement(Occupation::cases()),
             'medical_notes' => fake()->boolean(30) ? fake()->sentence() : null,
         ];
     }
