@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\Occupation;
+use App\Enums\Relationship;
 use App\Http\Controllers\Controller;
 use App\Models\FamilyMember;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class FamilyMemberController extends Controller
             'maternal_surname' => 'nullable|string',
             'birth_date' => 'required|date',
             'curp' => 'nullable|string|unique:family_members,curp',
-            'relationship' => 'required|string',
+            'relationship' => ['required', new Enum(Relationship::class)],
             'is_responsible' => 'boolean',
             'phone' => 'nullable|string',
             'occupation' => ['nullable', new Enum(Occupation::class)],
@@ -68,7 +69,7 @@ class FamilyMemberController extends Controller
             'maternal_surname' => 'nullable|string',
             'birth_date' => 'sometimes|date',
             'curp' => 'nullable|string|unique:family_members,curp,'.$member->id,
-            'relationship' => 'sometimes|string',
+            'relationship' => ['sometimes', new Enum(Relationship::class)],
             'is_responsible' => 'boolean',
             'phone' => 'nullable|string',
             'occupation' => ['nullable', new Enum(Occupation::class)],

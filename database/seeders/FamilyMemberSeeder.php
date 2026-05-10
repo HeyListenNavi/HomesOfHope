@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Relationship;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Illuminate\Database\Seeder;
@@ -16,7 +17,7 @@ class FamilyMemberSeeder extends Seeder
             // 1. Crear al responsable (Padre/Madre)
             $responsible = FamilyMember::factory()->create([
                 'family_profile_id' => $profile->id,
-                'relationship' => 'padre', // o madre
+                'relationship' => fake()->randomElement([Relationship::Father, Relationship::Mother]),
                 'birth_date' => fake()->date('Y-m-d', '-30 years'),
                 'is_responsible' => true,
             ]);
@@ -24,10 +25,17 @@ class FamilyMemberSeeder extends Seeder
             // Actualizar el perfil con el ID de este responsable
             $profile->update(['responsible_member_id' => $responsible->id]);
 
-            // 2. Crear miembros adicionales (Hijos, otros)
-            FamilyMember::factory()->count(rand(1, 4))->create([
+            // 2. Crear miembros adicionales (Hijos, abuelos, otros)
+            FamilyMember::factory()->count(rand(2, 5))->create([
                 'family_profile_id' => $profile->id,
-                'relationship' => 'hijo',
+                'relationship' => fn () => fake()->randomElement([
+                    Relationship::Child,
+                    Relationship::Child,
+                    Relationship::Child, // Más probable que sean hijos
+                    Relationship::Grandparent,
+                    Relationship::Grandchild,
+                    Relationship::Other,
+                ]),
                 'is_responsible' => false,
             ]);
         }

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Occupation;
+use App\Enums\Relationship;
 use App\Models\FamilyMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +21,7 @@ class FamilyMemberFactory extends Factory
             'maternal_surname' => fake()->lastName(),
             'birth_date' => fake()->date('Y-m-d', '-5 years'), // Por defecto niños, sobreescribir para adultos
             'curp' => strtoupper(fake()->bothify('????######??????##')),
-            'relationship' => fake()->randomElement(['hijo', 'hija', 'sobrino']),
+            'relationship' => fake()->randomElement(Relationship::cases()),
             'is_responsible' => false,
             'phone' => fake()->phoneNumber(),
             'occupation' => fake()->randomElement(Occupation::cases()),
