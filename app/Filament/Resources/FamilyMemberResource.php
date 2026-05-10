@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\Occupation;
+use App\Enums\Relationship;
 use App\Filament\Resources\FamilyMemberResource\Pages;
 use App\Models\FamilyMember;
 use Filament\Forms;
@@ -114,14 +115,7 @@ class FamilyMemberResource extends Resource
 
                                 Forms\Components\Select::make('relationship')
                                     ->label('Rol Familiar')
-                                    ->options([
-                                        'father' => '👨 Padre de Familia',
-                                        'mother' => '👩 Madre de Familia',
-                                        'child' => '👶 Hijo(a)',
-                                        'grandparent' => '👴 Abuelo(a)',
-                                        'grandchild' => '🧸 Nieto(a)',
-                                        'other' => '👤 Otro',
-                                    ])
+                                    ->options(Relationship::class)
                                     ->required()
                                     ->native(false),
 
@@ -170,13 +164,7 @@ class FamilyMemberResource extends Resource
 
                 Tables\Columns\TextColumn::make('relationship')
                     ->label('Rol')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
-                    ->color(fn (string $state): string => match ($state) {
-                        'father', 'mother' => 'primary',
-                        'child', 'grandchild' => 'info',
-                        default => 'gray',
-                    }),
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
