@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\Occupation;
 use App\Filament\Resources\FamilyMemberResource\Pages;
 use App\Models\FamilyMember;
 use Filament\Forms;
@@ -74,10 +75,12 @@ class FamilyMemberResource extends Resource
                                             ->required()
                                             ->formatStateUsing(fn (?string $state) => strtoupper($state)),
 
-                                        Forms\Components\TextInput::make('occupation')
+                                        Forms\Components\Select::make('occupation')
                                             ->label('Ocupación')
+                                            ->options(Occupation::class)
                                             ->columnSpanFull()
-                                            ->maxLength(255)
+                                            ->searchable()
+                                            ->native(false)
                                             ->prefixIcon('heroicon-s-briefcase'),
                                     ]),
                             ]),
