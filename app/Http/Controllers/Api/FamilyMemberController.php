@@ -32,7 +32,6 @@ class FamilyMemberController extends Controller
             'relationship' => 'required|string',
             'is_responsible' => 'boolean',
             'phone' => 'nullable|string',
-            'email' => 'nullable|email',
             'occupation' => 'nullable|string',
             'medical_notes' => 'nullable|string',
         ]);
@@ -46,13 +45,14 @@ class FamilyMemberController extends Controller
 
         return response()->json([
             'message' => 'Family Member created successfully',
-            'data' => $member
+            'data' => $member,
         ], 201);
     }
 
     public function show(string $id)
     {
         $member = FamilyMember::with('familyProfile')->findOrFail($id);
+
         return response()->json($member);
     }
 
@@ -69,7 +69,6 @@ class FamilyMemberController extends Controller
             'relationship' => 'sometimes|string',
             'is_responsible' => 'boolean',
             'phone' => 'nullable|string',
-            'email' => 'nullable|email',
             'occupation' => 'nullable|string',
             'medical_notes' => 'nullable|string',
         ]);
@@ -83,7 +82,7 @@ class FamilyMemberController extends Controller
 
         return response()->json([
             'message' => 'Family Member updated successfully',
-            'data' => $member
+            'data' => $member,
         ]);
     }
 
