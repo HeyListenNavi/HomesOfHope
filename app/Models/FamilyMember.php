@@ -21,7 +21,6 @@ class FamilyMember extends Model
         'relationship',
         'is_responsible',
         'phone',
-        'email',
         'occupation',
         'medical_notes',
     ];
@@ -32,7 +31,7 @@ class FamilyMember extends Model
     ];
 
     protected $appends = [
-        "full_name"
+        'full_name',
     ];
 
     /**
@@ -59,7 +58,8 @@ class FamilyMember extends Model
         return $this->morphMany(Note::class, 'noteable');
     }
 
-    public function getFullNameAttribute(){
-        return $this->name . " " . $this->paternal_surname . " " . $this->maternal_surname;
+    public function getFullNameAttribute()
+    {
+        return $this->name.' '.$this->paternal_surname.' '.$this->maternal_surname;
     }
 }
