@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Occupation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ class FamilyMember extends Model
     protected $casts = [
         'birth_date' => 'date',
         'is_responsible' => 'boolean',
+        'occupation' => Occupation::class,
     ];
 
     protected $appends = [
