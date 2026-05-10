@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Occupation;
 use App\Http\Controllers\Controller;
 use App\Models\FamilyMember;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Enum;
 
 class FamilyMemberController extends Controller
 {
@@ -32,7 +34,7 @@ class FamilyMemberController extends Controller
             'relationship' => 'required|string',
             'is_responsible' => 'boolean',
             'phone' => 'nullable|string',
-            'occupation' => 'nullable|string',
+            'occupation' => ['nullable', new Enum(Occupation::class)],
             'medical_notes' => 'nullable|string',
         ]);
 
@@ -69,7 +71,7 @@ class FamilyMemberController extends Controller
             'relationship' => 'sometimes|string',
             'is_responsible' => 'boolean',
             'phone' => 'nullable|string',
-            'occupation' => 'nullable|string',
+            'occupation' => ['nullable', new Enum(Occupation::class)],
             'medical_notes' => 'nullable|string',
         ]);
 
