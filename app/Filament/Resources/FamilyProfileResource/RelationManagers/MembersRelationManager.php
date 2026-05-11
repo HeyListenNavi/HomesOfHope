@@ -4,6 +4,10 @@ namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
 
 use App\Enums\Occupation;
 use App\Enums\Relationship;
+use App\Enums\MaritalStatus;
+use App\Enums\EducationLevel;
+use App\Enums\Religion;
+use App\Enums\IndigenousLanguage;
 use App\Models\FamilyMember;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -67,7 +71,7 @@ class MembersRelationManager extends RelationManager
                                             ->prefixIcon('heroicon-s-finger-print')
                                             ->placeholder('CURP')
                                             ->required()
-                                            ->formatStateUsing(fn (?string $state) => strtoupper($state)),
+                                            ->formatStateUsing(fn(?string $state) => strtoupper($state)),
 
                                         Forms\Components\Select::make('occupation')
                                             ->label('Ocupación')
@@ -79,11 +83,77 @@ class MembersRelationManager extends RelationManager
                                     ]),
                             ]),
 
+                        Forms\Components\Section::make('Información Socioeconómica')
+                            ->icon('heroicon-s-banknotes')
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\Select::make('marital_status')
+                                    ->label('Estado Civil')
+                                    ->options(MaritalStatus::class)
+                                    ->native(false),
+
+                                Forms\Components\TextInput::make('weekly_income')
+                                    ->label('Ingreso Semanal')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->placeholder('0.00'),
+
+                                Forms\Components\Select::make('education_level')
+                                    ->label('Nivel de Estudios')
+                                    ->options(EducationLevel::class)
+                                    ->native(false),
+
+                                Forms\Components\TextInput::make('education_grade')
+                                    ->label('Grado')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(12),
+
+                                Forms\Components\Select::make('religion')
+                                    ->label('Religión')
+                                    ->options(Religion::class)
+                                    ->native(false)
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Forms\Components\Section::make('Cultura y Lenguaje')
+                            ->icon('heroicon-s-language')
+                            ->schema([
+                                Forms\Components\Checkbox::make('speaks_indigenous_language')
+                                    ->label('Habla alguna lengua indígena')
+                                    ->live(),
+
+                                Forms\Components\Select::make('indigenous_language')
+                                    ->label('¿Qué lengua indígena?')
+                                    ->options(IndigenousLanguage::class)
+                                    ->searchable()
+                                    ->native(false)
+                                    ->placeholder('Selecciona una lengua')
+                                    ->visible(fn(Forms\Get $get) => $get('speaks_indigenous_language'))
+                                    ->required(fn(Forms\Get $get) => $get('speaks_indigenous_language')),
+                            ]),
+
                         Forms\Components\Section::make('Ficha Médica')
                             ->description('Condiciones, alergias o notas de salud importantes.')
                             ->icon('heroicon-s-heart')
                             ->collapsed()
                             ->schema([
+                                Forms\Components\Group::make()
+                                    ->schema([
+                                        Forms\Components\Checkbox::make('is_pregnant')
+                                            ->label('Está embarazada')
+                                            ->live(),
+
+                                        Forms\Components\TextInput::make('pregnancy_months')
+                                            ->label('Meses de embarazo')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->maxValue(9)
+                                            ->visible(fn(Forms\Get $get) => $get('is_pregnant'))
+                                            ->required(fn(Forms\Get $get) => $get('is_pregnant')),
+                                    ])
+                                    ->visible(fn(Forms\Get $get) => $get('relationship') === Relationship::Mother->value),
+
                                 Forms\Components\Textarea::make('medical_notes')
                                     ->label('')
                                     ->rows(5)
@@ -110,6 +180,7 @@ class MembersRelationManager extends RelationManager
                                     ->label('Rol Familiar')
                                     ->options(Relationship::class)
                                     ->required()
+                                    ->live()
                                     ->native(false),
 
                                 Forms\Components\Toggle::make('is_responsible')
@@ -147,11 +218,11 @@ class MembersRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nombre Completo')
-                    ->formatStateUsing(fn (FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
+                    ->formatStateUsing(fn(FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
                     ->searchable(['name', 'paternal_surname', 'maternal_surname'])
                     ->sortable()
-                    ->description(fn (FamilyMember $record) => $record->is_land_owner ? '📍 Dueño del Terreno' : null)
-                    ->icon(fn ($record) => $record->is_responsible ? 'heroicon-s-star' : null)
+                    ->description(fn(FamilyMember $record) => $record->is_land_owner ? '📍 Dueño del Terreno' : null)
+                    ->icon(fn($record) => $record->is_responsible ? 'heroicon-s-star' : null)
                     ->iconColor('warning'),
 
                 Tables\Columns\TextColumn::make('familyProfile.family_name')
@@ -168,14 +239,14 @@ class MembersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => $state ? $state->age.' años' : '-')
-                    ->description(fn (FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
+                    ->formatStateUsing(fn($state) => $state ? $state->age . ' años' : '-')
+                    ->description(fn(FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
 
                 // CAMBIO AQUÍ: Lógica de WhatsApp
                 Tables\Columns\TextColumn::make('phone')
                     ->label('WhatsApp')
                     ->icon('heroicon-s-chat-bubble-left-right')
-                    ->url(fn ($state) => $state ? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $state) : null)
+                    ->url(fn($state) => $state ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $state) : null)
                     ->openUrlInNewTab(),
             ])
             ->filters([

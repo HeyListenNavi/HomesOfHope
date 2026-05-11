@@ -4,6 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Enums\Occupation;
 use App\Enums\Relationship;
+use App\Enums\MaritalStatus;
+use App\Enums\EducationLevel;
+use App\Enums\Religion;
+use App\Enums\IndigenousLanguage;
 use App\Filament\Resources\FamilyMemberResource\Pages;
 use App\Models\FamilyMember;
 use Filament\Forms;
@@ -86,11 +90,77 @@ class FamilyMemberResource extends Resource
                                     ]),
                             ]),
 
+                        Forms\Components\Section::make('Información Socioeconómica')
+                            ->icon('heroicon-s-banknotes')
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\Select::make('marital_status')
+                                    ->label('Estado Civil')
+                                    ->options(MaritalStatus::class)
+                                    ->native(false),
+
+                                Forms\Components\TextInput::make('weekly_income')
+                                    ->label('Ingreso Semanal')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->placeholder('0.00'),
+
+                                Forms\Components\Select::make('education_level')
+                                    ->label('Nivel de Estudios')
+                                    ->options(EducationLevel::class)
+                                    ->native(false),
+
+                                Forms\Components\TextInput::make('education_grade')
+                                    ->label('Grado')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(12),
+
+                                Forms\Components\Select::make('religion')
+                                    ->label('Religión')
+                                    ->options(Religion::class)
+                                    ->native(false)
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Forms\Components\Section::make('Cultura y Lenguaje')
+                            ->icon('heroicon-s-language')
+                            ->schema([
+                                Forms\Components\Checkbox::make('speaks_indigenous_language')
+                                    ->label('Habla alguna lengua indígena')
+                                    ->live(),
+
+                                Forms\Components\Select::make('indigenous_language')
+                                    ->label('¿Qué lengua indígena?')
+                                    ->options(IndigenousLanguage::class)
+                                    ->searchable()
+                                    ->native(false)
+                                    ->placeholder('Selecciona una lengua')
+                                    ->visible(fn (Forms\Get $get) => $get('speaks_indigenous_language'))
+                                    ->required(fn (Forms\Get $get) => $get('speaks_indigenous_language')),
+                            ]),
+
                         Forms\Components\Section::make('Ficha Médica')
                             ->description('Condiciones, alergias o notas de salud importantes.')
                             ->icon('heroicon-s-heart')
                             ->collapsed()
                             ->schema([
+                                Forms\Components\Group::make()
+                                    ->schema([
+                                        Forms\Components\Checkbox::make('is_pregnant')
+                                            ->label('Está embarazada')
+                                            ->live(),
+
+                                        Forms\Components\TextInput::make('pregnancy_months')
+                                            ->label('Meses de embarazo')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->maxValue(9)
+                                            ->visible(fn (Forms\Get $get) => $get('is_pregnant'))
+                                            ->required(fn (Forms\Get $get) => $get('is_pregnant')),
+                                    ])
+                                    ->visible(fn (Forms\Get $get) => $get('relationship') === Relationship::Mother->value),
+
                                 Forms\Components\Textarea::make('medical_notes')
                                     ->label('')
                                     ->rows(5)
@@ -117,6 +187,7 @@ class FamilyMemberResource extends Resource
                                     ->label('Rol Familiar')
                                     ->options(Relationship::class)
                                     ->required()
+                                    ->live()
                                     ->native(false),
 
                                 Forms\Components\Toggle::make('is_responsible')
