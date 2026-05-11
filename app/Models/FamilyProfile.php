@@ -23,12 +23,15 @@ class FamilyProfile extends Model
         'responsible_member_id',
         'opened_at',
         'closed_at',
+        'has_addictions',
+        'addictions_details',
         'general_observations',
     ];
 
     protected $casts = [
         'opened_at' => 'date',
         'closed_at' => 'date',
+        'has_addictions' => 'boolean',
     ];
 
     protected static function booted()
