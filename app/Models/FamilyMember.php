@@ -4,6 +4,10 @@ namespace App\Models;
 
 use App\Enums\Occupation;
 use App\Enums\Relationship;
+use App\Enums\MaritalStatus;
+use App\Enums\EducationLevel;
+use App\Enums\Religion;
+use App\Enums\IndigenousLanguage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +29,15 @@ class FamilyMember extends Model
         'is_land_owner',
         'phone',
         'occupation',
+        'marital_status',
+        'education_level',
+        'education_grade',
+        'weekly_income',
+        'religion',
+        'speaks_indigenous_language',
+        'indigenous_language',
+        'is_pregnant',
+        'pregnancy_months',
         'medical_notes',
     ];
 
@@ -34,6 +47,12 @@ class FamilyMember extends Model
         'is_land_owner' => 'boolean',
         'occupation' => Occupation::class,
         'relationship' => Relationship::class,
+        'marital_status' => MaritalStatus::class,
+        'education_level' => EducationLevel::class,
+        'religion' => Religion::class,
+        'speaks_indigenous_language' => 'boolean',
+        'indigenous_language' => IndigenousLanguage::class,
+        'is_pregnant' => 'boolean',
     ];
 
     protected $appends = [
