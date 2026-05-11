@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\EducationLevel;
+use App\Enums\IndigenousLanguage;
+use App\Enums\MaritalStatus;
 use App\Enums\Occupation;
 use App\Enums\Relationship;
-use App\Enums\MaritalStatus;
-use App\Enums\EducationLevel;
 use App\Enums\Religion;
-use App\Enums\IndigenousLanguage;
 use App\Filament\Resources\FamilyMemberResource\Pages;
 use App\Models\FamilyMember;
 use Filament\Forms;
@@ -228,7 +228,7 @@ class FamilyMemberResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nombre Completo')
                     ->formatStateUsing(fn (FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
-                    ->searchable(['name', 'paternal_surname', 'maternal_surname'])
+                    ->searchable(['name', 'paternal_surname', 'maternal_surname', 'curp', 'phone'])
                     ->sortable()
                     ->description(fn (FamilyMember $record) => $record->is_land_owner ? '📍 Dueño del Terreno' : null)
                     ->icon(fn ($record) => $record->is_responsible ? 'heroicon-s-star' : null)
