@@ -139,7 +139,7 @@ class FamilyProfileResource extends Resource
                                             ->columnSpanFull(),
 
                                         Forms\Components\Section::make('Terreno / Construcción')
-                                            ->collapsed()
+                                            ->compact()
                                             ->icon('heroicon-s-building-office-2') // Sólido
                                             ->schema([
                                                 Forms\Components\TextInput::make('construction_address')
@@ -159,6 +159,24 @@ class FamilyProfileResource extends Resource
                                             ->autosize()
                                             ->label('Observaciones Generales')
                                             ->columnSpanFull(),
+
+                                        Forms\Components\Section::make('Adicciones')
+                                            ->icon('heroicon-s-exclamation-triangle')
+                                            ->compact()
+                                            ->schema([
+                                                Forms\Components\Checkbox::make('has_addictions')
+                                                    ->label('Presencia de Adicciones')
+                                                    ->live(),
+
+                                                Forms\Components\Textarea::make('addictions_details')
+                                                    ->label('Detalles de las Adicciones')
+                                                    ->placeholder('Escribe aquí los detalles...')
+                                                    ->autosize()
+                                                    ->rows(2)
+                                                    ->visible(fn (Forms\Get $get) => $get('has_addictions'))
+                                                    ->required(fn (Forms\Get $get) => $get('has_addictions'))
+                                                    ->columnSpanFull(),
+                                            ]),
                                     ]),
                             ]),
                     ])->columnSpanFull()
@@ -184,6 +202,15 @@ class FamilyProfileResource extends Resource
                     ->sortable()
                     ->weight(FontWeight::Bold)
                     ->description(fn(FamilyProfile $record) => $record->current_address ? str($record->current_address)->limit(30) : 'Sin dirección registrada'),
+
+                Tables\Columns\IconColumn::make('has_addictions')
+                    ->label('Adicc.')
+                    ->boolean()
+                    ->trueIcon('heroicon-s-exclamation-triangle')
+                    ->falseIcon('heroicon-s-check-circle')
+                    ->trueColor('danger')
+                    ->falseColor('success')
+                    ->tooltip(fn (FamilyProfile $record) => $record->has_addictions ? "Con adicciones: {$record->addictions_details}" : 'Sin adicciones reportadas'),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')

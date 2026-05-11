@@ -20,6 +20,8 @@ class FamilyProfileFactory extends Factory
             'construction_address' => fake()->streetName() . ' Lote ' . fake()->randomDigit() . 'city' . fake()->city(),
             'opened_at' => fake()->dateTimeBetween('-1 year', 'now'),
             'closed_at' => fake()->boolean(20) ? fake()->dateTimeBetween('now', '+1 year') : null,
+            'has_addictions' => $hasAddictions = fake()->boolean(20),
+            'addictions_details' => $hasAddictions ? fake()->randomElement(['Alcoholismo', 'Drogadicción', 'Tabaquismo severo', 'Ludopatía']) : null,
             'general_observations' => fake()->paragraph(),
             'responsible_member_id' => FamilyMember::where("is_responsible", true )->inRandomOrder()->first(),
         ];

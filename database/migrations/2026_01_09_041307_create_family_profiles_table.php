@@ -22,6 +22,8 @@ return new class extends Migration
             $table->unsignedBigInteger('responsible_member_id')->nullable()->index();
             $table->date('opened_at');
             $table->date('closed_at')->nullable();
+            $table->boolean('has_addictions')->default(false);
+            $table->text('addictions_details')->nullable();
             $table->text('general_observations')->nullable();
 
             $table->timestamps();
