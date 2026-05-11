@@ -23,6 +23,7 @@ class FamilyMemberFactory extends Factory
             'curp' => strtoupper(fake()->bothify('????######??????##')),
             'relationship' => fake()->randomElement(Relationship::cases()),
             'is_responsible' => false,
+            'is_land_owner' => false,
             'phone' => fake()->phoneNumber(),
             'occupation' => fake()->randomElement(Occupation::cases()),
             'medical_notes' => fake()->boolean(30) ? fake()->sentence() : null,
