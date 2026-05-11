@@ -125,6 +125,13 @@ class FamilyMemberResource extends Resource
                                     ->onIcon('heroicon-s-check-badge')
                                     ->offIcon('heroicon-s-user')
                                     ->onColor('success'),
+
+                                Forms\Components\Toggle::make('is_land_owner')
+                                    ->label('Dueño del Terreno')
+                                    ->helperText('¿Es el dueño legal del terreno?')
+                                    ->onIcon('heroicon-s-map')
+                                    ->offIcon('heroicon-o-map')
+                                    ->onColor('info'),
                             ]),
 
                         Forms\Components\Section::make('Contacto Directo')
@@ -152,6 +159,7 @@ class FamilyMemberResource extends Resource
                     ->formatStateUsing(fn (FamilyMember $record) => "{$record->name} {$record->paternal_surname} {$record->maternal_surname}")
                     ->searchable(['name', 'paternal_surname', 'maternal_surname'])
                     ->sortable()
+                    ->description(fn (FamilyMember $record) => $record->is_land_owner ? '📍 Dueño del Terreno' : null)
                     ->icon(fn ($record) => $record->is_responsible ? 'heroicon-s-star' : null)
                     ->iconColor('warning'),
 
