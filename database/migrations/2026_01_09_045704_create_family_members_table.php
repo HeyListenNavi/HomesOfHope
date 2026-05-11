@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('curp')->unique()->nullable(); 
             $table->string('relationship'); // Ej: padre, madre, hijo, etc.
             $table->boolean('is_responsible')->default(false);
+            $table->boolean('is_land_owner')->default(false);
             $table->string('phone')->nullable();
             $table->string('occupation')->nullable();
             $table->text('medical_notes')->nullable();
