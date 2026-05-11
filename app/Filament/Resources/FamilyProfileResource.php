@@ -2,28 +2,31 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\Visit;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use App\Models\FamilyProfile;
-use Filament\Resources\Resource;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Section;
-use Filament\Support\Enums\FontWeight;
-use Filament\Forms\Components\ToggleButtons;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
+use App\Models\FamilyProfile;
+use Filament\Forms;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Tabs;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class FamilyProfileResource extends Resource
 {
     protected static ?string $model = FamilyProfile::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-home';
+
     protected static ?string $navigationGroup = 'Familias';
+
     protected static ?string $label = 'Perfil';
+
     protected static ?string $pluralLabel = 'Perfiles';
 
     public static function form(Form $form): Form
@@ -32,7 +35,7 @@ class FamilyProfileResource extends Resource
             ->schema([
                 Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\Section::make()
+                        Section::make()
                             ->schema([
                                 // FOTO
                                 Forms\Components\FileUpload::make('family_photo_path')
@@ -40,7 +43,7 @@ class FamilyProfileResource extends Resource
                                     ->image()
                                     ->imagePreviewHeight('250')
                                     ->imageEditor()
-                                    ->disk("r2")
+                                    ->disk('r2')
                                     ->visibility('private')
                                     ->columnSpan(2)
                                     ->openable()
@@ -100,10 +103,10 @@ class FamilyProfileResource extends Resource
                                             ->required()
                                             ->columnSpanFull(),
 
-                                        Forms\Components\Grid::make(2)->schema([
+                                        Grid::make(2)->schema([
                                             Forms\Components\Select::make('responsible_member_id')
                                                 ->relationship('responsibleMember', 'name')
-                                                ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} {$record->paternal_surname}")
+                                                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} {$record->paternal_surname}")
                                                 ->searchable()
                                                 ->preload()
                                                 ->label('Aplicante')
@@ -133,12 +136,12 @@ class FamilyProfileResource extends Resource
                                             ->suffixAction(
                                                 Forms\Components\Actions\Action::make('openMap')
                                                     ->icon('heroicon-s-arrow-top-right-on-square') // Sólido
-                                                    ->url(fn($state) => $state, shouldOpenInNewTab: true)
-                                                    ->visible(fn($state) => filled($state))
+                                                    ->url(fn ($state) => $state, shouldOpenInNewTab: true)
+                                                    ->visible(fn ($state) => filled($state))
                                             )
                                             ->columnSpanFull(),
 
-                                        Forms\Components\Section::make('Terreno / Construcción')
+                                        Section::make('Terreno / Construcción')
                                             ->compact()
                                             ->icon('heroicon-s-building-office-2') // Sólido
                                             ->schema([
@@ -160,7 +163,7 @@ class FamilyProfileResource extends Resource
                                             ->label('Observaciones Generales')
                                             ->columnSpanFull(),
 
-                                        Forms\Components\Section::make('Adicciones')
+                                        Section::make('Adicciones')
                                             ->icon('heroicon-s-exclamation-triangle')
                                             ->compact()
                                             ->schema([
@@ -179,7 +182,7 @@ class FamilyProfileResource extends Resource
                                             ]),
                                     ]),
                             ]),
-                    ])->columnSpanFull()
+                    ])->columnSpanFull(),
             ]);
     }
 
@@ -198,10 +201,19 @@ class FamilyProfileResource extends Resource
 
                 Tables\Columns\TextColumn::make('family_name')
                     ->label('Familia')
-                    ->searchable()
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where('family_name', 'like', "%{$search}%")
+                            ->orWhereHas('members', function (Builder $query) use ($search) {
+                                $query->where('name', 'like', "%{$search}%")
+                                    ->orWhere('paternal_surname', 'like', "%{$search}%")
+                                    ->orWhere('maternal_surname', 'like', "%{$search}%")
+                                    ->orWhere('curp', 'like', "%{$search}%")
+                                    ->orWhere('phone', 'like', "%{$search}%");
+                            });
+                    })
                     ->sortable()
                     ->weight(FontWeight::Bold)
-                    ->description(fn(FamilyProfile $record) => $record->current_address ? str($record->current_address)->limit(30) : 'Sin dirección registrada'),
+                    ->description(fn (FamilyProfile $record) => $record->current_address ? str($record->current_address)->limit(30) : 'Sin dirección registrada'),
 
                 Tables\Columns\IconColumn::make('has_addictions')
                     ->label('Adicc.')
@@ -215,7 +227,7 @@ class FamilyProfileResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'new' => 'Nuevo',
                         'approved' => 'Aprobado',
                         'in_process' => 'En Proceso',
@@ -225,7 +237,7 @@ class FamilyProfileResource extends Resource
                         'dont_build' => 'No Construir',
                         default => $state,
                     })
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'new' => 'gray',
                         'approved' => 'success',
                         'in_process' => 'warning',
@@ -235,7 +247,7 @@ class FamilyProfileResource extends Resource
                         'dont_build' => 'danger',
                         default => 'gray',
                     })
-                    ->icon(fn(string $state): string => match ($state) {
+                    ->icon(fn (string $state): string => match ($state) {
                         'new' => 'heroicon-s-plus-circle',
                         'approved' => 'heroicon-s-check-circle',
                         'in_process' => 'heroicon-s-clock',
@@ -248,8 +260,8 @@ class FamilyProfileResource extends Resource
 
                 Tables\Columns\TextColumn::make('responsibleMember.name')
                     ->label('Líder')
-                    ->formatStateUsing(fn($record) => $record->responsibleMember ? "{$record->responsibleMember->name}" : '-')
-                    ->description(fn($record) => $record->responsibleMember?->phone ?? '') // Muestra el teléfono debajo del nombre
+                    ->formatStateUsing(fn ($record) => $record->responsibleMember ? "{$record->responsibleMember->name}" : '-')
+                    ->description(fn ($record) => $record->responsibleMember?->phone ?? '') // Muestra el teléfono debajo del nombre
                     ->icon('heroicon-s-user'),
 
                 // COLUMNA VISITAS MEJORADA
@@ -257,9 +269,9 @@ class FamilyProfileResource extends Resource
                     ->counts('visits')
                     ->label('Historial')
                     ->badge()
-                    ->formatStateUsing(fn($state) => $state . ' Visita(s)') // Formato más humano
-                    ->color(fn($state) => $state > 0 ? 'info' : 'danger') // Rojo si es 0 (necesita atención)
-                    ->icon(fn($state) => $state > 0 ? 'heroicon-s-check-circle' : 'heroicon-s-exclamation-circle')
+                    ->formatStateUsing(fn ($state) => $state.' Visita(s)') // Formato más humano
+                    ->color(fn ($state) => $state > 0 ? 'info' : 'danger') // Rojo si es 0 (necesita atención)
+                    ->icon(fn ($state) => $state > 0 ? 'heroicon-s-check-circle' : 'heroicon-s-exclamation-circle')
                     ->sortable(),
             ])
             ->actions([
@@ -269,7 +281,7 @@ class FamilyProfileResource extends Resource
                     ->icon('heroicon-s-calendar-days')
                     ->color('primary')
                     ->button()
-                    ->url(fn(FamilyProfile $record) => VisitResource::getUrl('create', ['family_profile_id' => $record->id])),
+                    ->url(fn (FamilyProfile $record) => VisitResource::getUrl('create', ['family_profile_id' => $record->id])),
 
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')
