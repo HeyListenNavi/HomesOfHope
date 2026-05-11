@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Occupation;
 use App\Enums\Relationship;
+use App\Enums\MaritalStatus;
+use App\Enums\EducationLevel;
+use App\Enums\Religion;
 use App\Http\Controllers\Controller;
 use App\Models\FamilyMember;
 use Illuminate\Http\Request;
@@ -37,6 +40,14 @@ class FamilyMemberController extends Controller
             'is_land_owner' => 'boolean',
             'phone' => 'nullable|string',
             'occupation' => ['nullable', new Enum(Occupation::class)],
+            'marital_status' => ['nullable', new Enum(MaritalStatus::class)],
+            'education_level' => ['nullable', new Enum(EducationLevel::class)],
+            'education_grade' => 'nullable|integer',
+            'weekly_income' => 'nullable|numeric',
+            'religion' => ['nullable', new Enum(Religion::class)],
+            'indigenous_language' => 'nullable|string',
+            'is_pregnant' => 'boolean',
+            'pregnancy_months' => 'nullable|integer|min:1|max:9',
             'medical_notes' => 'nullable|string',
         ]);
 
@@ -75,6 +86,14 @@ class FamilyMemberController extends Controller
             'is_land_owner' => 'boolean',
             'phone' => 'nullable|string',
             'occupation' => ['nullable', new Enum(Occupation::class)],
+            'marital_status' => ['nullable', new Enum(MaritalStatus::class)],
+            'education_level' => ['nullable', new Enum(EducationLevel::class)],
+            'education_grade' => 'nullable|integer',
+            'weekly_income' => 'nullable|numeric',
+            'religion' => ['nullable', new Enum(Religion::class)],
+            'indigenous_language' => 'nullable|string',
+            'is_pregnant' => 'boolean',
+            'pregnancy_months' => 'nullable|integer|min:1|max:9',
             'medical_notes' => 'nullable|string',
         ]);
 
