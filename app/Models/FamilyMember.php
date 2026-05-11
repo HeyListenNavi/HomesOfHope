@@ -22,6 +22,7 @@ class FamilyMember extends Model
         'curp',
         'relationship',
         'is_responsible',
+        'is_land_owner',
         'phone',
         'occupation',
         'medical_notes',
@@ -30,6 +31,7 @@ class FamilyMember extends Model
     protected $casts = [
         'birth_date' => 'date',
         'is_responsible' => 'boolean',
+        'is_land_owner' => 'boolean',
         'occupation' => Occupation::class,
         'relationship' => Relationship::class,
     ];

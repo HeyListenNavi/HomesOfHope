@@ -20,6 +20,7 @@ class FamilyMemberSeeder extends Seeder
                 'relationship' => fake()->randomElement([Relationship::Father, Relationship::Mother]),
                 'birth_date' => fake()->date('Y-m-d', '-30 years'),
                 'is_responsible' => true,
+                'is_land_owner' => true,
             ]);
 
             // Actualizar el perfil con el ID de este responsable
@@ -37,6 +38,7 @@ class FamilyMemberSeeder extends Seeder
                     Relationship::Other,
                 ]),
                 'is_responsible' => false,
+                'is_land_owner' => false,
             ]);
         }
     }
