@@ -21,6 +21,15 @@ return new class extends Migration
             $table->boolean('is_land_owner')->default(false);
             $table->string('phone')->nullable();
             $table->string('occupation')->nullable();
+            $table->string('marital_status')->nullable();
+            $table->string('education_level')->nullable();
+            $table->integer('education_grade')->nullable();
+            $table->decimal('weekly_income', 10, 2)->nullable();
+            $table->string('religion')->nullable();
+            $table->boolean('speaks_indigenous_language')->default(false);
+            $table->string('indigenous_language')->nullable();
+            $table->boolean('is_pregnant')->default(false);
+            $table->integer('pregnancy_months')->nullable();
             $table->text('medical_notes')->nullable();
             $table->timestamps();
         });
