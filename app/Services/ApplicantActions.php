@@ -164,6 +164,7 @@ class ApplicantActions
         $applicant->update([
             "process_status" => "staff_rejected",
             "rejection_reason" => $reason,
+            "group_id" => null,
         ]);
 
         $notificationService = new WhatsappApiNotificationService();
