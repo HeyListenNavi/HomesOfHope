@@ -4,6 +4,10 @@ namespace App\Filament\Resources\GroupResource\Pages;
 
 use App\Filament\Resources\GroupResource;
 use App\Exports\GroupApplicantsExport;
+use App\Models\Group;
+use App\Services\WhatsappApiNotificationService;
+use Filament\Forms;
+use Filament\Notifications\Notification;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -17,6 +21,72 @@ class EditGroup extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
+
+            // --- ACCIÓN REENVIAR INFORMACIÓN ---
+            Actions\Action::make('resendInfo')
+                ->label('Reenviar Información')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('info')
+                ->requiresConfirmation()
+                ->modalHeading('Reenviar información de entrevista')
+                ->modalDescription('¿Estás seguro de que deseas reenviar la información de la entrevista a todos los miembros de este grupo?')
+                ->action(function (Group $record, WhatsappApiNotificationService $notificationService) {
+                    $applicants = $record->applicants;
+
+                    if ($applicants->isEmpty()) {
+                        Notification::make()
+                            ->title('Sin miembros')
+                            ->body('Este grupo no tiene miembros a los cuales enviarles información.')
+                            ->warning()
+                            ->send();
+                        return;
+                    }
+
+                    foreach ($applicants as $applicant) {
+                        $notificationService->sendSuccessInfo($applicant);
+                    }
+
+                    Notification::make()
+                        ->title('Información enviada')
+                        ->body("Se ha enviado la información a {$applicants->count()} miembros.")
+                        ->success()
+                        ->send();
+                }),
+
+            // --- ACCIÓN ENVIAR AVISO ---
+            Actions\Action::make('sendAnnouncement')
+                ->label('Enviar Aviso')
+                ->icon('heroicon-o-megaphone')
+                ->color('warning')
+                ->form([
+                    Forms\Components\Textarea::make('announcement')
+                        ->label('Aviso')
+                        ->placeholder('Escribe aquí el aviso para los miembros...')
+                        ->required()
+                        ->rows(5),
+                ])
+                ->action(function (Group $record, array $data, WhatsappApiNotificationService $notificationService) {
+                    $applicants = $record->applicants;
+
+                    if ($applicants->isEmpty()) {
+                        Notification::make()
+                            ->title('Sin miembros')
+                            ->body('Este grupo no tiene miembros a los cuales enviarles el aviso.')
+                            ->warning()
+                            ->send();
+                        return;
+                    }
+
+                    foreach ($applicants as $applicant) {
+                        $notificationService->sendGroupAnnouncement($applicant, $data['announcement']);
+                    }
+
+                    Notification::make()
+                        ->title('Aviso enviado')
+                        ->body("Se ha enviado el aviso a {$applicants->count()} miembros.")
+                        ->success()
+                        ->send();
+                }),
 
             // --- ACCIÓN EXPORTAR PDF (EXISTENTE) ---
             Actions\Action::make('exportPdf')

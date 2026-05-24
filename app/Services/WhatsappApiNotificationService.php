@@ -17,14 +17,12 @@ class WhatsappApiNotificationService
     protected string $apiUrl;
     protected string $apiKey;
     protected string $instance;
-    protected string $templateName;
     protected string $templateLang;
 
     public function __construct()
     {
         $this->apiUrl = config('services.whatsapp.url');
         $this->apiKey = config('services.whatsapp.key');
-        $this->templateName = env('WHATSAPP_TEMPLATE_APPROVED');
         $this->templateLang = env('WHATSAPP_TEMPLATE_LANG', 'es');
     }
 
@@ -78,6 +76,15 @@ class WhatsappApiNotificationService
             'detalles_extra' => $applicant->group->message,
         ]);
     }
+
+    public function sendGroupAnnouncement(Applicant $applicant, string $announcement)
+    {
+        $this->sendCustomMessage($applicant, $announcement, 'aviso_grupo', [
+            'fecha_entrevista' => $applicant->group->date_time->translatedFormat('l, d \d\e F \d\e\l Y'),
+            'aviso' => $announcement,
+        ]);
+    }
+
 
 
     public function sendCustomMessage(Applicant $applicant, string $message, ?string $templateName = null, array $parameters = [])
