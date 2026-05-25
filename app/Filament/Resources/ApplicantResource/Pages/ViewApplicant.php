@@ -14,7 +14,6 @@ use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 use App\Models\ApplicantQuestionResponse;
-use App\Services\WhatsappApiNotificationService;
 
 
 class ViewApplicant extends ViewRecord

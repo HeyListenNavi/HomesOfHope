@@ -5,7 +5,7 @@ namespace App\Filament\Resources\GroupResource\Pages;
 use App\Filament\Resources\GroupResource;
 use App\Exports\GroupApplicantsExport;
 use App\Models\Group;
-use App\Services\WhatsappApiNotificationService;
+use App\Services\Group\GroupService;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Maatwebsite\Excel\Facades\Excel;
@@ -30,25 +30,12 @@ class EditGroup extends EditRecord
                 ->requiresConfirmation()
                 ->modalHeading('Reenviar información de entrevista')
                 ->modalDescription('¿Estás seguro de que deseas reenviar la información de la entrevista a todos los miembros de este grupo?')
-                ->action(function (Group $record, WhatsappApiNotificationService $notificationService) {
-                    $applicants = $record->applicants;
-
-                    if ($applicants->isEmpty()) {
-                        Notification::make()
-                            ->title('Sin miembros')
-                            ->body('Este grupo no tiene miembros a los cuales enviarles información.')
-                            ->warning()
-                            ->send();
-                        return;
-                    }
-
-                    foreach ($applicants as $applicant) {
-                        $notificationService->sendSuccessInfo($applicant);
-                    }
+                ->action(function (Group $record, GroupService $groupService) {
+                    $groupService->reSendGroupMessage($record);
 
                     Notification::make()
                         ->title('Información enviada')
-                        ->body("Se ha enviado la información a {$applicants->count()} miembros.")
+                        ->body("Se ha enviado la información a los miembros del grupo.")
                         ->success()
                         ->send();
                 }),
@@ -65,25 +52,12 @@ class EditGroup extends EditRecord
                         ->required()
                         ->rows(5),
                 ])
-                ->action(function (Group $record, array $data, WhatsappApiNotificationService $notificationService) {
-                    $applicants = $record->applicants;
-
-                    if ($applicants->isEmpty()) {
-                        Notification::make()
-                            ->title('Sin miembros')
-                            ->body('Este grupo no tiene miembros a los cuales enviarles el aviso.')
-                            ->warning()
-                            ->send();
-                        return;
-                    }
-
-                    foreach ($applicants as $applicant) {
-                        $notificationService->sendGroupAnnouncement($applicant, $data['announcement']);
-                    }
+                ->action(function (Group $record, array $data, GroupService $groupService) {
+                    $groupService->sendCustomMessageToGroup($record, $data['announcement']);
 
                     Notification::make()
                         ->title('Aviso enviado')
-                        ->body("Se ha enviado el aviso a {$applicants->count()} miembros.")
+                        ->body("Se ha enviado el aviso a los miembros del grupo.")
                         ->success()
                         ->send();
                 }),

@@ -6,8 +6,8 @@ use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Models\Applicant;
 use App\Models\Question;
-use App\Services\ApplicantActions;
-use App\Services\WhatsappApiNotificationService;
+use App\Services\Applicant\ApplicantService;
+use App\Services\Whatsapp\WhatsappService;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Grid;
@@ -222,7 +222,7 @@ class ApplicantResource extends Resource
                         ->modalHeading('Pasar a la siguiente etapa')
                         ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->modalSubmitActionLabel('Sí, aprobar!')
-                        ->action(fn(Applicant $record) => ApplicantActions::approveStage($record)),
+                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->approveStage($record)),
 
 
                     // Botón para aprobar al aplicante de forma definitiva
@@ -236,7 +236,7 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Aprobar aplicante')
                         ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
+                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->approveApplicantFinal($record)),
 
                     // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
@@ -262,8 +262,8 @@ class ApplicantResource extends Resource
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(function (array $data, Applicant $record) {
-                            ApplicantActions::sendCustomMessage($record, $data['message']);
+                        ->action(function (array $data, Applicant $record, ApplicantService $applicantService) {
+                            $applicantService->sendCustomMessage($record, $data['message']);
                         }),
 
                     // Botón para reenviar la pregunta actual
@@ -277,7 +277,7 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar pregunta')
                         ->modalDescription("¿Estás seguro de reenviar la pregunta actual a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
+                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->reSendCurrentQuestion($record)),
 
                     // Botón para reenviar el enlace de selección de grupo
                     Action::make('resendGroupLink')
@@ -290,7 +290,7 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar enlace de grupo')
                         ->modalDescription("¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
+                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->reSendGroupSelectionLink($record)),
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')
@@ -303,7 +303,7 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reiniciar proceso del aplicante')
                         ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
+                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->resetApplicant($record)),
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
@@ -341,8 +341,8 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar al aplicante')
                         ->modalDescription("¿Estás seguro de rechazar a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(function (array $data, Applicant $record) {
-                            ApplicantActions::rejectApplicant($record, $data['predefined_reason'] === 'other' ? $data['reason'] : $data['predefined_reason']);
+                        ->action(function (array $data, Applicant $record, ApplicantService $applicantService) {
+                            $applicantService->rejectApplicant($record, $data['predefined_reason'] === 'other' ? $data['reason'] : $data['predefined_reason']);
                         }),
                 ])
                     ->fullWidth()

@@ -8,12 +8,10 @@ use App\Models\Stage;
 use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
 use App\Models\BotSetting;
-use App\Services\GroupAssignmentService;
+use App\Services\Applicant\AssignmentService;
+use App\Services\Whatsapp\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Services\WhatsappApiNotificationService;
-
-
 
 /**
  * Clase controladora para gestionar el flujo de evaluación de los solicitantes a través del bot.
@@ -22,11 +20,13 @@ use App\Services\WhatsappApiNotificationService;
  */
 class BotApplicantController extends Controller
 {
-    protected $groupAssignmentService;
+    protected $assignmentService;
+    protected $notificationService;
 
-    public function __construct(GroupAssignmentService $groupAssignmentService)
+    public function __construct(AssignmentService $assignmentService, WhatsappService $notificationService)
     {
-        $this->groupAssignmentService = $groupAssignmentService;
+        $this->assignmentService = $assignmentService;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -283,8 +283,7 @@ class BotApplicantController extends Controller
                     'confirmation_status' => 'pending',
                 ]);
 
-                $notificationService = new WhatsappApiNotificationService();
-                $notificationService->sendGroupSelectionLink($applicant);
+                $this->notificationService->sendGroupSelectionLink($applicant);
 
                 return response()->json([
                     'status' => 'process_completed',

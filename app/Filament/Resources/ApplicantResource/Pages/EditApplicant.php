@@ -6,7 +6,6 @@ use App\Filament\Resources\ApplicantResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use App\Models\Applicant;
-use App\Services\WhatsappApiNotificationService;
 
 class EditApplicant extends EditRecord
 {
