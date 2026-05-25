@@ -8,7 +8,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Applicant;
 use App\Models\Group;
-use App\Services\GroupAssignmentService;
+use App\Services\Applicant\AssignmentService;
 use App\Models\Stage;
 use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
@@ -16,11 +16,11 @@ use Illuminate\Support\Facades\DB;
 
 class BotController extends Controller
 {
-    protected $groupAssignmentService;
+    protected $assignmentService;
 
-    public function __construct(GroupAssignmentService $groupAssignmentService)
+    public function __construct(AssignmentService $assignmentService)
     {
-        $this->groupAssignmentService = $groupAssignmentService;
+        $this->assignmentService = $assignmentService;
     }
 
     /**
@@ -239,7 +239,7 @@ class BotController extends Controller
         $isApproved = true; // Lógica de negocio
         
         if ($isApproved) {
-            $group = $this->groupAssignmentService->assignApplicantToGroup($applicant);
+            $group = $this->assignmentService->assignToGroup($applicant);
             $applicant->update([
                 'is_approved' => true,
                 'process_status' => 'completed',

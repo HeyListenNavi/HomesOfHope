@@ -6,12 +6,16 @@ use App\Models\Applicant;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\WhatsappApiNotificationService;
+use App\Services\Whatsapp\WhatsappService;
 use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class GroupSelectionController extends Controller
 {
+    public function __construct(protected WhatsappService $notificationService)
+    {
+    }
+
     /**
      * Muestra el formulario para que el aplicante elija un grupo.
      */
@@ -74,8 +78,7 @@ class GroupSelectionController extends Controller
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
 
-            $EvolutionApiNotificaiton = new WhatsappApiNotificationService();
-            $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
+            $this->notificationService->sendSuccessInfo($applicant);
 
             return redirect()->route('selection.success', $applicant->id)->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
         });

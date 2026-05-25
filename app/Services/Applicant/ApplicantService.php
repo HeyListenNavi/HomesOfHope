@@ -1,26 +1,33 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Applicant;
 
 use App\Models\Applicant;
 use App\Models\Stage;
-use App\Services\WhatsappApiNotificationService;
+use App\Models\Question;
+use App\Services\Whatsapp\WhatsappService;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
-class ApplicantActions
+class ApplicantService
 {
-    public static function resetApplicant(Applicant $applicant): void
+    protected $whatsappService;
+
+    public function __construct(WhatsappService $whatsappService)
     {
-        Log::info("Reiniciando el proceso para el aplicante con ID {$applicant->id}.");
-        $notificationService = new WhatsappApiNotificationService();
+        $this->whatsappService = $whatsappService;
+    }
+
+    public function resetApplicant(Applicant $applicant): void
+    {
+        Log::info("Resetting process for applicant ID {$applicant->id}.");
 
         $firstStage = Stage::orderBy('order')->first();
 
         if (is_null($firstStage)) {
             $message = "Lo sentimos, no se puede reiniciar el proceso. No se encontraron etapas.";
-            $notificationService->sendCustomMessage($applicant, $message, 'error_reinicio_etapa');
-            Log::warning("No se encontraron etapas para reiniciar el proceso del aplicante con ID {$applicant->id}.");
+            $this->whatsappService->send($applicant, $message, 'error_reinicio_etapa');
             return;
         }
 
@@ -29,10 +36,9 @@ class ApplicantActions
         try {
             if ($applicant->conversation) {
                 $applicant->conversation->messages()->delete();
-                Log::info("Mensajes de la conversación con chat_id {$applicant->chat_id} eliminados.");
             }
         } catch (Exception $e) {
-            Log::error("Error al intentar eliminar los mensajes de la conversación para el aplicante con ID {$applicant->id}: " . $e->getMessage());
+            Log::error("Error deleting conversation messages for applicant ID {$applicant->id}: " . $e->getMessage());
         }
 
         $applicant->responses()->delete();
@@ -43,25 +49,23 @@ class ApplicantActions
             "process_status" => "in_progress",
             "group_id" => null,
         ]);
-        Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null.");
 
         $resetMessage = "Hola te saluda el equipo de Casas de Esperanza. Hemos reiniciado tu proceso para que puedas comenzar nuevamente desde el inicio. En breve recibirás las indicaciones de nuestro asistente virtual. Por favor sigue los pasos y responde con calma. Estamos para apoyarte.";
-        $notificationService->sendCustomMessage($applicant, $resetMessage, 'reiniciar_aplicante');
+        $this->whatsappService->send($applicant, $resetMessage, 'reiniciar_aplicante');
 
         if ($firstQuestion) {
-            $notificationService->sendCurrentQuestion($applicant);
+            $this->sendQuestion($applicant, $firstQuestion);
         }
     }
 
-    public static function approveStage(Applicant $applicant): void
+    public function approveStage(Applicant $applicant): void
     {
-        Log::info("Aprobando la etapa actual para el aplicante con ID {$applicant->id}.");
-        $notificationService = new WhatsappApiNotificationService();
+        Log::info("Approving current stage for applicant ID {$applicant->id}.");
 
         $currentStage = $applicant->currentStage;
 
         if (is_null($currentStage)) {
-            Log::warning("No se encontró una etapa actual para el aplicante con ID {$applicant->id}.");
+            Log::warning("No current stage found for applicant ID {$applicant->id}.");
             return;
         }
 
@@ -70,11 +74,8 @@ class ApplicantActions
             ->first();
 
         if (is_null($nextStage)) {
-            Log::info("El proceso del aplicante con ID {$applicant->id} ha finalizado. Enviando enlace de selección de grupo.");
-            $applicant->update([
-                "process_status" => "staff_approved",
-            ]);
-            $notificationService->sendGroupSelectionLink($applicant);
+            $applicant->update(["process_status" => "staff_approved"]);
+            $this->sendSelectionLink($applicant);
             return;
         }
 
@@ -85,70 +86,76 @@ class ApplicantActions
             "current_question_id" => $firstQuestion ? $firstQuestion->id : null,
             "process_status" => "in_progress",
         ]);
-        Log::info("Aplicante con ID {$applicant->id} movido a la siguiente etapa: {$nextStage->name}.");
 
         if ($firstQuestion) {
             $confirmationMessage = "Hola te saluda el equipo de Casas de Esperanza, hemos revisado detenidamente sus respuestas y puede continuar con el proceso, le pedimos paciencia a nuestro asistente virtual.";
-            $notificationService->sendCustomMessage($applicant, $confirmationMessage, 'etapa_aprobada');
-            $notificationService->sendCustomMessage($applicant, $firstQuestion->question_text, 'enviar_pregunta', ['pregunta' => $firstQuestion->question_text]);
+            $this->whatsappService->send($applicant, $confirmationMessage, 'etapa_aprobada');
+            $this->sendQuestion($applicant, $firstQuestion);
         }
     }
 
-    public static function reSendCurrentQuestion(Applicant $applicant): void
+    public function reSendCurrentQuestion(Applicant $applicant): void
     {
-        Log::info("Reenviando la pregunta actual al aplicante con ID {$applicant->id}.");
-        $notificationService = new WhatsappApiNotificationService();
-
-        $currentQuestion = $applicant->currentQuestion;
-
-        if (!$currentQuestion) {
-            Log::warning("No hay una pregunta actual para el aplicante con chat_id {$applicant->chat_id}.");
+        if (!$applicant->currentQuestion) {
+            Log::warning("No current question for applicant chat_id {$applicant->chat_id}.");
             return;
         }
 
         if ($applicant->process_status !== "in_process") {
-            $applicant->update([
-                "process_status" => "in_progress"
-            ]);
+            $applicant->update(["process_status" => "in_progress"]);
         }
 
-        $message = $currentQuestion->question_text;
-
-        $notificationService->sendCustomMessage($applicant, $message, 'reenviar_pregunta', ['pregunta' => $message]);
+        $this->sendQuestion($applicant, $applicant->currentQuestion);
     }
 
-    public static function reSendGroupSelectionLink(Applicant $applicant): void
+    public function sendQuestion(Applicant $applicant, Question $question): void
     {
-        Log::info("Reenviando enlace de selección de grupo al aplicante con ID {$applicant->id}.");
-        $notificationService = new WhatsappApiNotificationService();
+        $this->whatsappService->send($applicant, $question->question_text, 'enviar_pregunta', [
+            'pregunta' => $question->question_text
+        ]);
+    }
 
+    public function sendSelectionLink(Applicant $applicant): void
+    {
+        $selectionUrl = URL::temporarySignedRoute(
+            'group.selection.form',
+            now()->addDays(3),
+            ['applicant' => $applicant->id]
+        );
+
+        $message = "¡Felicidades, {$applicant->applicant_name}! Has sido aprobado(a) en el proceso. 🎉\n\n";
+        $message .= "Para continuar, por favor elige la fecha y grupo para tu entrevista, haciendo clic en el siguiente enlace:\n\n";
+        $message .= $selectionUrl . "\n\n";
+        $message .= "Este enlace es personal y expirará en 3 días. ¡No lo compartas!";
+
+        $this->whatsappService->send($applicant, $message, 'enviar_link_de_entrevista', [
+            'link_de_entrevista' => $selectionUrl,
+            'nombre' => $applicant->applicant_name
+        ]);
+    }
+
+    public function reSendGroupSelectionLink(Applicant $applicant): void
+    {
         $applicant->update([
             "process_status" => "staff_approved",
             "group_id" => null,
         ]);
-        Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null antes de reenviar el enlace.");
 
-        $notificationService->sendGroupSelectionLink($applicant);
+        $this->sendSelectionLink($applicant);
     }
 
-    public static function approveApplicantFinal(Applicant $applicant): void
+    public function approveApplicantFinal(Applicant $applicant): void
     {
-        Log::info("Aprobando al aplicante con ID {$applicant->id} de forma definitiva.");
-        $notificationService = new WhatsappApiNotificationService();
-
         $applicant->update([
             "process_status" => "staff_approved",
             "group_id" => null,
         ]);
-        Log::info("Grupo del aplicante con ID {$applicant->id} establecido en null después de la aprobación final.");
 
-        $notificationService->sendGroupSelectionLink($applicant);
+        $this->sendSelectionLink($applicant);
     }
 
-    public static function rejectApplicant(Applicant $applicant, string $reason): void
+    public function rejectApplicant(Applicant $applicant, string $reason): void
     {
-        Log::info("Rechazando al aplicante con ID {$applicant->id}.");
-
         $rejectionMessages = [
             'no_children' => 'Nuestro programa está enfocado en apoyar a familias que tengan hijos menores de edad viviendo con ellos. En el caso de personas adultas mayores, es posible aplicar únicamente si tienen menores bajo su tutela legal y pueden presentar la documentación que lo compruebe. Además, los menores deben estar actualmente inscritos en primaria o secundaria.',
             'contract_issues' => 'Para nosotros es indispensable que usted o su pareja sea el propietario del terreno, cuente con documentación legal que lo acredite, esperamos que usted pueda encontrar la ayuda que usted necesita.',
@@ -167,17 +174,13 @@ class ApplicantActions
             "group_id" => null,
         ]);
 
-        $notificationService = new WhatsappApiNotificationService();
-
         $message = "Hola te saluda el equipo de Casas de Esperanza, agradecemos profundamente que hayas pensado en nosotros para buscar apoyo. Revisamos tu solicitud y, aunque quisiéramos ayudar a todos, en este momento no podemos avanzar con tu proceso para una Casa de Esperanza.\n" . $reasonMessage . "\nDeseamos de corazón que encuentres pronto la ayuda que necesitas y oramos por bendición y fortaleza para ti y tu familia.";
 
-        $notificationService->sendCustomMessage($applicant, $message, 'rechazar_aplicante', ['razon' => $reasonMessage]);
+        $this->whatsappService->send($applicant, $message, 'rechazar_aplicante', ['razon' => $reasonMessage]);
     }
 
-    public static function sendCustomMessage(Applicant $applicant, string $message): void
+    public function sendCustomMessage(Applicant $applicant, string $message): void
     {
-        Log::info("Enviando mensaje personalizado al aplicante con ID {$applicant->id}.");
-        $notificationService = new WhatsappApiNotificationService();
-        $notificationService->sendCustomMessage($applicant, $message);
+        $this->whatsappService->send($applicant, $message);
     }
 }

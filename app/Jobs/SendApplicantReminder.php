@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Applicant;
-use App\Services\WhatsappApiNotificationService;
+use App\Services\Whatsapp\WhatsappService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -27,7 +27,7 @@ class SendApplicantReminder implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(WhatsappApiNotificationService $notificationService): void
+    public function handle(WhatsappService $notificationService): void
     {
         $applicant = Applicant::where('process_status', 'in_progress')->find($this->applicantId);
 
