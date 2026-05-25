@@ -51,7 +51,8 @@ class ApplicantsRelationManager extends RelationManager
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
                     ->url(fn($state) => 'https://wa.me/' . $state)
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->toggleable(),
 
                 TextColumn::make('curp')
                     ->label('CURP')
@@ -59,7 +60,7 @@ class ApplicantsRelationManager extends RelationManager
                     ->formatStateUsing(fn(string $state) => strtoupper($state))
                     ->color('gray')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
         ];
 
         $dynamicQuestions = Question::orderBy('order', 'asc')->get();
