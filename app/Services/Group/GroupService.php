@@ -66,4 +66,24 @@ class GroupService
             'detalles_extra' => $group->message,
         ]);
     }
+
+    public function sendInterviewReminder(Applicant $applicant): void
+    {
+        $group = $applicant->group;
+        
+        $groupDateTime = $group->date_time->translatedFormat('l d M, Y') . ' a las ' . $group->date_time->translatedFormat('h:i A');
+        $groupLocation = $group->location;
+        $groupMessage = $group->message;
+
+        $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día " . $groupDateTime . ". La entrevista sera en" . $groupLocation . "\n" .
+            "Aquí hay mas detalles sobre tu entrevista:\n" .
+            $groupMessage . "\n\n" .
+            "No olvides leer la información, es importante para realizar tu entrevista correctamente";
+
+        $this->whatsappService->send($applicant, $message, 'recordatorio_grupo', [
+            'fecha' => $groupDateTime,
+            'direccion' => $groupLocation,
+            'detalles_extra' => $groupMessage,
+        ]);
+    }
 }
