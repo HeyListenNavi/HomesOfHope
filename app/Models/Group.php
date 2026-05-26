@@ -17,9 +17,10 @@ class Group extends Model
         "message",
         'capacity',
         'date_time',
-        "location",
-        "location_link",
-        'is_active'
+        'location',
+        'location_link',
+        'is_active',
+        'last_reminded_at'
     ];
 
 
@@ -28,6 +29,7 @@ class Group extends Model
         return [
             'date_time' => 'datetime',
             'is_active' => 'boolean',
+            'last_reminded_at' => 'datetime',
         ];
     }
 
