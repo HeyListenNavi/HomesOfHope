@@ -20,3 +20,5 @@ Schedule::call(function () {
             }
         });
 })->hourly();
+
+Schedule::command('app:send-group-reminders')->dailyAt('09:00');
