@@ -6,13 +6,13 @@ use App\Models\Applicant;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\Whatsapp\WhatsappService;
+use App\Services\Group\GroupService;
 use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class GroupSelectionController extends Controller
 {
-    public function __construct(protected WhatsappService $notificationService)
+    public function __construct(protected GroupService $groupService)
     {
     }
 
@@ -76,9 +76,10 @@ class GroupSelectionController extends Controller
             // Asignación final y definitiva
             $applicant->group_id = $group->id;
             $applicant->confirmation_status = 'confirmed';
+            $applicant->attendance_code = strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8));
             $applicant->save();
 
-            $this->notificationService->sendSuccessInfo($applicant);
+            $this->groupService->sendInterviewDetails($applicant);
 
             return redirect()->route('selection.success', $applicant->id)->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
         });
