@@ -193,6 +193,13 @@ class GroupResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make(),
+
+                    Tables\Actions\Action::make('takeAttendance')
+                        ->label('Pasar Lista')
+                        ->icon('heroicon-o-check-badge')
+                        ->color('success')
+                        ->url(fn (Group $record) => route('attendance.page', $record)),
+
                     Tables\Actions\Action::make('resendInfo')
                         ->label('Reenviar Información')
                         ->icon('heroicon-o-paper-airplane')
