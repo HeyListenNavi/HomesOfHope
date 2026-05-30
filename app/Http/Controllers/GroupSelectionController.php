@@ -76,7 +76,6 @@ class GroupSelectionController extends Controller
             // Asignación final y definitiva
             $applicant->group_id = $group->id;
             $applicant->confirmation_status = 'confirmed';
-            $applicant->attendance_code = strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8));
             $applicant->save();
 
             $this->groupService->sendInterviewDetails($applicant);
