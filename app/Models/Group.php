@@ -20,7 +20,8 @@ class Group extends Model
         'location',
         'location_link',
         'is_active',
-        'last_reminded_at'
+        'last_reminded_at',
+        'attendance_closed_at'
     ];
 
 
@@ -30,6 +31,7 @@ class Group extends Model
             'date_time' => 'datetime',
             'is_active' => 'boolean',
             'last_reminded_at' => 'datetime',
+            'attendance_closed_at' => 'datetime',
         ];
     }
 
