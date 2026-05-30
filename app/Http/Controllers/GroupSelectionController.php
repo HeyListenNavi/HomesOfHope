@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AttendanceStatus;
 use App\Models\Applicant;
 use App\Models\Group;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Services\Group\GroupService;
-use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use chillerlan\QRCode\QRCode;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class GroupSelectionController extends Controller
 {
-    public function __construct(protected GroupService $groupService)
-    {
-    }
+    public function __construct(protected GroupService $groupService) {}
 
     /**
      * Muestra el formulario para que el aplicante elija un grupo.
@@ -78,6 +78,15 @@ class GroupSelectionController extends Controller
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
 
+            $applicant->attendance()->updateOrCreate(
+                ['applicant_id' => $applicant->id],
+                [
+                    'group_id' => $group->id,
+                    'attendance_code' => $applicant->attendance?->attendance_code ?? strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8)),
+                    'status' => AttendanceStatus::Pending,
+                ]
+            );
+
             $this->groupService->sendInterviewDetails($applicant);
 
             return redirect()->route('selection.success', $applicant->id)->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
@@ -94,14 +103,24 @@ class GroupSelectionController extends Controller
 
         $applicant->load('group');
 
-        return view('selection.success', compact('whatsAppUrl', 'applicant'));
+        $qrCode = null;
+        if ($applicant->attendance?->attendance_code) {
+            $qrCode = (new QRCode)->render($applicant->attendance->attendance_code);
+        }
+
+        return view('selection.success', compact('whatsAppUrl', 'applicant', 'qrCode'));
     }
 
     public function downloadInvitation(Applicant $applicant)
     {
         $applicant->load('group');
 
-        $pdf = Pdf::loadView('pdf.invitation', compact('applicant'))
+        $qrCode = null;
+        if ($applicant->attendance?->attendance_code) {
+            $qrCode = (new QRCode)->render($applicant->attendance->attendance_code);
+        }
+
+        $pdf = Pdf::loadView('pdf.invitation', compact('applicant', 'qrCode'))
             ->setPaper('letter', 'portrait');;
 
         return $pdf->download("Invitacion_CasasDeEsperanza_{$applicant->id}.pdf");
