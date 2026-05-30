@@ -33,11 +33,11 @@ class ApplicantFactory extends Factory
             // El motivo de rechazo solo se genera si el estado es 'rejected'.
             'rejection_reason' => $processStatus === 'rejected' ? $this->faker->randomElement(['no_children', 'contract_issues', 'not_owner', 'lives_too_far', 'less_than_a_year', 'late_payments', 'out_of_coverage', 'other']) : null,
 
-            // Se asigna un grupo solo si el estado es 'approved'.
-            'group_id' => $processStatus === 'approved' ? Group::inRandomOrder()->first() : null,
+            // Se asigna un grupo solo si el estado es 'approved' (se maneja en el estado approved()).
+            'group_id' => null,
             
             // El estado de confirmación puede ser 'pending' o 'confirmed' por defecto.
-            'confirmation_status' => $this->faker->randomElement(['pending', 'confirmed']),
+            'confirmation_status' => 'pending',
         ];
     }
 
@@ -49,9 +49,15 @@ class ApplicantFactory extends Factory
         return $this->state(fn(array $attributes) => [
             'process_status' => 'approved',
             'rejection_reason' => null,
-            'group_id' => Group::factory(),
+            'group_id' => Group::inRandomOrder()->first() ?? Group::factory(),
             'confirmation_status' => 'confirmed',
-        ]);
+        ])->afterCreating(function (\App\Models\Applicant $applicant) {
+            $applicant->attendance()->create([
+                'group_id' => $applicant->group_id,
+                'attendance_code' => strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8)),
+                'status' => \App\Enums\AttendanceStatus::Pending,
+            ]);
+        });
     }
 
     /**

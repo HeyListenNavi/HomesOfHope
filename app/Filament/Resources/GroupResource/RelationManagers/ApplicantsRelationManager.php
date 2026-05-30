@@ -16,6 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\AttendanceStatus;
 
 class ApplicantsRelationManager extends RelationManager
 {
@@ -61,6 +62,11 @@ class ApplicantsRelationManager extends RelationManager
                     ->color('gray')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('attendance.status')
+                    ->label('Asistencia')
+                    ->badge()
+                    ->default(AttendanceStatus::Pending),
         ];
 
         $dynamicQuestions = Question::orderBy('order', 'asc')->get();
@@ -135,7 +141,7 @@ class ApplicantsRelationManager extends RelationManager
         );
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('responses'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'attendance']))
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
@@ -185,6 +191,35 @@ class ApplicantsRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('markPresent')
+                        ->label('Marcar Presente')
+                        ->icon('heroicon-m-check-circle')
+                        ->color('success')
+                        ->action(function (Applicant $record) {
+                            $record->attendance()->updateOrCreate(
+                                ['group_id' => $this->getOwnerRecord()->id],
+                                [
+                                    'status' => AttendanceStatus::Present,
+                                    'scanned_at' => now(),
+                                ]
+                            );
+                        })
+                        ->visible(fn (Applicant $record) => $record->attendance?->status === AttendanceStatus::Absent),
+
+                    Tables\Actions\Action::make('markAbsent')
+                        ->label('Marcar Ausente')
+                        ->icon('heroicon-m-x-circle')
+                        ->color('danger')
+                        ->action(function (Applicant $record) {
+                            $record->attendance()->updateOrCreate(
+                                ['group_id' => $this->getOwnerRecord()->id],
+                                [
+                                    'status' => AttendanceStatus::Absent,
+                                    'scanned_at' => null,
+                                ]
+                            );
+                        })
+                        ->visible(fn (Applicant $record) => $record->attendance?->status === AttendanceStatus::Present),
 
                     Tables\Actions\EditAction::make()
                         ->label('Editar')

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\AttendancePage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GroupSelectionController;
@@ -24,3 +25,7 @@ Route::get('/seleccion/confirmado/{applicant:id}', [GroupSelectionController::cl
 
 Route::get('/seleccion/enlace-invalido', [GroupSelectionController::class, 'showInvalidLink'])
     ->name('selection.invalid');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/asistencia/{group}', AttendancePage::class)->name('attendance.page');
+});

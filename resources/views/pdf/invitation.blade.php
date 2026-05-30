@@ -116,6 +116,15 @@
             <div class="message-text">{{ $applicant->group->message }}</div>
         </div>
         @endif
+        
+        @if($applicant->attendance?->attendance_code && $qrCode)
+        <div style="margin-top: 20px; text-align: center; border: 1px dashed #61b346; padding: 15px; border-radius: 8px;">
+            <div class="label">Código de Asistencia</div>
+            <img src="{{ $qrCode }}" style="width: 120px; height: 120px; margin: 10px 0;">
+            <div style="font-family: monospace; font-size: 18px; font-weight: bold;">{{ $applicant->attendance->attendance_code }}</div>
+            <div style="font-size: 10px; color: #6b7280; margin-top: 5px;">⚠️ Guarda este Código para entrar a tu Entrevista</div>
+        </div>
+        @endif
     </div>
 
     <div class="footer">

@@ -186,6 +186,23 @@ class ApplicantResource extends Resource
                                             ->disabled(fn(Get $get) => !in_array($get('process_status'), ['approved', 'staff_approved']))
                                             ->helperText(fn(Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
 
+                                        Forms\Components\TextInput::make('attendance.attendance_code')
+                                            ->label('Código de Asistencia')
+                                            ->prefixIcon('heroicon-m-qr-code')
+                                            ->readOnly()
+                                            ->disabled()
+                                            ->visible(fn($record) => $record?->attendance !== null)
+                                            ->afterStateHydrated(function (Forms\Components\TextInput $component, $record) {
+                                                $component->state($record?->attendance?->attendance_code);
+                                            })
+                                            ->suffixAction(
+                                                Action::make('copy')
+                                                    ->icon('heroicon-m-clipboard')
+                                                    ->alpineClickHandler(
+                                                            fn ($state) => "window.navigator.clipboard.writeText('$state'); \$tooltip('Copied to clipboard', { timeout: 1500 });"
+                                                    )
+                                            ),
+
                                         Forms\Components\Textarea::make('rejection_reason')
                                             ->label('Detalles de Rechazo')
                                             ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected', 'staff_rejected']))

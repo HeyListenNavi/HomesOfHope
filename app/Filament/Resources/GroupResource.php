@@ -112,6 +112,11 @@ class GroupResource extends Resource
                                     ->label('Creado')
                                     ->content(fn($record) => $record?->created_at?->diffForHumans() ?? '-'),
 
+                                Forms\Components\Placeholder::make('attendance_closed_at')
+                                    ->label('Asistencia Cerrada')
+                                    ->content(fn($record) => $record?->attendance_closed_at ? $record->attendance_closed_at->format('d/m/Y H:i') : 'No cerrada todavía')
+                                    ->visible(fn($record) => $record !== null),
+
                                 Forms\Components\TextInput::make('current_members_count')
                                     ->label('Miembros Actuales')
                                     ->numeric()
@@ -160,6 +165,14 @@ class GroupResource extends Resource
                     ->onColor('success')
                     ->offColor('danger'),
 
+                TextColumn::make('attendance_closed_at')
+                    ->label('Asistencia Cerrada')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->placeholder('Aún Abierta')
+                    ->color(fn ($state) => $state ? 'danger' : 'success')
+                    ->icon(fn ($state) => $state ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->label('Creado')
@@ -180,6 +193,13 @@ class GroupResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make(),
+
+                    Tables\Actions\Action::make('takeAttendance')
+                        ->label('Pasar Lista')
+                        ->icon('heroicon-o-check-badge')
+                        ->color('success')
+                        ->url(fn (Group $record) => route('attendance.page', $record)),
+
                     Tables\Actions\Action::make('resendInfo')
                         ->label('Reenviar Información')
                         ->icon('heroicon-o-paper-airplane')
