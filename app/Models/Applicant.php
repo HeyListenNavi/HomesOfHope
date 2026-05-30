@@ -33,6 +33,11 @@ class Applicant extends Model
         'last_reminded_at' => 'datetime',
     ];
 
+    public function attendance(): HasOne
+    {
+        return $this->hasOne(Attendance::class);
+    }
+
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
