@@ -8,7 +8,7 @@ use App\Models\Stage;
 use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
 use App\Models\BotSetting;
-use App\Services\Applicant\AssignmentService;
+use App\Services\Applicant\ApplicantService;
 use App\Services\Whatsapp\WhatsappService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -20,12 +20,12 @@ use Illuminate\Validation\Rule;
  */
 class BotApplicantController extends Controller
 {
-    protected $assignmentService;
+    protected $applicantService;
     protected $notificationService;
 
-    public function __construct(AssignmentService $assignmentService, WhatsappService $notificationService)
+    public function __construct(ApplicantService $applicantService, WhatsappService $notificationService)
     {
-        $this->assignmentService = $assignmentService;
+        $this->applicantService = $applicantService;
         $this->notificationService = $notificationService;
     }
 

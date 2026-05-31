@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\BotConversationController;
 use App\Http\Controllers\Api\BotMessageController;
 use App\Http\Controllers\Api\BotApplicantController;
 use App\Http\Controllers\Api\BotApplicantManualController;
-use App\Http\Controllers\Api\BotController;
 use App\Http\Controllers\Api\FamilyProfileController;
 use App\Http\Controllers\Api\FamilyMemberController;
 use App\Http\Controllers\Api\DocumentController;
