@@ -1,6 +1,3 @@
-@extends('layouts.app', ['title' => $group->name])
-
-@section('body')
 <div class="min-h-screen p-4 md:p-10 flex flex-col">
     <div class="max-w-[1600px] w-full mx-auto mb-10 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-lg border border-zinc-200 gap-6">
         <div class="flex items-center gap-6">
@@ -330,4 +327,3 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(97, 179, 70, 0.5); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
     </style>
 </div>
-@endsection

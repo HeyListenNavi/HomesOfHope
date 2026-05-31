@@ -10,6 +10,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Notification;
 
+#[Layout('layouts.app')]
 class AttendancePage extends Component
 {
     public Group $group;
