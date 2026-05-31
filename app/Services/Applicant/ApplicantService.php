@@ -139,6 +139,7 @@ class ApplicantService
         $applicant->update([
             "process_status" => "staff_approved",
             "group_id" => null,
+            "confirmation_status" => "pending",
         ]);
 
         $this->sendSelectionLink($applicant);

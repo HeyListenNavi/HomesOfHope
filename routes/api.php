@@ -60,9 +60,9 @@ Route::prefix('bot')->group(function () {
 
     });
 
-    // Ruta para actualizaciones manuales (ej. desde un panel de administración)
     Route::put('applicants/{applicantId}/update-manually', [BotApplicantManualController::class, 'updateManually']);
 
-    //Routes for Colonies
-    Route::get('/colonies', [ColonyController::class, 'index']);    
+    Route::post('reschedule/{chatId}', [BotApplicantController::class, 'reschedule']);
+
+    Route::get('/colonies', [ColonyController::class, 'index']);
 });

@@ -445,4 +445,26 @@ class BotApplicantController extends Controller
 
         return response()->json(['message' => 'Respuesta actualizada exitosamente.'], 200);
     }
+
+    /**
+     * Reagenda a un solicitante: lo remueve de su grupo actual y le reenvía el link de selección.
+     *
+     * @param string $chatId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reschedule(string $chatId)
+    {
+        $applicant = Applicant::where('chat_id', $chatId)->first();
+
+        if (!$applicant) {
+            return response()->json(['error' => 'Solicitante no encontrado.'], 404);
+        }
+
+        $this->applicantService->reSendGroupSelectionLink($applicant);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'El solicitante ha sido removido del grupo y se ha enviado el nuevo enlace de selección.'
+        ]);
+    }
 }
