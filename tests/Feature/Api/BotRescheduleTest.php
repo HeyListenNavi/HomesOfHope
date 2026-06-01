@@ -23,8 +23,14 @@ class BotRescheduleTest extends TestCase
     {
         // given a group and an applicant assigned to it
         $group = Group::factory()->create(['name' => 'Grupo de Prueba', 'capacity' => 10]);
-        $applicant = Applicant::factory()->create(['chat_id' => '526611163915', 'applicant_name' => 'Erick Junior', 'group_id' => $group->id, 'process_status' => 'approved', 'confirmation_status' => 'confirmed']);
-        Conversation::create(['chat_id' => $applicant->chat_id, 'user_name' => $applicant->applicant_name]);
+        $applicant = Applicant::factory()->create(['chat_id' => '1234567890', 'applicant_name' => 'Nombre', 'group_id' => $group->id, 'process_status' => 'approved', 'confirmation_status' => 'confirmed']);
+        $conversation = Conversation::create(['chat_id' => $applicant->chat_id, 'user_name' => $applicant->applicant_name]);
+        $conversation->messages()->create([
+            'phone' => $applicant->chat_id,
+            'message' => 'Hola',
+            'role' => 'user',
+            'name' => $applicant->applicant_name,
+        ]);
 
         // when calling the reschedule endpoint
         $response = $this->postJson("/api/bot/reschedule/{$applicant->chat_id}");
