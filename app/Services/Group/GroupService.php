@@ -75,7 +75,7 @@ class GroupService
         $groupLocation = $group->location;
         $groupMessage = $group->message;
 
-        $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día " . $groupDateTime . ". La entrevista sera en" . $groupLocation . "\n" .
+        $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día " . $groupDateTime . ". La entrevista sera en " . $groupLocation . "\n" .
             "Aquí hay mas detalles sobre tu entrevista:\n" .
             $groupMessage . "\n\n" .
             "No olvides leer la información, es importante para realizar tu entrevista correctamente\n" .
