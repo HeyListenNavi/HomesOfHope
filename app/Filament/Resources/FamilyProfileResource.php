@@ -394,7 +394,7 @@ class FamilyProfileResource extends Resource
         return $table
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
-            ->defaultSort('opened_at', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\ImageColumn::make('family_photo_path')
                     ->label('')
