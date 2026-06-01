@@ -283,7 +283,7 @@ class BotApplicantController extends Controller
                     'confirmation_status' => 'pending',
                 ]);
 
-                $this->notificationService->sendGroupSelectionLink($applicant);
+                $this->applicantService->sendSelectionLink($applicant);
 
                 return response()->json([
                     'status' => 'process_completed',
