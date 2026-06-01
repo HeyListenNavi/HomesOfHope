@@ -168,14 +168,6 @@ class MembersRelationManager extends RelationManager
                         Forms\Components\Section::make('Vinculación')
                             ->icon('heroicon-s-users')
                             ->schema([
-                                Forms\Components\Select::make('family_profile_id')
-                                    ->relationship('familyProfile', 'family_name')
-                                    ->label('Pertenece a la Familia')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->prefixIcon('heroicon-s-home'),
-
                                 Forms\Components\Select::make('relationship')
                                     ->label('Rol Familiar')
                                     ->options(Relationship::class)
