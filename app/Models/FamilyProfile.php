@@ -22,6 +22,7 @@ class FamilyProfile extends Model
         'status',
         'family_photo_path',
         'lives_on_land',
+        'interviewer_id',
         'home_city',
         'home_colony',
         'home_address',
@@ -45,18 +46,7 @@ class FamilyProfile extends Model
         'home_monthly_rent',
         'home_monthly_rent_currency',
         'home_has_receipts',
-        'home_roof_material',
-        'home_roof_condition',
-        'home_floor_material',
-        'home_floor_condition',
-        'home_walls_material',
-        'home_walls_condition',
-        'home_bedrooms_count',
-        'home_bedrooms_description',
-        'home_bathroom_location',
-        'home_bathroom_description',
-        'home_furniture_owned',
-        'home_furniture_description',
+        'house_description',
         'responsible_member_id',
         'opened_at',
         'closed_at',
@@ -75,14 +65,9 @@ class FamilyProfile extends Model
         'has_addictions' => 'boolean',
         'land_services' => 'array',
         'home_has_receipts' => 'boolean',
-        'home_furniture_owned' => 'boolean',
-        'home_bedrooms_count' => 'integer',
         'land_currency' => Currency::class,
         'home_status' => HousingStatus::class,
         'home_monthly_rent_currency' => Currency::class,
-        'home_roof_condition' => ConditionLevel::class,
-        'home_floor_condition' => ConditionLevel::class,
-        'home_walls_condition' => ConditionLevel::class,
     ];
 
     protected static function booted()
@@ -110,6 +95,14 @@ class FamilyProfile extends Model
     public function members(): HasMany
     {
         return $this->hasMany(FamilyMember::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function interviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'interviewer_id');
     }
 
     /**
