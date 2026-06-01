@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\HousingStatus;
 use App\Filament\Resources\FamilyProfileResource\Pages;
@@ -63,6 +62,11 @@ class FamilyProfileResource extends Resource
                                         Forms\Components\TextInput::make('slug')
                                             ->disabled()
                                             ->dehydrated(),
+
+                                        Forms\Components\Placeholder::make('updated_at')
+                                            ->label('Última actualización')
+                                            ->content(fn ($record) => $record?->updated_at?->diffForHumans() ?? 'N/A')
+                                            ->visible(fn ($record) => $record !== null),
                                     ])->columnSpan(4),
                             ])->columns(6),
 
@@ -104,7 +108,7 @@ class FamilyProfileResource extends Resource
                                             ->required()
                                             ->columnSpanFull(),
 
-                                        Grid::make(2)->schema([
+                                        Grid::make(3)->schema([
                                             Forms\Components\Select::make('responsible_member_id')
                                                 ->relationship('responsibleMember', 'name')
                                                 ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} {$record->paternal_surname}")
@@ -112,6 +116,13 @@ class FamilyProfileResource extends Resource
                                                 ->preload()
                                                 ->label('Aplicante')
                                                 ->prefixIcon('heroicon-s-user'),
+
+                                            Forms\Components\Select::make('interviewer_id')
+                                                ->relationship('interviewer', 'name')
+                                                ->searchable()
+                                                ->preload()
+                                                ->label('Entrevistador')
+                                                ->prefixIcon('heroicon-s-user-circle'),
 
                                             Forms\Components\DatePicker::make('opened_at')
                                                 ->label('Fecha de entrevista')
@@ -140,7 +151,7 @@ class FamilyProfileResource extends Resource
                                                     ->label('Tiempo con el terreno')
                                                     ->hint('Ej. 2 años'),
 
-                                                Grid::make(2)
+                                                Grid::make(3)
                                                     ->schema([
                                                         Forms\Components\TextInput::make('land_address')
                                                             ->label('Dirección exacta / Referencias')
@@ -158,6 +169,23 @@ class FamilyProfileResource extends Resource
                                                                     ->openUrlInNewTab()
                                                                     ->disabled(fn ($get) => ! $get('land_address_link'))
                                                             ),
+
+                                                        ToggleButtons::make('lives_on_land')
+                                                            ->label('¿Vive en el terreno?')
+                                                            ->options([
+                                                                true => 'Sí Vive',
+                                                                false => 'No Vive',
+                                                            ])
+                                                            ->colors([
+                                                                true => 'success',
+                                                                false => 'danger',
+                                                            ])
+                                                            ->icons([
+                                                                true => 'heroicon-m-check-circle',
+                                                                false => 'heroicon-m-x-circle',
+                                                            ])
+                                                            ->live()
+                                                            ->inline(),
                                                     ]),
                                             ]),
 
@@ -234,6 +262,7 @@ class FamilyProfileResource extends Resource
 
                                 Tabs\Tab::make('Casa Actual')
                                     ->icon('heroicon-m-home')
+                                    ->visible(fn (Forms\Get $get) => ! $get('lives_on_land'))
                                     ->schema([
                                         Grid::make(3)
                                             ->schema([
@@ -320,89 +349,12 @@ class FamilyProfileResource extends Resource
                                                     ]),
                                             ]),
 
-                                        Forms\Components\Fieldset::make('Materiales de la Casa')
-                                            ->columns(3)
-                                            ->schema([
-                                                Forms\Components\Group::make([
-                                                    Forms\Components\TextInput::make('home_roof_material')
-                                                        ->label('Techo: Material')
-                                                        ->placeholder('Ej. Lámina'),
-
-                                                    Forms\Components\Select::make('home_roof_condition')
-                                                        ->label('Condición')
-                                                        ->options(ConditionLevel::class)
-                                                        ->native(false),
-                                                ])->columns(2)->columnSpanFull(),
-
-                                                Forms\Components\Group::make([
-                                                    Forms\Components\TextInput::make('home_floor_material')
-                                                        ->label('Piso: Material')
-                                                        ->placeholder('Ej. Cemento'),
-
-                                                    Forms\Components\Select::make('home_floor_condition')
-                                                        ->label('Condición')
-                                                        ->options(ConditionLevel::class)
-                                                        ->native(false),
-                                                ])->columns(2)->columnSpanFull(),
-
-                                                Forms\Components\Group::make([
-                                                    Forms\Components\TextInput::make('home_walls_material')
-                                                        ->label('Paredes: Material')
-                                                        ->placeholder('Ej. Bloque'),
-
-                                                    Forms\Components\Select::make('home_walls_condition')
-                                                        ->label('Condición')
-                                                        ->options(ConditionLevel::class)
-                                                        ->native(false),
-                                                ])->columns(2)->columnSpanFull(),
-
-                                                Grid::make(4)
-                                                    ->schema([
-                                                        Forms\Components\TextInput::make('home_bedrooms_count')
-                                                            ->label('Dormitorios')
-                                                            ->numeric()
-                                                            ->columnSpan(1),
-
-                                                        Forms\Components\TextInput::make('home_bedrooms_description')
-                                                            ->label('Descripción Dormitorios')
-                                                            ->placeholder('Ej. 2 pequeños, 1 grande')
-                                                            ->columnSpan(3),
-
-                                                        Forms\Components\Select::make('home_bathroom_location')
-                                                            ->label('Ubicación Baño')
-                                                            ->options(['inside' => 'Adentro', 'outside' => 'Afuera'])
-                                                            ->native(false)
-                                                            ->columnSpan(1),
-
-                                                        Forms\Components\TextInput::make('home_bathroom_description')
-                                                            ->label('Descripción Baño')
-                                                            ->placeholder('Ej. Con regadera y fosa')
-                                                            ->columnSpan(3),
-
-                                                        Forms\Components\Group::make([
-                                                            ToggleButtons::make('home_furniture_owned')
-                                                                ->label('Muebles')
-                                                                ->options([
-                                                                    true => 'Propios',
-                                                                    false => 'Prestados',
-                                                                ])
-                                                                ->colors([
-                                                                    true => 'success',
-                                                                    false => 'warning',
-                                                                ])
-                                                                ->icons([
-                                                                    true => 'heroicon-m-home',
-                                                                    false => 'heroicon-m-user-group',
-                                                                ])
-                                                                ->inline(),
-
-                                                            Forms\Components\TextInput::make('home_furniture_description')
-                                                                ->label('Detalle de muebles')
-                                                                ->placeholder('Ej. Estufa, 2 camas, mesa')
-                                                                ->columnSpan(3),
-                                                        ])->columns(4)->columnSpanFull(),
-                                                    ]),
-                                            ]),
+                                        Forms\Components\Textarea::make('house_description')
+                                            ->label('Descripción de la Casa Actual')
+                                            ->placeholder('Describa materiales, distribución, condición, etc.')
+                                            ->rows(5)
+                                            ->autosize()
+                                            ->columnSpanFull(),
                                     ]),
 
                                 Tabs\Tab::make('Notas y Comentarios')
