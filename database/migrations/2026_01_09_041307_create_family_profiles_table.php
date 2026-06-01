@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('status')->default('active')->index(); // 'prospect', 'active', 'in_follow_up', 'closed'
             $table->string('family_photo_path')->nullable();
             $table->boolean('lives_on_land')->default(false);
+            $table->foreignId('interviewer_id')->nullable()->constrained('users')->nullOnDelete();
 
             // Ubicación de su Casa de Hoy (Home)
             $table->string('home_city')->nullable();
@@ -47,22 +48,7 @@ return new class extends Migration
             $table->decimal('home_monthly_rent', 12, 2)->nullable();
             $table->string('home_monthly_rent_currency')->default('mxn');
             $table->boolean('home_has_receipts')->nullable()->default(false);
-
-            // Materiales de la Casa Actual
-            $table->string('home_roof_material')->nullable();
-            $table->string('home_roof_condition')->nullable();
-            $table->string('home_floor_material')->nullable();
-            $table->string('home_floor_condition')->nullable();
-            $table->string('home_walls_material')->nullable();
-            $table->string('home_walls_condition')->nullable();
-
-            // Distribución y Muebles
-            $table->integer('home_bedrooms_count')->nullable();
-            $table->text('home_bedrooms_description')->nullable();
-            $table->string('home_bathroom_location')->nullable(); // 'inside', 'outside'
-            $table->text('home_bathroom_description')->nullable();
-            $table->boolean('home_furniture_owned')->nullable()->default(false);
-            $table->text('home_furniture_description')->nullable();
+            $table->text('house_description')->nullable();
 
             $table->unsignedBigInteger('responsible_member_id')->nullable()->index();
             $table->date('opened_at');
