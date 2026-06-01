@@ -262,9 +262,9 @@ class FamilyProfileResource extends Resource
 
                                 Tabs\Tab::make('Casa Actual')
                                     ->icon('heroicon-m-home')
-                                    ->visible(fn (Forms\Get $get) => ! $get('lives_on_land'))
                                     ->schema([
                                         Grid::make(3)
+                                            ->visible(fn (Forms\Get $get) => ! $get('lives_on_land'))
                                             ->schema([
                                                 Forms\Components\TextInput::make('home_city')
                                                     ->label('Ciudad')
@@ -347,7 +347,7 @@ class FamilyProfileResource extends Resource
                                                             ])
                                                             ->inline(),
                                                     ]),
-                                            ]),
+                                            ])->visible(fn (Forms\Get $get) => ! $get('lives_on_land')),
 
                                         Forms\Components\Textarea::make('house_description')
                                             ->label('Descripción de la Casa Actual')
