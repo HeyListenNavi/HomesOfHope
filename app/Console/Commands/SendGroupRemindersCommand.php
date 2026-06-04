@@ -37,7 +37,7 @@ class SendGroupRemindersCommand extends Command
         foreach ($activeGroups as $group) {
             $daysRemaining = now()->startOfDay()->diffInDays($group->date_time->startOfDay(), false);
 
-            if (in_array($daysRemaining, [7, 3, 1])) {
+            if (in_array($daysRemaining, [10, 4])) {
                 $this->info("Sending {$daysRemaining}-day reminder for group: {$group->name}");
                 Log::info("Sending {$daysRemaining}-day reminder for group: {$group->id}");
 
