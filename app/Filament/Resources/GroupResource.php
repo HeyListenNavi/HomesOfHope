@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Forms\Components\GroupApplicantsMap;
 use App\Filament\Resources\GroupResource\Pages;
 use App\Filament\Resources\GroupResource\RelationManagers;
 use App\Models\Group;
@@ -9,7 +10,6 @@ use App\Services\Group\GroupService;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Group as ComponentsGroup;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
@@ -73,6 +73,16 @@ class GroupResource extends Resource
                                             ->prefixIcon('heroicon-m-link')
                                             ->columnSpan(1),
                                     ]),
+                            ]),
+
+                        Forms\Components\Section::make('Mapa de Ubicaciones')
+                            ->description('Visualización geográfica de los aplicantes en este grupo')
+                            ->icon('heroicon-m-map')
+                            ->schema([
+                                GroupApplicantsMap::make('locations_map')
+                                    ->hiddenLabel()
+                                    ->columnSpanFull()
+                                    ->hidden(fn ($record) => $record === null),
                             ]),
 
                         Forms\Components\Section::make('Instrucciones para Aplicantes')
