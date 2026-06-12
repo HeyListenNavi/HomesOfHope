@@ -82,6 +82,12 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $botSettingViewAny = Permission::firstOrCreate(['name' => 'bot_setting.view_any']);
         $botSettingUpdate = Permission::firstOrCreate(['name' => 'bot_setting.update']);
+        
+        $tagViewAny = Permission::firstOrCreate(['name' => 'tag.view_any']);
+        $tagView = Permission::firstOrCreate(['name' => 'tag.view']);
+        $tagCreate = Permission::firstOrCreate(['name' => 'tag.create']);
+        $tagUpdate = Permission::firstOrCreate(['name' => 'tag.update']);
+        $tagDelete = Permission::firstOrCreate(['name' => 'tag.delete']);
 
         $connection->givePermissionTo([
             $applicantViewAny,
@@ -103,6 +109,12 @@ class RolesAndPermissionsSeeder extends Seeder
             $groupUpdate,
             $groupCreate,
             $groupDelete,
+
+            $tagViewAny,
+            $tagView,
+            $tagCreate,
+            $tagUpdate,
+            $tagDelete,
         ]);
 
         $visit->givePermissionTo([
@@ -238,6 +250,12 @@ class RolesAndPermissionsSeeder extends Seeder
 
             $botSettingViewAny,
             $botSettingUpdate,
+
+            $tagViewAny,
+            $tagView,
+            $tagCreate,
+            $tagUpdate,
+            $tagDelete,
         ]);
 
         $adminEmails = [

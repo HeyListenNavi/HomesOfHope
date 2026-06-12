@@ -6,6 +6,7 @@ use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Models\Applicant;
 use App\Models\Question;
+use App\Models\Tag;
 use App\Services\Applicant\ApplicantService;
 use App\Services\Whatsapp\WhatsappService;
 use Filament\Forms;
@@ -23,6 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantResource extends Resource
@@ -135,6 +137,38 @@ class ApplicantResource extends Resource
                                                 return Question::where('stage_id', $stageId)->pluck('question_text', 'id');
                                             }),
                                     ]),
+
+                                    Forms\Components\Section::make('Etiquetas')
+                                        ->icon('heroicon-m-tag')
+                                        ->visible(fn (string $operation, Get $get) => $operation === 'edit' || $operation === 'create' || !empty($get('tags')))
+                                        ->schema([
+                                            Forms\Components\CheckboxList::make('tags')
+                                                ->label('Lista de Etiquetas')
+                                                ->relationship('tags', 'name')
+                                                ->searchable()
+                                                ->bulkToggleable()
+                                                ->columns(4)
+                                                ->live()
+                                                ->options(fn () => Tag::pluck('name', 'id'))
+                                                ->columnSpanFull()
+                                                ->visible(fn (string $operation) => $operation === 'edit' || $operation === 'create'),
+
+                                            Forms\Components\Placeholder::make('tags_preview')
+                                                ->label('Lista de Etiquetas')
+                                                ->visible(fn (string $operation) => $operation === 'view')
+                                                ->content(function (Get $get) {
+                                                    $tagIds = $get('tags');
+                                                    if (empty($tagIds)) return null;
+
+                                                    $tags = Tag::findMany($tagIds);
+
+                                                    return view('forms.components.tags-preview', [
+                                                        'tags' => $tags,
+                                                    ]);
+                                                })
+                                                ->columnSpanFull(),
+                                        ])
+                                        ->collapsible(),
                             ]),
                         Group::make()
                             ->columnSpan(1)
@@ -485,7 +519,7 @@ class ApplicantResource extends Resource
         );
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'group', 'currentStage']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'group', 'currentStage', 'tags']))
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
@@ -493,6 +527,12 @@ class ApplicantResource extends Resource
             ->columns($columns)
             ->openRecordUrlInNewTab()
             ->filters([
+                Tables\Filters\SelectFilter::make('tags')
+                    ->label('Filtrar por Etiquetas')
+                    ->relationship('tags', 'name')
+                    ->multiple()
+                    ->preload(),
+
                 Tables\Filters\SelectFilter::make('process_status')
                     ->label('Filtrar por Estatus')
                     ->options([
