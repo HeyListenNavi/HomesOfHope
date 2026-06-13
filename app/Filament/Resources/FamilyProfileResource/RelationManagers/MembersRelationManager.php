@@ -229,7 +229,7 @@ class MembersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => $state ? $state->age.' años' : '-')
+                    ->formatStateUsing(fn ($state) => $state ? ($state->year === 1900 ? '-' : $state->age.' años') : '-')
                     ->description(fn (FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
 
                 // CAMBIO AQUÍ: Lógica de WhatsApp

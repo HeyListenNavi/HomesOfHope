@@ -248,8 +248,8 @@ class FamilyMemberResource extends Resource
                 Tables\Columns\TextColumn::make('birth_date')
                     ->label('Edad')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => $state ? $state->age.' años' : '-')
-                    ->description(fn (FamilyMember $record) => $record->birth_date ? $record->birth_date->format('d M Y') : null),
+                    ->formatStateUsing(fn ($state) => $state ? ($state->year === 1900 ? '-' : $state->age.' años') : '-')
+                    ->description(fn (FamilyMember $record) => $record->birth_date && $record->birth_date->year !== 1900 ? $record->birth_date->format('d M Y') : null),
 
                 // CAMBIO AQUÍ: Lógica de WhatsApp
                 Tables\Columns\TextColumn::make('phone')
