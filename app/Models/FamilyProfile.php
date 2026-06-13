@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\HousingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +21,7 @@ class FamilyProfile extends Model
         'status',
         'family_photo_path',
         'lives_on_land',
-        'interviewer_id',
+        'interviewer_name',
         'home_city',
         'home_colony',
         'home_address',
@@ -53,6 +52,7 @@ class FamilyProfile extends Model
         'has_addictions',
         'addictions_details',
         'general_observations',
+        'reason',
     ];
 
     protected $casts = [
@@ -95,14 +95,6 @@ class FamilyProfile extends Model
     public function members(): HasMany
     {
         return $this->hasMany(FamilyMember::class);
-    }
-
-    /**
-     * @return BelongsTo<User, $this>
-     */
-    public function interviewer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'interviewer_id');
     }
 
     /**

@@ -105,7 +105,16 @@ class FamilyProfileResource extends Resource
                                                 'dont_build' => 'heroicon-s-x-circle',
                                             ])
                                             ->inline()
+                                            ->live()
                                             ->required()
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Textarea::make('reason')
+                                            ->label('Motivo / Razón')
+                                            ->rows(3)
+                                            ->autosize()
+                                            ->live()
+                                            ->visible(fn (Forms\Get $get) => in_array($get('status'), ['not_eligible', 'dont_build', 'approved']))
                                             ->columnSpanFull(),
 
                                         Grid::make(3)->schema([
@@ -117,10 +126,7 @@ class FamilyProfileResource extends Resource
                                                 ->label('Aplicante')
                                                 ->prefixIcon('heroicon-s-user'),
 
-                                            Forms\Components\Select::make('interviewer_id')
-                                                ->relationship('interviewer', 'name')
-                                                ->searchable()
-                                                ->preload()
+                                            Forms\Components\TextInput::make('interviewer_name')
                                                 ->label('Entrevistador')
                                                 ->prefixIcon('heroicon-s-user-circle'),
 

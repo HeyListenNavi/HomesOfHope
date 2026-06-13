@@ -14,9 +14,10 @@ return new class extends Migration
             $table->string('family_name');
             $table->string('slug')->unique();
             $table->string('status')->default('active')->index(); // 'prospect', 'active', 'in_follow_up', 'closed'
+            $table->text('reason')->nullable();
             $table->string('family_photo_path')->nullable();
             $table->boolean('lives_on_land')->default(false);
-            $table->foreignId('interviewer_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('interviewer_name')->nullable();
 
             // Ubicación de su Casa de Hoy (Home)
             $table->string('home_city')->nullable();
