@@ -14,7 +14,7 @@ class SendGroupInterviewReminderJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public int $applicantId)
+    public function __construct(public int $applicantId, public int $daysRemaining)
     {
         //
     }
@@ -26,10 +26,10 @@ class SendGroupInterviewReminderJob implements ShouldQueue
     {
         $applicant = Applicant::find($this->applicantId);
 
-        if (!$applicant || !$applicant->group) {
+        if (! $applicant || ! $applicant->group) {
             return;
         }
 
-        $groupService->sendInterviewReminder($applicant);
+        $groupService->sendInterviewReminder($applicant, $this->daysRemaining);
     }
 }

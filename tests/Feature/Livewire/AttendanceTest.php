@@ -1,18 +1,18 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Livewire;
 
+use App\Enums\AttendanceStatus;
+use App\Livewire\AttendancePage;
 use App\Models\Applicant;
 use App\Models\Attendance;
 use App\Models\Group;
 use App\Models\User;
-use App\Enums\AttendanceStatus;
-use App\Livewire\AttendancePage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use Livewire\Livewire;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
+use Tests\TestCase;
 
 class AttendanceTest extends TestCase
 {
