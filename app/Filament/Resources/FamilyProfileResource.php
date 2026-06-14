@@ -403,10 +403,11 @@ class FamilyProfileResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\ImageColumn::make('family_photo_path')
-                    ->label('')
+                    ->label('Foto')
                     ->disk('r2')
                     ->visibility('private')
-                    ->height(100),
+                    ->height(100)
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('family_name')
                     ->label('Familia')
@@ -423,15 +424,6 @@ class FamilyProfileResource extends Resource
                     ->sortable()
                     ->weight(FontWeight::Medium)
                     ->description(fn (FamilyProfile $record) => $record->home_address ? str($record->home_address)->limit(30) : 'Sin dirección registrada'),
-
-                Tables\Columns\IconColumn::make('has_addictions')
-                    ->label('Adicc.')
-                    ->boolean()
-                    ->trueIcon('heroicon-s-exclamation-triangle')
-                    ->falseIcon('heroicon-s-check-circle')
-                    ->trueColor('danger')
-                    ->falseColor('success')
-                    ->tooltip(fn (FamilyProfile $record) => $record->has_addictions ? "Con adicciones: {$record->addictions_details}" : 'Sin adicciones reportadas'),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
@@ -465,13 +457,15 @@ class FamilyProfileResource extends Resource
                         'built' => 'heroicon-s-building-office-2',
                         'dont_build' => 'heroicon-s-x-circle',
                         default => '',
-                    }),
+                    })
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('responsibleMember.name')
                     ->label('Líder')
                     ->formatStateUsing(fn ($record) => $record->responsibleMember ? "{$record->responsibleMember->name}" : '-')
                     ->description(fn ($record) => $record->responsibleMember?->phone ?? '')
-                    ->icon('heroicon-s-user'),
+                    ->icon('heroicon-s-user')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('visits_count')
                     ->counts('visits')
@@ -480,7 +474,19 @@ class FamilyProfileResource extends Resource
                     ->formatStateUsing(fn ($state) => $state.' Visita(s)')
                     ->color(fn ($state) => $state > 0 ? 'info' : 'danger')
                     ->icon(fn ($state) => $state > 0 ? 'heroicon-s-check-circle' : 'heroicon-s-exclamation-circle')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
+
+                
+                Tables\Columns\IconColumn::make('has_addictions')
+                    ->label('Adicc.')
+                    ->boolean()
+                    ->trueIcon('heroicon-s-exclamation-triangle')
+                    ->falseIcon('heroicon-s-check-circle')
+                    ->trueColor('danger')
+                    ->falseColor('success')
+                    ->tooltip(fn (FamilyProfile $record) => $record->has_addictions ? "Con adicciones: {$record->addictions_details}" : 'Sin adicciones reportadas')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('lives_on_land')
                     ->label('¿Vive en el terreno?')
