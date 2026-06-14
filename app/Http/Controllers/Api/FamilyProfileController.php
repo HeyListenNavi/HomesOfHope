@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\FamilyStatus;
 use App\Http\Controllers\Controller;
 use App\Models\FamilyProfile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class FamilyProfileController extends Controller
 {
@@ -63,7 +64,7 @@ class FamilyProfileController extends Controller
     {
         $validated = $request->validate([
             'family_name' => 'required|string|max:255',
-            'status' => 'required|string|in:new,approved,in_process,not_eligible,potential,built,dont_build',
+            'status' => ['required', Rule::enum(FamilyStatus::class)],
             'current_address' => 'required|string',
             'construction_address' => 'nullable|string',
             'opened_at' => 'required|date',
@@ -98,7 +99,7 @@ class FamilyProfileController extends Controller
 
         $validated = $request->validate([
             'family_name' => 'sometimes|string|max:255',
-            'status' => 'sometimes|string|in:new,approved,in_process,not_eligible,potential,built,dont_build',
+            'status' => ['sometimes', Rule::enum(FamilyStatus::class)],
             'current_address' => 'sometimes|string',
             'construction_address' => 'nullable|string',
             'responsible_member_id' => 'nullable|exists:family_members,id', // Validación segura

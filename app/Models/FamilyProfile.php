@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Currency;
+use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -66,6 +67,7 @@ class FamilyProfile extends Model
         'land_services' => 'array',
         'home_has_receipts' => 'boolean',
         'land_currency' => Currency::class,
+        'status' => FamilyStatus::class,
         'home_status' => HousingStatus::class,
         'home_monthly_rent_currency' => Currency::class,
     ];

@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Enums\FamilyStatus;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -21,7 +22,11 @@ class OptionsReferenceSheet implements FromCollection, ShouldAutoSize, WithHeadi
     {
         return new Collection([
             ['Campo', 'Valores Permitidos (Usar el código)', 'Descripción'],
-            ['Estatus', 'new, approved, in_process, not_eligible, potential, built, dont_build', 'Nuevo, Aprobado, En Espera, No Califica, Potencial, Construido, No Construir'],
+            [
+                'Estatus',
+                implode(', ', array_map(fn ($case) => $case->value, FamilyStatus::cases())),
+                implode(', ', array_map(fn ($case) => $case->getLabel(), FamilyStatus::cases())),
+            ],
             ['Moneda de pagos del Terreno', 'mxn, usd', 'Pesos Mexicanos, Dólares'],
             ['Estado de la Casa', 'rented, borrowed, other', 'Rentada, Prestada, Otro'],
             ['Estado del Techo de la Casa', 'good, fair, poor', 'Bueno, Regular, Malo'],

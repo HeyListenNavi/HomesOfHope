@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Enums\ConditionLevel;
 use App\Enums\Currency;
+use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
@@ -20,7 +20,7 @@ class FamilyProfileFactory extends Factory
 
         return [
             'family_name' => $familyName,
-            'status' => fake()->randomElement(['new', 'approved', 'in_process', 'not_eligible', 'potential', 'built', 'dont_build']),
+            'status' => fake()->randomElement(FamilyStatus::cases()),
             'family_photo_path' => 'https://picsum.photos/200',
             'lives_on_land' => fake()->boolean(30),
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\Currency;
+use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
@@ -77,33 +78,7 @@ class FamilyProfileResource extends Resource
                                     ->schema([
                                         ToggleButtons::make('status')
                                             ->label('Estado Actual')
-                                            ->options([
-                                                'new' => 'Nuevo',
-                                                'approved' => 'Aprobado',
-                                                'in_process' => 'En Espera',
-                                                'not_eligible' => 'No Califica',
-                                                'potential' => 'Potencial',
-                                                'built' => 'Construido',
-                                                'dont_build' => 'No Construir',
-                                            ])
-                                            ->colors([
-                                                'new' => 'gray',
-                                                'approved' => 'success',
-                                                'in_process' => 'warning',
-                                                'not_eligible' => 'danger',
-                                                'potential' => 'info',
-                                                'built' => 'primary',
-                                                'dont_build' => 'danger',
-                                            ])
-                                            ->icons([
-                                                'new' => 'heroicon-s-plus-circle',
-                                                'approved' => 'heroicon-s-check-circle',
-                                                'in_process' => 'heroicon-s-clock',
-                                                'not_eligible' => 'heroicon-s-lock-closed',
-                                                'potential' => 'heroicon-s-eye',
-                                                'built' => 'heroicon-s-building-office-2',
-                                                'dont_build' => 'heroicon-s-x-circle',
-                                            ])
+                                            ->options(FamilyStatus::class)
                                             ->inline()
                                             ->live()
                                             ->required()
@@ -114,7 +89,7 @@ class FamilyProfileResource extends Resource
                                             ->rows(3)
                                             ->autosize()
                                             ->live()
-                                            ->visible(fn (Forms\Get $get) => in_array($get('status'), ['not_eligible', 'dont_build', 'approved']))
+                                            ->visible(fn (Forms\Get $get) => in_array($get('status'), [FamilyStatus::NotEligible->value, FamilyStatus::DontBuild->value, FamilyStatus::Approved->value]))
                                             ->columnSpanFull(),
 
                                         Grid::make(3)->schema([
@@ -428,36 +403,6 @@ class FamilyProfileResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'new' => 'Nuevo',
-                        'approved' => 'Aprobado',
-                        'in_process' => 'En Proceso',
-                        'not_eligible' => 'No Califica',
-                        'potential' => 'Potencial',
-                        'built' => 'Construido',
-                        'dont_build' => 'No Construir',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'new' => 'gray',
-                        'approved' => 'success',
-                        'in_process' => 'warning',
-                        'not_eligible' => 'danger',
-                        'potential' => 'info',
-                        'built' => 'primary',
-                        'dont_build' => 'danger',
-                        default => 'gray',
-                    })
-                    ->icon(fn (string $state): string => match ($state) {
-                        'new' => 'heroicon-s-plus-circle',
-                        'approved' => 'heroicon-s-check-circle',
-                        'in_process' => 'heroicon-s-clock',
-                        'not_eligible' => 'heroicon-s-lock-closed',
-                        'potential' => 'heroicon-s-eye',
-                        'built' => 'heroicon-s-building-office-2',
-                        'dont_build' => 'heroicon-s-x-circle',
-                        default => '',
-                    })
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('responsibleMember.name')
@@ -477,7 +422,6 @@ class FamilyProfileResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
-                
                 Tables\Columns\IconColumn::make('has_addictions')
                     ->label('Adicc.')
                     ->boolean()
@@ -593,12 +537,7 @@ class FamilyProfileResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Filtrar por Estado')
-                    ->options([
-                        'prospect' => 'Prospecto',
-                        'active' => 'Activo',
-                        'in_follow_up' => 'En seguimiento',
-                        'closed' => 'Cerrado',
-                    ]),
+                    ->options(FamilyStatus::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
