@@ -51,20 +51,6 @@ class FamilyProfileFactory extends Factory
             'home_monthly_rent_currency' => $housingStatus->value === 'rented' ? fake()->randomElement(Currency::cases()) : Currency::MXN,
             'home_has_receipts' => $housingStatus->value === 'rented' ? fake()->boolean() : false,
 
-            'home_roof_material' => fake()->randomElement(['Lámina', 'Madera', 'Concreto']),
-            'home_roof_condition' => fake()->randomElement(ConditionLevel::cases()),
-            'home_floor_material' => fake()->randomElement(['Tierra', 'Cemento', 'Mosaico']),
-            'home_floor_condition' => fake()->randomElement(ConditionLevel::cases()),
-            'home_walls_material' => fake()->randomElement(['Madera', 'Bloque', 'Adobe', 'Lámina']),
-            'home_walls_condition' => fake()->randomElement(ConditionLevel::cases()),
-
-            'home_bedrooms_count' => fake()->numberBetween(1, 4),
-            'home_bedrooms_description' => fake()->sentence(),
-            'home_bathroom_location' => fake()->randomElement(['inside', 'outside']),
-            'home_bathroom_description' => fake()->sentence(),
-            'home_furniture_owned' => fake()->boolean(),
-            'home_furniture_description' => fake()->sentence(),
-
             'opened_at' => fake()->dateTimeBetween('-1 year', 'now'),
             'closed_at' => fake()->boolean(20) ? fake()->dateTimeBetween('now', '+1 year') : null,
             'has_addictions' => $hasAddictions = fake()->boolean(20),
