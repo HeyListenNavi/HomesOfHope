@@ -21,14 +21,6 @@ class VisitSeeder extends Seeder
             Visit::factory()->count(rand(1, 3))->create([
                 'family_profile_id' => $profile->id,
                 'attended_by' => $staffUser->id,
-                'status' => 'completed',
-            ]);
-
-            // 2. Crear próxima visita (programada)
-            Visit::factory()->create([
-                'family_profile_id' => $profile->id,
-                'attended_by' => $staffUser->id,
-                'status' => 'scheduled',
             ]);
         }
     }

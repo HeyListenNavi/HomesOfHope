@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\VisitStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Visit;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class VisitController extends Controller
 {
@@ -44,7 +46,7 @@ class VisitController extends Controller
             'family_profile_id' => 'required|exists:family_profiles,id',
             'scheduled_at' => 'required|date',
             'location_type' => 'nullable|string',
-            'status' => 'required|string|in:scheduled,completed,canceled',
+            'status' => ['required', Rule::enum(VisitStatus::class)],
             // Si no envían attended_by, asignamos al usuario actual
             'attended_by' => 'nullable|exists:users,id', 
         ]);
@@ -78,7 +80,7 @@ class VisitController extends Controller
         $validated = $request->validate([
             'scheduled_at' => 'sometimes|date',
             'completed_at' => 'nullable|date',
-            'status' => 'sometimes|string|in:scheduled,completed,canceled,rescheduled',
+            'status' => ['sometimes', Rule::enum(VisitStatus::class)],
             'location_type' => 'nullable|string',
             'outcome_summary' => 'nullable|string',
             'attended_by' => 'sometimes|exists:users,id',

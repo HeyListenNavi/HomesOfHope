@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\VisitStatus;
 use App\Models\FamilyProfile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -13,9 +14,9 @@ class VisitFactory extends Factory
 {
     public function definition(): array
     {
-        $status = fake()->randomElement(['scheduled', 'completed', 'canceled', 'no_show', 'rescheduled']);
+        $status = fake()->randomElement(VisitStatus::cases());
 
-        $scheduledDate = $status === 'completed'
+        $scheduledDate = $status === VisitStatus::Completed
             ? fake()->dateTimeBetween('-1 month', 'yesterday')
             : fake()->dateTimeBetween('now', '+1 month');
 
@@ -23,9 +24,9 @@ class VisitFactory extends Factory
             'attended_by' => User::factory(),
             'status' => $status,
             'scheduled_at' => $scheduledDate,
-            'completed_at' => $status === 'completed' ? $scheduledDate : null,
+            'completed_at' => $status === VisitStatus::Completed ? $scheduledDate : null,
             'location_type' => fake()->randomElement(['home', 'office', 'virtual']),
-            'outcome_summary' => $status === 'completed' ? fake()->paragraph() : null,
+            'outcome_summary' => $status === VisitStatus::Completed ? fake()->paragraph() : null,
         ];
     }
 }

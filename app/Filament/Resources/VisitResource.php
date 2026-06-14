@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use Filament\Forms;
 use Filament\Tables;
+use App\Enums\VisitStatus;
 use App\Models\Visit;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -83,7 +84,7 @@ class VisitResource extends Resource
                                             ->autosize()
                                             ->columnSpanFull(),
                                     ])
-                                    ->disabled(fn(Forms\Get $get) => $get('status') !== 'scheduled'),
+                                    ->disabled(fn(Forms\Get $get) => $get('status') !== VisitStatus::Scheduled->value),
                             ]),
 
                         // COLUMNA DERECHA (Barra Lateral: Agenda y Estatus)
@@ -112,36 +113,15 @@ class VisitResource extends Resource
                                             ->label('Cierre')
                                             ->native(false)
                                             // Solo visible cuando ya se cerró la visita
-                                            ->visible(fn(Forms\Get $get) => in_array($get('status'), ['completed', 'cancelled'])),
+                                            ->visible(fn(Forms\Get $get) => in_array($get('status'), [VisitStatus::Completed->value, VisitStatus::Cancelled->value])),
                                     ]),
 
                                 Forms\Components\Section::make('Estado')
                                     ->schema([
                                         ToggleButtons::make('status')
-                                            ->default('scheduled')
                                             ->hiddenLabel()
-                                            ->options([
-                                                'scheduled' => 'Programada',
-                                                'completed' => 'Completada',
-                                                'cancelled' => 'Cancelada',
-                                                'no_show' => 'No se presentó',
-                                                'rescheduled' => 'Reprogramar',
-                                            ])
-                                            ->colors([
-                                                'scheduled' => 'info',
-                                                'completed' => 'success',
-                                                'cancelled' => 'danger',
-                                                'no_show' => 'warning',
-                                                'rescheduled' => 'gray',
-                                            ])
-                                            ->icons([
-                                                'scheduled' => 'heroicon-s-calendar',
-                                                'completed' => 'heroicon-s-check-circle',
-                                                'cancelled' => 'heroicon-s-x-circle',
-                                                'no_show' => 'heroicon-s-eye-slash',
-                                                'rescheduled' => 'heroicon-s-arrow-path',
-                                            ])
-                                            ->default('scheduled'),
+                                            ->options(VisitStatus::class)
+                                            ->default(VisitStatus::Scheduled),
                                     ]),
                             ]),
                     ])
@@ -190,30 +170,7 @@ class VisitResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->sortable()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'scheduled' => 'Programada',
-                        'completed' => 'Completada',
-                        'cancelled' => 'Cancelada',
-                        'no_show' => 'Ausente',
-                        'rescheduled' => 'Reprogramar',
-                        default => $state,
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        'scheduled' => 'info',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                        'no_show' => 'warning',
-                        default => 'gray',
-                    })
-                    ->icon(fn(string $state): ?string => match ($state) {
-                        'scheduled' => 'heroicon-s-calendar',
-                        'completed' => 'heroicon-s-check-circle',
-                        'cancelled' => 'heroicon-s-x-circle',
-                        'no_show' => 'heroicon-s-eye-slash',
-                        'rescheduled' => 'heroicon-s-arrow-path',
-                        default => null,
-                    }),
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('attendant.name')
                     ->label('Atiende')
@@ -224,13 +181,7 @@ class VisitResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado')
-                    ->options([
-                        'scheduled' => 'Programada',
-                        'completed' => 'Completada',
-                        'cancelled' => 'Cancelada',
-                        'no_show' => 'No se presentó',
-                        'rescheduled' => 'Reprogramar',
-                    ]),
+                    ->options(VisitStatus::class),
 
                 Tables\Filters\Filter::make('scheduled_at')
                     ->form([

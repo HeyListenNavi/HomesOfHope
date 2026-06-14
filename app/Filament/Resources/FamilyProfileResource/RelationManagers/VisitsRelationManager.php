@@ -10,6 +10,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Support\Enums\FontWeight;
+use App\Enums\VisitStatus;
 use App\Filament\Resources\VisitResource; // IMPORTANTE: Importar el recurso
 use App\Models\Visit;
 
@@ -51,22 +52,7 @@ class VisitsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'scheduled' => 'Programada',
-                        'completed' => 'Completada',
-                        'cancelled' => 'Cancelada',
-                        'no_show' => 'Ausente',
-                        'rescheduled' => 'Reprogramada',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'scheduled' => 'info',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                        'no_show' => 'warning',
-                        default => 'gray',
-                    }),
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('tasks_count')
                     ->counts('tasks')
