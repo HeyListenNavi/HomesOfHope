@@ -103,7 +103,7 @@ class VisitResource extends Resource
 
                                         Forms\Components\Select::make('attended_by')
                                             ->relationship('attendant', 'name')
-                                            ->label('Responsable')
+                                            ->label('Responsable de Visitar')
                                             ->default(Auth::id())
                                             ->searchable()
                                             ->preload()
