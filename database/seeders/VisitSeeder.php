@@ -13,7 +13,7 @@ class VisitSeeder extends Seeder
     {
         // Obtenemos un usuario "Staff" para asignar las visitas
         $staffUser = User::first() ?? User::factory()->create();
-        
+
         $profiles = FamilyProfile::all();
 
         foreach ($profiles as $profile) {

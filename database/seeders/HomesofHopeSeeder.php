@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Conversation;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use App\Models\Stage;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class HomesofHopeSeeder extends Seeder
 {
@@ -40,7 +38,7 @@ class HomesofHopeSeeder extends Seeder
             'rejection_message' => 'Una disculpa, solo la persona interesada puede firmar el aviso de privacidad.',
             'requires_evaluatio_message' => 'El equipo de Casas de Esperanza revisará tu información y se pondrá en contacto contigo pronto.',
         ]);
-        
+
         $stage1 = Stage::create([
             'name' => 'Etapa 1: Requisitos Básicos',
             'order' => 2,
@@ -48,13 +46,13 @@ class HomesofHopeSeeder extends Seeder
             'rejection_message' => 'Lamentablemente, no cumples con los requisitos básicos para continuar con el proceso. El equipo de Casas de Esperanza será notificado para revisar tu información.',
             'requires_evaluatio_message' => 'El equipo de Casas de Esperanza evaluará tu información y se pondrá en contacto contigo para continuar el proceso.',
         ]);
-        
+
         $stage2 = Stage::create([
             'name' => 'Etapa 2: Información General',
             'order' => 3,
             'approval_message' => '¡Ya estamos más cerca de terminar! La siguiente parte puede tomar entre 5 y 10 minutos. Si tienes tiempo ahora, podemos empezar; si necesitas pausar, puedes continuar después sin problema.',
         ]);
-        
+
         $stage3 = Stage::create([
             'name' => 'Etapa 3: Información Detallada de la Familia',
             'order' => 4,
@@ -69,7 +67,7 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is_not',
-                        'value' => 'la persona que quiere aplicar'
+                        'value' => 'la persona que quiere aplicar',
                     ],
                 ],
             ],
@@ -80,10 +78,10 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'no esta de acuerdo'
-                    ]
-                ]
-            ]
+                        'value' => 'no esta de acuerdo',
+                    ],
+                ],
+            ],
         ]);
 
         $stage1->questions()->createMany([
@@ -94,13 +92,13 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is_less_than',
-                        'value' => '1 hijo'
+                        'value' => '1 hijo',
                     ],
                     [
                         'rule' => 'human_if',
                         'operator' => 'is',
-                        'value' => 'personas menores pero no hijos'
-                    ]
+                        'value' => 'personas menores pero no hijos',
+                    ],
                 ],
             ],
             [
@@ -110,7 +108,7 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'does_not_contain',
-                        'value' => 'Tijuana o Rosarito'
+                        'value' => 'Tijuana o Rosarito',
                     ],
                 ],
             ],
@@ -121,9 +119,9 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'contains',
-                        'value' => '10 de Mayo, La Presa, Cañón Cordero3 de Octubre, Lago Sur, Constitucion,Altiplano, Las Abejas, Fracc. Vista Azul,Alamar, Las Alondras, La Mision,Aleman, Las Fuentes, Lucio Blanco,Altamira, Las Torres, Misión del Mar 1ra. y 2da. Secc,Amparo Sanchez, Leandro Valle, Poliducto,Anabel, Libertad, Riviera San Carlos ,Anexa del Rio, Linda Vista, Angeles del Pacifico, Loma Bonita, Azcona, Lomas de la Presa, Azteca, Lomas de Tlatelolco, Bonilla , Lomas del Encinal, Buena Vista, Lomas del Matamoros, Buenos Aires  , Lomas del Refugio, Camino Verde, Lomas del Valle, Campestre Murua, Lomas Taurinas, Campos, Lomas Virreyes, Cañadas del Florido, Lopez Leyva, Cañon de la Pedrera, Los Altos, Cañon de la Raza, Los Venados, Cañon del Padre, Maclovio Rojas, Cañón del Sainz, Madero Sur, Cañon el Salado, Manantial, Cañon Miramar, Marbella, Cañon Palmas, Mariano Matamoros, Castillo Centro, Mexico, Cerro Colorado, Milenio 2000, Chapultepec, Morelos, Chihuahua, Nido de las Aguilas, Chosa, Niños Heroes, Ciudad Jardin, Nueva Aurora, Colinas de Baja California, Nueva Aurora, Colinas de Elyahu, Nueva Tijuana, Colinas de la Mesa, Nuevo Milenio, Colinas de la Presa, Obrera, Colonia del Rio, Ojo de Agua, Corona del Mar, Orizaba, Costa Dorada, Osuna Millan, Cuesta Blanca, Otay, Del Rio, Panteon, Delicias 1, 2, 3, Paseos del Florido, Durango, Pedregal de Santa Julia, Ejido Francisco Villa, Planicie, Ejido Javier Rojo Gómez, Poblado Ejido Matamoros, Ejido Matamoros, Pontevedra, El Dorado, Porticos de San Antonio, El Encino, Praderas de la Mesa, El Florido (1, 2,3, y 4 secció), Presa Rodriguez, El Lago, Presidentes , El Laurel, Puerta del Sol, El Niño, Rancho 3 Piedras, El Pipila, Rancho el Encinal, El Ranchito, Real de San Francisco, El Refugio, Reforma, El Rosario, Ribera del Bosque, El Rubi, Rio Vista, El Tecolote, Roma, El Valle, Rubio, Emiliano Zapata, San Angel, Emperadores, San Luis, Estrella del Pacifico, San Pablo, Fausto Gonzales, Sanchez Taboada, Flores Magon, Soler, Fraccionamiento Valle Dorado, Tecnologico, Francisco Villa, Terrazas de San Antonio, Generacion 2000, Terrazas Del Valle, Granjas Buenos Aires, Tomas Aquino, Granjas Division del Norte, Urbivillas del Prado , Granjas Familiares del Matamoros, Valle Bonito, Granjas Familiares la Nueva Esperanza de Otay, Valle de las Palmas, Granjas Familiares Unidas, Valle Imperial, Granjas Princesas del Sol, Valle Verde, Hacienda las Delicias, Valle Vista, Lomas del Encinal, Venustiano Carranza, Milenio 2000, Verona Residencial, Nueva Aurora , Villa del Alamo, Nuevo Milenio, Villa Floresta, Osuna Millan, Villa Fontana, Pedregal de Santa Julia, Villa Urrutia, Porticos de San Antonio, Villas de Baja California, San Angel, Villas del campo, Terrazas de San Antonio, Villas del Campo, Valle Imperial, Villas del Sol, Valle Verde, Viñedos Casa Blanca, Venustiano Carranza, Vista Alamar, Villas del campo, Vista de Palmillas, Granjas Princesas del Sol, Vista del Valle, Guaycura, Xochimilco Solidaridad, Guerrero, Zona Centro, Hacienda las Delicias, Zona Norte, La Cuestecita, Zone Este, La Esperanza, La Libertad, La Morita'
-                    ]
-                ]
+                        'value' => '10 de Mayo, La Presa, Cañón Cordero3 de Octubre, Lago Sur, Constitucion,Altiplano, Las Abejas, Fracc. Vista Azul,Alamar, Las Alondras, La Mision,Aleman, Las Fuentes, Lucio Blanco,Altamira, Las Torres, Misión del Mar 1ra. y 2da. Secc,Amparo Sanchez, Leandro Valle, Poliducto,Anabel, Libertad, Riviera San Carlos ,Anexa del Rio, Linda Vista, Angeles del Pacifico, Loma Bonita, Azcona, Lomas de la Presa, Azteca, Lomas de Tlatelolco, Bonilla , Lomas del Encinal, Buena Vista, Lomas del Matamoros, Buenos Aires  , Lomas del Refugio, Camino Verde, Lomas del Valle, Campestre Murua, Lomas Taurinas, Campos, Lomas Virreyes, Cañadas del Florido, Lopez Leyva, Cañon de la Pedrera, Los Altos, Cañon de la Raza, Los Venados, Cañon del Padre, Maclovio Rojas, Cañón del Sainz, Madero Sur, Cañon el Salado, Manantial, Cañon Miramar, Marbella, Cañon Palmas, Mariano Matamoros, Castillo Centro, Mexico, Cerro Colorado, Milenio 2000, Chapultepec, Morelos, Chihuahua, Nido de las Aguilas, Chosa, Niños Heroes, Ciudad Jardin, Nueva Aurora, Colinas de Baja California, Nueva Aurora, Colinas de Elyahu, Nueva Tijuana, Colinas de la Mesa, Nuevo Milenio, Colinas de la Presa, Obrera, Colonia del Rio, Ojo de Agua, Corona del Mar, Orizaba, Costa Dorada, Osuna Millan, Cuesta Blanca, Otay, Del Rio, Panteon, Delicias 1, 2, 3, Paseos del Florido, Durango, Pedregal de Santa Julia, Ejido Francisco Villa, Planicie, Ejido Javier Rojo Gómez, Poblado Ejido Matamoros, Ejido Matamoros, Pontevedra, El Dorado, Porticos de San Antonio, El Encino, Praderas de la Mesa, El Florido (1, 2,3, y 4 secció), Presa Rodriguez, El Lago, Presidentes , El Laurel, Puerta del Sol, El Niño, Rancho 3 Piedras, El Pipila, Rancho el Encinal, El Ranchito, Real de San Francisco, El Refugio, Reforma, El Rosario, Ribera del Bosque, El Rubi, Rio Vista, El Tecolote, Roma, El Valle, Rubio, Emiliano Zapata, San Angel, Emperadores, San Luis, Estrella del Pacifico, San Pablo, Fausto Gonzales, Sanchez Taboada, Flores Magon, Soler, Fraccionamiento Valle Dorado, Tecnologico, Francisco Villa, Terrazas de San Antonio, Generacion 2000, Terrazas Del Valle, Granjas Buenos Aires, Tomas Aquino, Granjas Division del Norte, Urbivillas del Prado , Granjas Familiares del Matamoros, Valle Bonito, Granjas Familiares la Nueva Esperanza de Otay, Valle de las Palmas, Granjas Familiares Unidas, Valle Imperial, Granjas Princesas del Sol, Valle Verde, Hacienda las Delicias, Valle Vista, Lomas del Encinal, Venustiano Carranza, Milenio 2000, Verona Residencial, Nueva Aurora , Villa del Alamo, Nuevo Milenio, Villa Floresta, Osuna Millan, Villa Fontana, Pedregal de Santa Julia, Villa Urrutia, Porticos de San Antonio, Villas de Baja California, San Angel, Villas del campo, Terrazas de San Antonio, Villas del Campo, Valle Imperial, Villas del Sol, Valle Verde, Viñedos Casa Blanca, Venustiano Carranza, Vista Alamar, Villas del campo, Vista de Palmillas, Granjas Princesas del Sol, Vista del Valle, Guaycura, Xochimilco Solidaridad, Guerrero, Zona Centro, Hacienda las Delicias, Zona Norte, La Cuestecita, Zone Este, La Esperanza, La Libertad, La Morita',
+                    ],
+                ],
             ],
             [
                 'question_text' => '¿Cuánto tiempo llevas con este terreno?',
@@ -132,7 +130,7 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is_less_than',
-                        'value' => '1 año o 12 meses'
+                        'value' => '1 año o 12 meses',
                     ],
                 ],
             ],
@@ -151,27 +149,27 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'approve_if',
                         'operator' => 'is',
-                        'value' => 'estan casados y esta al nombre de cualquier padre'
+                        'value' => 'estan casados y esta al nombre de cualquier padre',
                     ],
                     [
                         'rule' => 'approve_if',
                         'operator' => 'is',
-                        'value' => 'estan en union libre y esta al nombre de la mamá'
+                        'value' => 'estan en union libre y esta al nombre de la mamá',
                     ],
                     [
                         'rule' => 'approve_if',
                         'operator' => 'is',
-                        'value' => 'estan en union libre y esta al nombre del padre y es padre de uno de los hijos'
+                        'value' => 'estan en union libre y esta al nombre del padre y es padre de uno de los hijos',
                     ],
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'estan separados y esta a nombre del esposo o esposa que abandono el hogar'
+                        'value' => 'estan separados y esta a nombre del esposo o esposa que abandono el hogar',
                     ],
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'esta a nombre de una tercera persona que esta incluida en el contrato'
+                        'value' => 'esta a nombre de una tercera persona que esta incluida en el contrato',
                     ],
                 ],
             ],
@@ -198,7 +196,7 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'human_if',
                         'operator' => 'is_before',
-                        'value' => 'han pasado mas de 3 meses'
+                        'value' => 'han pasado mas de 3 meses',
                     ],
                 ],
             ],
@@ -209,12 +207,12 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'no esta al corriente'
+                        'value' => 'no esta al corriente',
                     ],
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'debe mas de 3 pagos'
+                        'value' => 'debe mas de 3 pagos',
                     ],
                 ],
             ],
@@ -225,9 +223,9 @@ class HomesofHopeSeeder extends Seeder
                     [
                         'rule' => 'reject_if',
                         'operator' => 'is',
-                        'value' => 'la respuesta es no'
-                    ]
-                ]
+                        'value' => 'la respuesta es no',
+                    ],
+                ],
             ],
         ]);
 

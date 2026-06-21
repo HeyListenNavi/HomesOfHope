@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
+use App\Models\FamilyMember;
+use App\Models\FamilyProfile;
+use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
@@ -17,7 +19,7 @@ class DocumentController extends Controller
     {
         $validated = $request->validate([
             'documentable_id' => 'required|integer',
-            'documentable_type' => 'required|string', 
+            'documentable_type' => 'required|string',
             'document_type' => 'required|string',
             'file' => 'required|file|max:10240', // Max 10MB
         ]);
@@ -25,15 +27,15 @@ class DocumentController extends Controller
         // Mapeo simple de "alias" a clases reales si quieres seguridad extra
         // O podrías usar Relation::morphMap() en AppServiceProvider
         $validTypes = [
-            'family_profile' => \App\Models\FamilyProfile::class,
-            'family_member' => \App\Models\FamilyMember::class,
-	        'visit' => \App\Models\Visit::class,
+            'family_profile' => FamilyProfile::class,
+            'family_member' => FamilyMember::class,
+            'visit' => Visit::class,
         ];
 
         // Normalizar el tipo si viene como alias
         $modelClass = $validTypes[$validated['documentable_type']] ?? $validated['documentable_type'];
 
-        if (!class_exists($modelClass)) {
+        if (! class_exists($modelClass)) {
             return response()->json(['message' => 'Invalid documentable_type'], 400);
         }
 
@@ -54,7 +56,7 @@ class DocumentController extends Controller
 
         return response()->json([
             'message' => 'Document uploaded successfully',
-            'data' => $document
+            'data' => $document,
         ], 201);
     }
 
@@ -64,7 +66,7 @@ class DocumentController extends Controller
     public function show(string $id)
     {
         $document = Document::findOrFail($id);
-        
+
         // Agregamos la URL temporal o pública al response
         $data = $document->toArray();
         $data['url'] = Storage::url($document->file_path);
@@ -79,7 +81,7 @@ class DocumentController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        if (!Storage::exists($document->file_path)) {
+        if (! Storage::exists($document->file_path)) {
             return response()->json(['message' => 'File not found on disk'], 404);
         }
 

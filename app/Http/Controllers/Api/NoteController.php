@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\FamilyMember;
+use App\Models\FamilyProfile;
 use App\Models\Note;
+use App\Models\Visit;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
@@ -18,18 +21,18 @@ class NoteController extends Controller
         // Filtros opcionales para obtener notas de un objeto específico
         if ($request->has('noteable_type') && $request->has('noteable_id')) {
             $type = $request->input('noteable_type');
-            
+
             // Mapeo simple para facilitar el uso en frontend si envían 'family_profile' en lugar de la clase completa
             $map = [
-                'family_profile' => \App\Models\FamilyProfile::class,
-                'family_member' => \App\Models\FamilyMember::class,
-                "visit" => \App\Models\Visit::class,
+                'family_profile' => FamilyProfile::class,
+                'family_member' => FamilyMember::class,
+                'visit' => Visit::class,
             ];
-            
+
             $realType = $map[$type] ?? $type;
 
             $query->where('noteable_type', $realType)
-                  ->where('noteable_id', $request->input('noteable_id'));
+                ->where('noteable_id', $request->input('noteable_id'));
         }
 
         return response()->json($query->latest()->paginate(20));
@@ -46,14 +49,14 @@ class NoteController extends Controller
 
         // Mapeo de tipos
         $validTypes = [
-            'family_profile' => \App\Models\FamilyProfile::class,
-            'family_member' => \App\Models\FamilyMember::class,
-            "visit" => \App\Models\Visit::class,
+            'family_profile' => FamilyProfile::class,
+            'family_member' => FamilyMember::class,
+            'visit' => Visit::class,
         ];
-        
+
         $className = $validTypes[$validated['noteable_type']] ?? $validated['noteable_type'];
 
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return response()->json(['message' => 'Invalid noteable_type'], 400);
         }
 
@@ -67,13 +70,14 @@ class NoteController extends Controller
 
         return response()->json([
             'message' => 'Note created successfully',
-            'data' => $note
+            'data' => $note,
         ], 201);
     }
 
     public function show(string $id)
     {
         $note = Note::with('author:id,name')->findOrFail($id);
+
         return response()->json($note);
     }
 
@@ -83,7 +87,7 @@ class NoteController extends Controller
 
         // Opcional: Validar que el usuario sea el dueño de la nota
         if ($request->user()->id !== $note->user_id) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $validated = $request->validate([
@@ -95,7 +99,7 @@ class NoteController extends Controller
 
         return response()->json([
             'message' => 'Note updated successfully',
-            'data' => $note
+            'data' => $note,
         ]);
     }
 

@@ -3,16 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ConversationResource\Pages;
-use App\Filament\Resources\ConversationResource\RelationManagers\ConversationMessagesRelationManager;
 use App\Filament\Resources\ConversationResource\RelationManagers\MessagesRelationManager;
 use App\Models\Conversation;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 
 class ConversationResource extends Resource
 {
@@ -23,6 +21,7 @@ class ConversationResource extends Resource
     protected static ?string $pluralModelLabel = 'Conversaciones';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-bottom-center-text';
+
     protected static ?string $navigationGroup = 'Auditoría y Logs';
 
     public static function form(Form $form): Form
@@ -55,12 +54,12 @@ class ConversationResource extends Resource
                         Forms\Components\TextInput::make('current_process')
                             ->label('Proceso Actual')
                             ->disabled()
-                            ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state))),
+                            ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state))),
 
                         Forms\Components\TextInput::make('process_status')
                             ->label('Estatus')
                             ->disabled()
-                            ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state))),
+                            ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state))),
                     ]),
             ]);
     }
@@ -81,24 +80,26 @@ class ConversationResource extends Resource
                     ->label('Número de Telefono')
                     ->icon('heroicon-m-chat-bubble-left-right')
                     ->formatStateUsing(function ($state) {
-                        if (!$state) return '-';
+                        if (! $state) {
+                            return '-';
+                        }
 
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
-                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->url(fn ($state) => 'https://wa.me/'.$state)
                     ->openUrlInNewTab()
                     ->searchable(),
 
                 TextColumn::make('current_process')
                     ->label('Proceso')
                     ->badge()
-                    ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state)))
+                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state)))
                     ->searchable(),
 
                 TextColumn::make('process_status')
                     ->label('Estatus')
                     ->badge()
-                    ->formatStateUsing(fn($state) => ucfirst(str_replace('_', ' ', $state)))
+                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state)))
                     ->color('gray')
                     ->searchable(),
             ])

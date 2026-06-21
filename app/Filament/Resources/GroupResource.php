@@ -10,13 +10,8 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Actions;
-use App\Services\GroupActions;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class GroupResource extends Resource
 {
@@ -56,18 +51,18 @@ class GroupResource extends Resource
                             ->numeric()
                             ->default(25)
                             ->prefixIcon('heroicon-m-ticket')
-                            ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
+                            ->minValue(fn (Get $get) => $get('current_members_count') ?? 0),
 
                         Forms\Components\TextInput::make('current_members_count')
                             ->label('Miembros Actuales')
                             ->numeric()
                             ->readOnly()
-                            ->disabled() 
+                            ->disabled()
                             ->default(0)
                             ->prefixIcon('heroicon-m-users'),
-                        
+
                         Forms\Components\TextInput::make('location')
-                            ->label("Dirección Física")
+                            ->label('Dirección Física')
                             ->placeholder('Calle, Número, Colonia...')
                             ->prefixIcon('heroicon-m-map-pin')
                             ->columnSpanFull(),
@@ -76,7 +71,7 @@ class GroupResource extends Resource
                             ->label('Enlace de Google Maps')
                             ->placeholder('https://maps.google.com/...')
                             ->prefixIcon('heroicon-m-link')
-                            ->url() 
+                            ->url()
                             ->columnSpanFull(),
                     ]),
 
@@ -85,7 +80,7 @@ class GroupResource extends Resource
                     ->icon('heroicon-m-chat-bubble-left-right')
                     ->collapsible()
                     ->schema([
-                        Forms\Components\Textarea::make("message")
+                        Forms\Components\Textarea::make('message')
                             ->hiddenLabel()
                             ->placeholder('Escribe aquí las instrucciones que verán los aplicantes...')
                             ->rows(6)
@@ -109,21 +104,21 @@ class GroupResource extends Resource
                 TextColumn::make('current_members_count')
                     ->label('Ocupación')
                     ->sortable()
-                    ->formatStateUsing(fn($state, Group $record) => "{$state} / {$record->capacity}")
+                    ->formatStateUsing(fn ($state, Group $record) => "{$state} / {$record->capacity}")
                     ->badge()
-                    ->color(fn($state, Group $record) => match (true) {
+                    ->color(fn ($state, Group $record) => match (true) {
                         $state >= $record->capacity => 'danger',
                         $state >= ($record->capacity * 0.8) => 'warning',
                         default => 'success',
                     })
-                    ->icon(fn($state, Group $record) => $state >= $record->capacity ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
+                    ->icon(fn ($state, Group $record) => $state >= $record->capacity ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
 
                 TextColumn::make('date_time')
                     ->label('Fecha de Entrevista')
                     ->dateTime('l d M, Y - h:i A')
                     ->sortable()
                     ->icon('heroicon-m-calendar-days')
-                    ->description(fn(Group $record) => ucfirst($record->date_time->locale('es')->diffForHumans())),
+                    ->description(fn (Group $record) => ucfirst($record->date_time->locale('es')->diffForHumans())),
 
                 TextColumn::make('created_at')
                     ->dateTime()

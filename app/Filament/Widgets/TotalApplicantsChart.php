@@ -36,7 +36,7 @@ class TotalApplicantsChart extends ChartWidget
                     'pointHoverRadius' => 6,
                 ],
             ],
-            'labels' => $data->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat('M')), 
+            'labels' => $data->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat('M')),
         ];
     }
 
@@ -45,7 +45,7 @@ class TotalApplicantsChart extends ChartWidget
         return [
             'plugins' => [
                 'legend' => [
-                    'display' => false, 
+                    'display' => false,
                 ],
                 'tooltip' => [
                     'enabled' => true,
@@ -56,17 +56,17 @@ class TotalApplicantsChart extends ChartWidget
                     'beginAtZero' => true,
                     'grid' => [
                         'display' => true,
-                        'borderDash' => [2, 2], 
+                        'borderDash' => [2, 2],
                         'drawBorder' => false,
                         'color' => 'rgba(0, 0, 0, 0.05)',
                     ],
                     'ticks' => [
-                        'precision' => 0, 
+                        'precision' => 0,
                     ],
                 ],
                 'x' => [
                     'grid' => [
-                        'display' => false, 
+                        'display' => false,
                     ],
                 ],
             ],

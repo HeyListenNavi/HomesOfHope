@@ -24,13 +24,13 @@ class MonthlyApplicantsChart extends ChartWidget
 
         // 2. Definimos la configuración visual para cada estado posible
         $statuses = [
-            'staff_approved'    => ['label' => 'Staff: Aprobado', 'color' => '#15803d'], // Verde Oscuro
-            'approved'          => ['label' => 'IA: Aprobado',    'color' => '#4ade80'], // Verde Claro
-            'in_progress'       => ['label' => 'En Progreso',     'color' => '#3b82f6'], // Azul
+            'staff_approved' => ['label' => 'Staff: Aprobado', 'color' => '#15803d'], // Verde Oscuro
+            'approved' => ['label' => 'IA: Aprobado',    'color' => '#4ade80'], // Verde Claro
+            'in_progress' => ['label' => 'En Progreso',     'color' => '#3b82f6'], // Azul
             'requires_revision' => ['label' => 'Revisión Manual', 'color' => '#f59e0b'], // Naranja
-            'rejected'          => ['label' => 'IA: Rechazado',   'color' => '#f87171'], // Rojo Claro
-            'staff_rejected'    => ['label' => 'Staff: Rechazado','color' => '#b91c1c'], // Rojo Oscuro
-            'canceled'          => ['label' => 'Cancelado',       'color' => '#9ca3af'], // Gris
+            'rejected' => ['label' => 'IA: Rechazado',   'color' => '#f87171'], // Rojo Claro
+            'staff_rejected' => ['label' => 'Staff: Rechazado', 'color' => '#b91c1c'], // Rojo Oscuro
+            'canceled' => ['label' => 'Cancelado',       'color' => '#9ca3af'], // Gris
         ];
 
         // 3. Construimos los arrays finales asegurando el orden

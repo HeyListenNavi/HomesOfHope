@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\GroupResource\Pages;
 
-use App\Filament\Resources\GroupResource;
 use App\Exports\GroupApplicantsExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Filament\Resources\GroupResource;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EditGroup extends EditRecord
 {
@@ -31,7 +31,7 @@ class EditGroup extends EditRecord
 
                     return response()->streamDownload(function () use ($pdf) {
                         echo $pdf->stream();
-                    }, $record->name . '.pdf');
+                    }, $record->name.'.pdf');
                 }),
 
             // --- ACCIÓN EXPORTAR EXCEL (NUEVA) ---

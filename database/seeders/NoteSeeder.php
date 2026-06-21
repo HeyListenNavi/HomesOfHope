@@ -33,7 +33,7 @@ class NoteSeeder extends Seeder
                     'noteable_id' => $member->id,
                     'noteable_type' => FamilyMember::class,
                     'user_id' => $user->id,
-                    'content' => 'Nota médica o de comportamiento específico.'
+                    'content' => 'Nota médica o de comportamiento específico.',
                 ]);
             }
         }

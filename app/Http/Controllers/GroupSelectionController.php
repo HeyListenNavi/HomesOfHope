@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Applicant;
 use App\Models\Group;
+use App\Services\WhatsappApiNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\WhatsappApiNotificationService;
 
 class GroupSelectionController extends Controller
 {
@@ -17,17 +17,17 @@ class GroupSelectionController extends Controller
     {
         // La ruta firmada ya protege contra manipulación de URL.
         // Verificamos el estado lógico del aplicante.
-        if ( $applicant->group_id !== null) {
+        if ($applicant->group_id !== null) {
             return view('selection.invalid', [
-                'message' => 'Este enlace no es válido o ya has seleccionado un grupo.'
+                'message' => 'Este enlace no es válido o ya has seleccionado un grupo.',
             ]);
         }
 
         // Buscamos todos los grupos que tengan cupo disponible.
         $availableGroups = Group::where('current_members_count', '<', DB::raw('capacity'))
-                               ->whereNotNull('date_time')
-                               ->orderBy('date_time', 'asc')
-                               ->get();
+            ->whereNotNull('date_time')
+            ->orderBy('date_time', 'asc')
+            ->get();
 
         return view('selection.form', compact('applicant', 'availableGroups'));
     }
@@ -38,12 +38,12 @@ class GroupSelectionController extends Controller
     public function assignToGroup(Request $request, Applicant $applicant)
     {
         // Validación inicial
-        if ( $applicant->group_id !== null) {
+        if ($applicant->group_id !== null) {
             return redirect()->route('selection.invalid')->with('error', 'Acción no permitida.');
         }
 
         $request->validate([
-            'group_id' => 'required'
+            'group_id' => 'required',
         ]);
 
         // Usamos una transacción para garantizar la integridad de los datos
@@ -53,11 +53,11 @@ class GroupSelectionController extends Controller
             // Bloqueamos la fila del grupo para evitar que dos personas
             // tomen el último lugar al mismo tiempo (race condition).
             $group = Group::where('id', $groupId)
-                          ->where('current_members_count', '<', DB::raw('capacity'))
-                          ->lockForUpdate()
-                          ->first();
+                ->where('current_members_count', '<', DB::raw('capacity'))
+                ->lockForUpdate()
+                ->first();
 
-            if (!$group) {
+            if (! $group) {
                 // Si el grupo se llenó mientras el usuario decidía.
                 return back()->with('error', 'Lo sentimos, el grupo que seleccionaste se acaba de llenar. Por favor, elige otra opción.');
             }
@@ -67,7 +67,7 @@ class GroupSelectionController extends Controller
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
 
-            $EvolutionApiNotificaiton = new WhatsappApiNotificationService();
+            $EvolutionApiNotificaiton = new WhatsappApiNotificationService;
             $EvolutionApiNotificaiton->sendSuccessInfo($applicant);
 
             return redirect()->route('selection.success')->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
@@ -82,6 +82,7 @@ class GroupSelectionController extends Controller
     {
         $number = config('services.whatsapp.number');
         $whatsAppUrl = "https://wa.me/{$number}";
+
         return view('selection.success', compact('whatsAppUrl'));
     }
 

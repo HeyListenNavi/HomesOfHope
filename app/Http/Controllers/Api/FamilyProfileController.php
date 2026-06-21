@@ -36,20 +36,15 @@ class FamilyProfileController extends Controller
     public function index(Request $request)
     {
         $profiles = FamilyProfile::with('responsibleMember')
-            ->when($request->family_name, fn($q, $val) => 
-                $q->where('family_name', 'like', "%{$val}%")
+            ->when($request->family_name, fn ($q, $val) => $q->where('family_name', 'like', "%{$val}%")
             )
-            ->when($request->curp, fn($q, $val) => 
-                $q->whereHas('responsibleMember', fn($sq) => 
-                    $sq->where('curp', 'like', "%{$val}%")
-                )
+            ->when($request->curp, fn ($q, $val) => $q->whereHas('responsibleMember', fn ($sq) => $sq->where('curp', 'like', "%{$val}%")
             )
-            ->when($request->responsible_name, fn($q, $val) => 
-                $q->whereHas('responsibleMember', fn($sq) => 
-                    $sq->where('name', 'like', "%{$val}%")
-                       ->orWhere('paternal_surname', 'like', "%{$val}%")
-                       ->orWhere('maternal_surname', 'like', "%{$val}%")
-                )
+            )
+            ->when($request->responsible_name, fn ($q, $val) => $q->whereHas('responsibleMember', fn ($sq) => $sq->where('name', 'like', "%{$val}%")
+                ->orWhere('paternal_surname', 'like', "%{$val}%")
+                ->orWhere('maternal_surname', 'like', "%{$val}%")
+            )
             )
             ->latest()
             ->paginate($request->input('limit', 15));
@@ -75,7 +70,7 @@ class FamilyProfileController extends Controller
 
         return response()->json([
             'message' => 'Family Profile created successfully',
-            'data' => $profile
+            'data' => $profile,
         ], 201);
     }
 
@@ -84,7 +79,7 @@ class FamilyProfileController extends Controller
      */
     public function show(string $id)
     {
-        $profile = FamilyProfile::with(['members', 'responsibleMember', 'documents']) 
+        $profile = FamilyProfile::with(['members', 'responsibleMember', 'documents'])
             ->findOrFail($id);
 
         return response()->json($profile);
@@ -112,7 +107,7 @@ class FamilyProfileController extends Controller
 
         return response()->json([
             'message' => 'Family Profile updated successfully',
-            'data' => $profile
+            'data' => $profile,
         ]);
     }
 
@@ -122,12 +117,12 @@ class FamilyProfileController extends Controller
     public function destroy(string $id)
     {
         $profile = FamilyProfile::findOrFail($id);
-        
+
         // Opcional: Validar si tiene relaciones activas antes de borrar
         $profile->delete();
 
         return response()->json([
-            'message' => 'Family Profile deleted successfully'
+            'message' => 'Family Profile deleted successfully',
         ], 200);
     }
 }

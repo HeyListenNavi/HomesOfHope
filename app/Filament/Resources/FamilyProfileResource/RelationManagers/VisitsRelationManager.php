@@ -2,17 +2,12 @@
 
 namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
-use Filament\Forms\Components\ToggleButtons;
-use Filament\Support\Enums\FontWeight;
-use App\Enums\VisitStatus;
-use App\Filament\Resources\VisitResource; // IMPORTANTE: Importar el recurso
+use App\Filament\Resources\VisitResource;
 use App\Models\Visit;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Support\Enums\FontWeight;
+use Filament\Tables; // IMPORTANTE: Importar el recurso
+use Filament\Tables\Table;
 
 class VisitsRelationManager extends RelationManager
 {
@@ -54,7 +49,7 @@ class VisitsRelationManager extends RelationManager
                     ->label('Agendar Visita')
                     ->icon('heroicon-s-plus')
                     ->url(fn ($livewire) => VisitResource::getUrl('create', [
-                        'family_profile_id' => $livewire->getOwnerRecord()->id
+                        'family_profile_id' => $livewire->getOwnerRecord()->id,
                     ])),
             ])
             ->actions([

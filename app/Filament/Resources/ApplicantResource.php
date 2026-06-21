@@ -27,7 +27,9 @@ class ApplicantResource extends Resource
     protected static ?string $model = Applicant::class;
 
     protected static ?string $modelLabel = 'Aplicante';
+
     protected static ?string $pluralModelLabel = 'Aplicantes';
+
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
     public static function canViewAny(): bool
@@ -55,7 +57,7 @@ class ApplicantResource extends Resource
                             ->required()
                             ->prefixIcon('heroicon-m-finger-print')
                             ->maxLength(18)
-                            ->formatStateUsing(fn(?string $state) => strtoupper($state)),
+                            ->formatStateUsing(fn (?string $state) => strtoupper($state)),
 
                         Forms\Components\TextInput::make('chat_id')
                             ->label('Número de Telefono')
@@ -63,8 +65,12 @@ class ApplicantResource extends Resource
                             ->tel()
                             ->prefixIcon('heroicon-m-phone')
                             ->formatStateUsing(function ($state, string $operation) {
-                                if (!$state) return '-';
-                                if ($operation !== 'view') return $state;
+                                if (! $state) {
+                                    return '-';
+                                }
+                                if ($operation !== 'view') {
+                                    return $state;
+                                }
 
                                 return str_starts_with($state, '521') ? substr($state, 3) : $state;
                             }),
@@ -109,7 +115,7 @@ class ApplicantResource extends Resource
                             ->label('Etapa Actual')
                             ->native(false)
                             ->live()
-                            ->afterStateUpdated(fn(callable $set) => $set('current_question_id', null)),
+                            ->afterStateUpdated(fn (callable $set) => $set('current_question_id', null)),
 
                         Forms\Components\Select::make('current_question_id')
                             ->label('Pregunta Actual')
@@ -117,7 +123,10 @@ class ApplicantResource extends Resource
                             ->native(false)
                             ->options(function (Get $get) {
                                 $stageId = $get('current_stage_id');
-                                if (!$stageId) return [];
+                                if (! $stageId) {
+                                    return [];
+                                }
+
                                 return Question::where('stage_id', $stageId)->pluck('question_text', 'id');
                             }),
                     ]),
@@ -331,17 +340,19 @@ class ApplicantResource extends Resource
                     ->icon('heroicon-m-chat-bubble-left-right')
                     ->searchable()
                     ->formatStateUsing(function ($state) {
-                        if (!$state) return '-';
+                        if (! $state) {
+                            return '-';
+                        }
 
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
-                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->url(fn ($state) => 'https://wa.me/'.$state)
                     ->openUrlInNewTab(),
 
                 TextColumn::make('curp')
                     ->label('CURP')
                     ->fontFamily(FontFamily::Mono)
-                    ->formatStateUsing(fn(string $state) => strtoupper($state))
+                    ->formatStateUsing(fn (string $state) => strtoupper($state))
                     ->color('gray')
                     ->searchable(),
 
@@ -354,7 +365,7 @@ class ApplicantResource extends Resource
                 TextColumn::make('process_status')
                     ->label('Estatus')
                     ->badge()
-                    ->sortable()
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')
@@ -391,7 +402,7 @@ class ApplicantResource extends Resource
                                 fclose($handle);
                             }, 200, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="aplicantes-export-' . now()->format('Y-m-d') . '.csv"',
+                                'Content-Disposition' => 'attachment; filename="aplicantes-export-'.now()->format('Y-m-d').'.csv"',
                             ]);
                         }),
                 ]),

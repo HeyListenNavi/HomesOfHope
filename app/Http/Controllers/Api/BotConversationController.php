@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -16,9 +17,8 @@ class BotConversationController extends Controller
     /**
      * Recupera el registro de Conversation para un chat_id. Si no existe, lo crea.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param string $chatId El ID del chat del solicitante.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $chatId  El ID del chat del solicitante.
+     * @return JsonResponse
      */
     public function getOrCreateConversation(Request $request, string $chatId)
     {
@@ -33,9 +33,8 @@ class BotConversationController extends Controller
     /**
      * Actualiza los datos de una conversación.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $conversationId El ID de la conversación.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $conversationId  El ID de la conversación.
+     * @return JsonResponse
      */
     public function updateConversation(Request $request, int $conversationId)
     {
@@ -49,12 +48,12 @@ class BotConversationController extends Controller
         $conversation->update($request->only([
             'current_process',
             'process_status',
-            'process_id'
+            'process_id',
         ]));
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Conversation updated.'
+            'message' => 'Conversation updated.',
         ]);
     }
 }

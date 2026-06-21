@@ -4,17 +4,9 @@ namespace App\Filament\Resources\ApplicantResource\Pages;
 
 use App\Filament\Resources\ApplicantResource;
 use App\Models\Applicant;
-use Filament\Actions;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Form;
-use Filament\Resources\Pages\ViewRecord;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\HtmlString;
-use App\Models\ApplicantQuestionResponse;
 use App\Services\WhatsappApiNotificationService;
+use Filament\Actions;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewApplicant extends ViewRecord
 {
@@ -29,23 +21,24 @@ class ViewApplicant extends ViewRecord
                 ->color('primary')
                 ->url(function () {
                     $number = $this->record->chat_id;
-                    $text = "Hola! Soy del equipo de Casas de Esperanza, y me gustaría realizarte algunas preguntas sobre tu aplicación";
+                    $text = 'Hola! Soy del equipo de Casas de Esperanza, y me gustaría realizarte algunas preguntas sobre tu aplicación';
                     $encodedMessage = urlencode($text);
+
                     return "https://wa.me/{$number}?text={$encodedMessage}";
                 })
                 ->openUrlInNewTab(),
 
-                Actions\Action::make('sendTemplate')
-                    ->label('Enviar template')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->modalHeading('Enviar mensaje')
-                    ->modalDescription('¿Seguro que deseas enviar el template de WhatsApp?')
-                    ->action(function(Applicant $applicant){
-                        $WhatsApp = new WhatsappApiNotificationService();
-                        $WhatsApp->sendTemplate($applicant);
-                    }),
+            Actions\Action::make('sendTemplate')
+                ->label('Enviar template')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Enviar mensaje')
+                ->modalDescription('¿Seguro que deseas enviar el template de WhatsApp?')
+                ->action(function (Applicant $applicant) {
+                    $WhatsApp = new WhatsappApiNotificationService;
+                    $WhatsApp->sendTemplate($applicant);
+                }),
 
             Actions\EditAction::make(),
         ];

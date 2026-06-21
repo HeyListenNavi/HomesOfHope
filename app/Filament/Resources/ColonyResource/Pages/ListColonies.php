@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\ColonyResource\Pages;
 
 use App\Filament\Resources\ColonyResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 use App\Imports\ColoniesImport;
-use Maatwebsite\Excel\Facades\Excel;
+use Filament\Actions;
+use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
-
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ListColonies extends ListRecords
 {
@@ -24,7 +24,7 @@ class ListColonies extends ListRecords
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->form([
-                    \Filament\Forms\Components\FileUpload::make('file')
+                    FileUpload::make('file')
                         ->label('Archivo Excel')
                         ->required()
                         ->acceptedFileTypes([

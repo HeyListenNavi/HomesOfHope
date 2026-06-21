@@ -14,7 +14,7 @@ class ColonyController extends Controller
             ->where('is_active', true);
 
         if ($request->filled('city')) {
-            $query->where('city', 'like', '%' . $request->city . '%');
+            $query->where('city', 'like', '%'.$request->city.'%');
         }
 
         $colonies = $query

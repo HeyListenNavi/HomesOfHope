@@ -12,7 +12,7 @@ class ColonyFactory extends Factory
     public function definition(): array
     {
         return [
-            "city" => fake()->city,
+            'city' => fake()->city,
             'name' => $this->faker->unique()->streetName(),
             'is_active' => true,
         ];

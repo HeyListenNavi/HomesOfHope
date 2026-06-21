@@ -2,9 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\ApplicantResource;
 use App\Models\Applicant;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -13,7 +11,7 @@ class ApplicantsList extends BaseWidget
 {
     protected static ?int $sort = 4;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?string $heading = 'Últimos Aplicantes Registrados';
 
@@ -33,11 +31,13 @@ class ApplicantsList extends BaseWidget
                     ->icon('heroicon-m-chat-bubble-left-right')
                     ->searchable()
                     ->formatStateUsing(function ($state) {
-                        if (!$state) return '-';
+                        if (! $state) {
+                            return '-';
+                        }
 
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
-                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->url(fn ($state) => 'https://wa.me/'.$state)
                     ->openUrlInNewTab(),
 
                 TextColumn::make('currentStage.name')

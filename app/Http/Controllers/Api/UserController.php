@@ -26,9 +26,9 @@ class UserController extends Controller
     {
         $users = User::query()
             // Si el request trae 'name', aplica este filtro
-            ->when($request->name, fn($q, $name) => $q->where('name', 'like', "%{$name}%"))
+            ->when($request->name, fn ($q, $name) => $q->where('name', 'like', "%{$name}%"))
             // Si el request trae 'email', aplica este OR WHERE
-            ->when($request->email, fn($q, $email) => $q->orWhere('email', 'like', "%{$email}%"))
+            ->when($request->email, fn ($q, $email) => $q->orWhere('email', 'like', "%{$email}%"))
             ->paginate(15);
 
         return response()->json($users);
@@ -43,6 +43,7 @@ class UserController extends Controller
         ]);
 
         $user = User::create($validated);
+
         return response()->json($user, 201);
     }
 
@@ -55,17 +56,19 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'email' => 'sometimes|email|unique:users,email,'.$user->id,
             'password' => 'sometimes|min:8',
         ]);
 
         $user->update($validated);
+
         return response()->json($user);
     }
 
     public function destroy(User $user)
     {
         $user->delete();
+
         return response()->json(null, 204);
     }
 }

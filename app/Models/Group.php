@@ -12,14 +12,13 @@ class Group extends Model
 
     protected $fillable = [
         'name',
-        "message",
+        'message',
         'capacity',
         'current_members_count',
         'date_time',
-        "location",
-        "location_link",
+        'location',
+        'location_link',
     ];
-
 
     protected function casts(): array
     {
@@ -31,7 +30,7 @@ class Group extends Model
     public function getCurrentMembersCountAttribute(): int
     {
         return $this->applicants()->count();
-    } 
+    }
 
     // Relación con los solicitantes del grupo
     public function applicants(): HasMany

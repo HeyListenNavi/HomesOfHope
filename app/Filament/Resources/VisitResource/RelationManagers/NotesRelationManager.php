@@ -71,10 +71,10 @@ class NotesRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('content')
                     ->label('Resumen')
-                    ->formatStateUsing(fn(string $state) => strip_tags($state))
+                    ->formatStateUsing(fn (string $state) => strip_tags($state))
                     ->limit(60)
                     ->wrap()
-                    ->tooltip(fn($record) => strip_tags($record->content)),
+                    ->tooltip(fn ($record) => strip_tags($record->content)),
             ])
             ->filters([])
             ->headerActions([

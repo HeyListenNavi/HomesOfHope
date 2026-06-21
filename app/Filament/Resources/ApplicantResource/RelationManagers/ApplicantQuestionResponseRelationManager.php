@@ -7,8 +7,8 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 class ApplicantQuestionResponseRelationManager extends RelationManager
@@ -16,6 +16,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
     protected static string $relationship = 'responses';
 
     protected static ?string $title = 'Respuestas';
+
     protected static ?string $icon = 'heroicon-m-chat-bubble-left-right';
 
     public function form(Form $form): Form
@@ -57,7 +58,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                             ->label('Razonamiento de la IA')
                             ->rows(3)
                             ->autosize()
-                            ->visible(fn(Get $get) => in_array($get('ai_decision'), ['not_valid', 'requires_supervision']))
+                            ->visible(fn (Get $get) => in_array($get('ai_decision'), ['not_valid', 'requires_supervision']))
                             ->helperText('Explica por qué la IA marcó esta respuesta como inválida o dudosa.'),
                     ]),
             ]);
@@ -73,19 +74,19 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                 TextColumn::make('ai_decision')
                     ->label('Estatus IA')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'valid' => 'Válido',
                         'not_valid' => 'Inválido',
                         'requires_supervision' => 'Revisión',
                         default => $state,
                     })
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'valid' => 'success',
                         'requires_supervision' => 'warning',
                         'not_valid' => 'danger',
                         default => 'gray',
                     })
-                    ->icon(fn(string $state): string => match ($state) {
+                    ->icon(fn (string $state): string => match ($state) {
                         'valid' => 'heroicon-m-check-circle',
                         'requires_supervision' => 'heroicon-m-eye',
                         'not_valid' => 'heroicon-m-x-circle',
@@ -97,7 +98,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->label('Pregunta')
                     ->color('gray')
                     ->limit(90)
-                    ->tooltip(fn(Model $record) => $record->user_response)
+                    ->tooltip(fn (Model $record) => $record->user_response)
                     ->searchable(),
             ])
             ->filters([

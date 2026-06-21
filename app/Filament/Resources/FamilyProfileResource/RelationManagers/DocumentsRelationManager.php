@@ -8,7 +8,6 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
-use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\Facades\Storage;
 
 class DocumentsRelationManager extends RelationManager
@@ -91,7 +90,7 @@ class DocumentsRelationManager extends RelationManager
                     ->label('Nombre del Archivo')
                     ->searchable()
                     ->limit(30)
-                    ->icon(fn($record) => match (explode('/', $record->mime_type ?? '')[0] ?? '') {
+                    ->icon(fn ($record) => match (explode('/', $record->mime_type ?? '')[0] ?? '') {
                         'image' => 'heroicon-s-photo',
                         'application' => 'heroicon-s-document-text',
                         'text' => 'heroicon-s-document-text',
@@ -102,7 +101,7 @@ class DocumentsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('document_type')
                     ->label('Tipo')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'ine' => 'INE',
                         'curp' => 'CURP',
                         'proof_of_address' => 'Domicilio',
@@ -112,7 +111,7 @@ class DocumentsRelationManager extends RelationManager
                         'other' => 'Otro',
                         default => ucfirst($state),
                     })
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'ine', 'curp', 'proof_of_address' => 'info',
                         'contract' => 'success',
                         'report' => 'warning',
@@ -122,7 +121,7 @@ class DocumentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('size')
                     ->label('Tamaño')
-                    ->formatStateUsing(fn($state) => $state ? number_format($state / 1024, 2) . ' KB' : '0 KB')
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state / 1024, 2).' KB' : '0 KB')
                     ->color('gray')
                     ->toggleable(),
 
@@ -153,7 +152,7 @@ class DocumentsRelationManager extends RelationManager
                     ->label('')
                     ->icon('heroicon-s-arrow-down-tray')
                     ->tooltip('Descargar')
-                    ->url(fn($record) => Storage::url($record->file_path))
+                    ->url(fn ($record) => Storage::url($record->file_path))
                     ->openUrlInNewTab(),
 
                 Tables\Actions\EditAction::make()

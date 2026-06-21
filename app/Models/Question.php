@@ -8,14 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
-use Illuminate\Support\Str;
 
 class Question extends Model implements Sortable
 {
     use HasFactory;
     use SortableTrait;
 
-    
     public $sortable = [
         'order_column_name' => 'order',
         'sort_when_creating' => true,

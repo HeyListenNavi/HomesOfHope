@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('evidence', function (Blueprint $table) { // O 'evidences'
             $table->id();
             $table->foreignId('visit_id')->constrained('visits')->cascadeOnDelete();
-            $table->string('file_path'); 
+            $table->string('file_path');
             $table->foreignId('taken_by')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });

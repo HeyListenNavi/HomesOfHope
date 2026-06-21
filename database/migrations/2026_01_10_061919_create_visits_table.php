@@ -13,8 +13,8 @@ return new class extends Migration
 
             $table->foreignId('family_profile_id')->constrained('family_profiles')->cascadeOnDelete();
             $table->foreignId('attended_by')->constrained('users');
-            $table->string('status')->default('scheduled')->index(); //scheduled, completed, canceled, rescheduled
-            $table->dateTime('scheduled_at'); 
+            $table->string('status')->default('scheduled')->index(); // scheduled, completed, canceled, rescheduled
+            $table->dateTime('scheduled_at');
             $table->dateTime('completed_at')->nullable();
             $table->string('location_type')->nullable(); // 'current_address', 'construction_site', 'office', 'other'
             $table->text('outcome_summary')->nullable();

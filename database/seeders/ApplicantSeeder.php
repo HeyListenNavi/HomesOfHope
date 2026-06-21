@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Applicant;
-use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
+use App\Models\Question;
+use Illuminate\Database\Seeder;
 
 class ApplicantSeeder extends Seeder
 {

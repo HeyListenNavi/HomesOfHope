@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Note;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Note>
+ * @extends Factory<Note>
  */
 class NoteFactory extends Factory
 {
@@ -14,7 +15,7 @@ class NoteFactory extends Factory
     {
         return [
             'content' => fake()->paragraph(),
-            'user_id' => User::factory(), 
+            'user_id' => User::factory(),
         ];
     }
 }

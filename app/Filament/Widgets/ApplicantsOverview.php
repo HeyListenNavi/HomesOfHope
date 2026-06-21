@@ -20,7 +20,7 @@ class ApplicantsOverview extends BaseWidget
             ->toArray();
 
         // Helpers para sumar rápido (evita errores si el índice no existe)
-        $get = fn($status) => $counts[$status] ?? 0;
+        $get = fn ($status) => $counts[$status] ?? 0;
 
         $approvedIA = $get('approved');
         $approvedStaff = $get('staff_approved');

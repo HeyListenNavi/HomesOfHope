@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -116,14 +116,14 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         $adminEmails = [
-            "admin@admin.com",
-            "mario.borda@ywamsdb.org",
-            "montserrat.gonzalez@ywamsdb.org"
+            'admin@admin.com',
+            'mario.borda@ywamsdb.org',
+            'montserrat.gonzalez@ywamsdb.org',
         ];
 
-        $users = User::whereIn("email", $adminEmails )->get();
+        $users = User::whereIn('email', $adminEmails)->get();
 
-        foreach( $users as $user ){
+        foreach ($users as $user) {
             $user->assignRole($admin);
         }
     }

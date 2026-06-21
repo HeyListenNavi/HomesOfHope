@@ -9,13 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('family_members', function (Blueprint $table) {
-            $table->id();            
+            $table->id();
             $table->foreignId('family_profile_id')->constrained('family_profiles')->cascadeOnDelete();
             $table->string('name');
             $table->string('paternal_surname');
             $table->string('maternal_surname')->nullable();
             $table->date('birth_date');
-            $table->string('curp')->unique()->nullable(); 
+            $table->string('curp')->unique()->nullable();
             $table->string('relationship'); // Ej: padre, madre, hijo, etc.
             $table->boolean('is_responsible')->default(false);
             $table->boolean('is_land_owner')->default(false);

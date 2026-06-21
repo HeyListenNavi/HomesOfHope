@@ -12,7 +12,7 @@ class TaskSeeder extends Seeder
     public function run(): void
     {
         $user = User::first() ?? User::factory()->create();
-        
+
         // Agarramos todas las visitas
         $visits = Visit::all();
 

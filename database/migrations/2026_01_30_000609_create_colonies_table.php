@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('colonies', function (Blueprint $table) {
             $table->id();
-            $table->string("city");
+            $table->string('city');
             $table->string('name')->unique();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

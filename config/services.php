@@ -38,5 +38,5 @@ return [
         'key' => env('WHATSAPP_KEY'),
         'url' => env('WHATSAPP_URL'),
         'number' => env('WHATSAPP_NUMBER'),
-    ]
+    ],
 ];

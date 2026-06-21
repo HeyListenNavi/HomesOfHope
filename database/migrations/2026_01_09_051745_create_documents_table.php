@@ -13,10 +13,10 @@ return new class extends Migration
             $table->morphs('documentable');
             $table->string('document_type')->index(); // Ej: 'ine', 'contract', 'proof_of_address'
             $table->string('original_name');
-            $table->string('file_path'); 
+            $table->string('file_path');
             $table->string('mime_type')->nullable();
             $table->unsignedBigInteger('size')->comment('Size in bytes');
-            $table->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete(); 
+            $table->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });
     }

@@ -7,16 +7,19 @@ use App\Models\Stage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
 class StageResource extends Resource
 {
     protected static ?string $model = Stage::class;
+
     protected static ?string $modelLabel = 'Etapa';
+
     protected static ?string $pluralModelLabel = 'Etapas';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -79,7 +82,7 @@ class StageResource extends Resource
                     ]),
 
                 Forms\Components\Section::make('Cuestionario de la Etapa')
-                    ->description('Añade, elimina y reordena las preguntas que conformarán esta etapa.')                    ->icon('heroicon-m-question-mark-circle')
+                    ->description('Añade, elimina y reordena las preguntas que conformarán esta etapa.')->icon('heroicon-m-question-mark-circle')
                     ->schema([
                         Forms\Components\Repeater::make('questions')
                             ->relationship('questions')
@@ -106,7 +109,7 @@ class StageResource extends Resource
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
             ->defaultSort('order', 'asc')
-            ->reorderable('order') 
+            ->reorderable('order')
             ->columns([
                 TextColumn::make('order')
                     ->label('#')

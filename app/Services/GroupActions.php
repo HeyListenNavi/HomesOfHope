@@ -3,28 +3,26 @@
 namespace App\Services;
 
 use App\Models\Group;
-use App\Services\WhatsappApiNotificationService;
 use Illuminate\Support\Facades\Log;
-
 
 class GroupActions
 {
     /**
      * Envía un mensaje personalizado a todos los aplicantes de un grupo específico.
      *
-     * @param Group $group El grupo de destino.
-     * @param string $message El mensaje a enviar.
-     * @return void
+     * @param  Group  $group  El grupo de destino.
+     * @param  string  $message  El mensaje a enviar.
      */
     public static function sendCustomMessageToGroup(Group $group, string $message): void
     {
         Log::info("Enviando mensaje personalizado a todos los aplicantes del grupo con ID {$group->id}.");
-        $notificationService = new WhatsappApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService;
 
         $applicants = $group->applicants;
 
         if ($applicants->isEmpty()) {
             Log::warning("No se encontraron aplicantes en el grupo con ID {$group->id}.");
+
             return;
         }
 
@@ -32,20 +30,19 @@ class GroupActions
             $notificationService->sendCustomMessage($applicant, $message);
         }
 
-        Log::info("Mensaje personalizado enviado a los " . $applicants->count() . " aplicantes del grupo {$group->name}.");
+        Log::info('Mensaje personalizado enviado a los '.$applicants->count()." aplicantes del grupo {$group->name}.");
     }
 
     /**
      * Reenvía el mensaje de bienvenida del grupo a todos sus aplicantes.
      * El mensaje se obtiene del campo 'message' del modelo Group.
      *
-     * @param Group $group El grupo de destino.
-     * @return void
+     * @param  Group  $group  El grupo de destino.
      */
     public static function reSendGroupMessage(Group $group): void
     {
         Log::info("Reenviando el mensaje del grupo con ID {$group->id} a todos sus aplicantes.");
-        $notificationService = new WhatsappApiNotificationService();
+        $notificationService = new WhatsappApiNotificationService;
 
         /* $groupMessage = $group->message;
 
@@ -58,6 +55,7 @@ class GroupActions
 
         if ($applicants->isEmpty()) {
             Log::warning("No se encontraron aplicantes en el grupo con ID {$group->id}.");
+
             return;
         }
 
@@ -65,6 +63,6 @@ class GroupActions
             $notificationService->sendSuccessInfo($applicant);
         }
 
-        Log::info("Mensaje del grupo reenviado a los " . $applicants->count() . " aplicantes del grupo {$group->name}.");
+        Log::info('Mensaje del grupo reenviado a los '.$applicants->count()." aplicantes del grupo {$group->name}.");
     }
 }

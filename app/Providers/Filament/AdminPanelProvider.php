@@ -2,8 +2,10 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Widgets\ApplicantsChart;
+use App\Filament\Widgets\ApplicantsList;
 use App\Filament\Widgets\ApplicantsOverview;
+use App\Filament\Widgets\MonthlyApplicantsChart;
+use App\Filament\Widgets\TotalApplicantsChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -12,18 +14,12 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Filament\Widgets\ApplicantChart;
-use App\Filament\Widgets\ApplicantsList;
-use App\Filament\Widgets\MonthlyApplicantsChart;
-use App\Filament\Widgets\TotalApplicantsChart;
-use Spatie\Color\Hex;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::hex("#61b346"),
+                'primary' => Color::hex('#61b346'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

@@ -13,8 +13,8 @@ return new class extends Migration
 
             // Relación con el Perfil Familiar
             $table->foreignId('family_profile_id')
-                  ->constrained('family_profiles')
-                  ->cascadeOnDelete();
+                ->constrained('family_profiles')
+                ->cascadeOnDelete();
 
             // Idioma del testimonio: 'es', 'en', etc.
             $table->string('language')->default('es');
@@ -28,8 +28,8 @@ return new class extends Migration
 
             // Metadatos de grabación
             $table->foreignId('recorded_by')
-                  ->constrained('users'); // Staff que grabó
-            
+                ->constrained('users'); // Staff que grabó
+
             $table->dateTime('recorded_at'); // Cuándo sucedió (puede ser diferente al created_at)
 
             $table->timestamps();

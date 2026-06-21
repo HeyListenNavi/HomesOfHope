@@ -22,7 +22,7 @@ class DocumentSeeder extends Seeder
                 'documentable_id' => $profile->id,
                 'documentable_type' => FamilyProfile::class,
                 'uploaded_by' => $user->id,
-                'document_type' => 'proof_of_address'
+                'document_type' => 'proof_of_address',
             ]);
         }
 
@@ -33,7 +33,7 @@ class DocumentSeeder extends Seeder
                 'documentable_id' => $member->id,
                 'documentable_type' => FamilyMember::class,
                 'uploaded_by' => $user->id,
-                'document_type' => 'ine'
+                'document_type' => 'ine',
             ]);
         }
     }
