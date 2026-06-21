@@ -31,11 +31,13 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400" x-text="applicant.city"></p>
                             </div>
                             <div class="mt-2 flex gap-2">
-                                <a :href="applicant.url" class="text-xs font-medium text-primary-600 hover:underline">
-                                    Ver Perfil
-                                </a>
+                                <template x-if="applicant.url">
+                                    <a :href="applicant.url" target="_blank" rel="noopener noreferrer" class="text-xs font-medium text-primary-600 hover:underline">
+                                        Ver Perfil
+                                    </a>
+                                </template>
                                 <template x-if="applicant.map_url">
-                                    <a :href="applicant.map_url" target="_blank" class="text-xs font-medium text-gray-600 hover:underline flex items-center gap-1">
+                                    <a :href="applicant.map_url" target="_blank" rel="noopener noreferrer" class="text-xs font-medium text-gray-600 hover:underline flex items-center gap-1">
                                         <x-heroicon-m-map-pin class="w-3 h-3" />
                                         Ver en Mapa
                                     </a>

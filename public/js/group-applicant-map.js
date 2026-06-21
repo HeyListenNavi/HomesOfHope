@@ -47,12 +47,12 @@ document.addEventListener("alpine:init", () => {
                         <h4 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px; color: #111827;">${point.name}</h4>
                         <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280;">${point.city}</p>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <a href="${point.url}" 
+                            <a href="${point.url}" target="_blank" rel="noopener noreferrer" 
                                style="display: block; background-color: #61b346; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 500; text-align: center;">
                                Ver Perfil
                             </a>
                             ${point.map_url ? `
-                                <a href="${point.map_url}" target="_blank"
+                                <a href="${point.map_url}" target="_blank" rel="noopener noreferrer"
                                    style="display: block; background-color: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 500; text-align: center; border: 1px solid #d1d5db;">
                                    Abrir en Maps
                                 </a>

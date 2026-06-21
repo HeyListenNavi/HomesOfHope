@@ -491,6 +491,7 @@ class ApplicantResource extends Resource
             ->paginated([25, 50, 100])
             ->defaultSort('created_at', 'desc')
             ->columns($columns)
+            ->openRecordUrlInNewTab()
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')
                     ->label('Filtrar por Estatus')
