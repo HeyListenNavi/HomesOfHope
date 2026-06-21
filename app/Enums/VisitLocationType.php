@@ -9,14 +9,14 @@ use Filament\Support\Contracts\HasLabel;
 enum VisitLocationType: string implements HasColor, HasIcon, HasLabel
 {
     case Home = 'home';
-    case Office = 'office';
+    case Land = 'land';
     case Virtual = 'virtual';
 
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Home => 'Terreno',
-            self::Office => 'Oficina',
+            self::Home => 'Casa',
+            self::Land => 'Terreno',
             self::Virtual => 'Virtual',
         };
     }
@@ -25,7 +25,7 @@ enum VisitLocationType: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Home => 'success',
-            self::Office => 'info',
+            self::Land => 'info',
             self::Virtual => 'warning',
         };
     }
@@ -34,7 +34,7 @@ enum VisitLocationType: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Home => 'heroicon-s-home',
-            self::Office => 'heroicon-s-building-office',
+            self::Land => 'heroicon-s-building-office',
             self::Virtual => 'heroicon-s-phone',
         };
     }

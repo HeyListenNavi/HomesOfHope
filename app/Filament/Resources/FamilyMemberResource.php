@@ -77,7 +77,6 @@ class FamilyMemberResource extends Resource
                                             ->maxLength(18)
                                             ->prefixIcon('heroicon-s-finger-print')
                                             ->placeholder('CURP')
-                                            ->required()
                                             ->formatStateUsing(fn (?string $state) => strtoupper($state)),
 
                                         Forms\Components\Select::make('occupation')
@@ -210,7 +209,6 @@ class FamilyMemberResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('phone')
                                     ->label('Teléfono (WhatsApp)')
-                                    ->required()
                                     ->prefixIcon('heroicon-s-chat-bubble-left-right'),
                             ]),
                     ])

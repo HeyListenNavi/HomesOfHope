@@ -6,8 +6,10 @@ use App\Enums\VisitLocationType;
 use App\Enums\VisitStatus;
 use App\Filament\Resources\VisitResource\Pages;
 use App\Filament\Resources\VisitResource\RelationManagers;
+use App\Models\FamilyProfile;
 use App\Models\Visit;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,6 +17,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 
 class VisitResource extends Resource
 {
@@ -49,16 +52,121 @@ class VisitResource extends Resource
                                             ->label('Familia a visitar')
                                             ->searchable()
                                             ->preload()
-                                            ->default(fn () => request('family_profile_id')) // Mantiene la magia del botón "Agendar"
+                                            ->live()
+                                            ->default(fn () => request('family_profile_id'))
                                             ->required()
-                                            ->prefixIcon('heroicon-s-users'),
+                                            ->prefixIcon('heroicon-s-users')
+                                            ->suffixAction(
+                                                Action::make('open_family_profile')
+                                                    ->icon('heroicon-m-arrow-top-right-on-square')
+                                                    ->url(fn ($state): string => $state ? route('filament.admin.resources.family-profiles.edit', $state) : '#')
+                                                    ->openUrlInNewTab()
+                                                    ->hidden(fn ($state): bool => blank($state)),
+                                            ),
 
                                         ToggleButtons::make('location_type')
                                             ->label('Lugar')
                                             ->options(VisitLocationType::class)
                                             ->inline()
+                                            ->live()
                                             ->required(),
                                     ]),
+
+                                Forms\Components\Section::make('Datos de la Familia')
+                                    ->icon('heroicon-s-information-circle')
+                                    ->schema(function (Forms\Get $get): array {
+                                        $familyProfileId = $get('family_profile_id');
+                                        $locationType = $get('location_type');
+
+                                        if (! $familyProfileId || ! $locationType) {
+                                            return [
+                                                Forms\Components\Placeholder::make('select_hint')
+                                                    ->label('')
+                                                    ->content('Selecciona una familia y un lugar para ver los datos.'),
+                                            ];
+                                        }
+
+                                        $profile = FamilyProfile::find($familyProfileId);
+
+                                        if (! $profile) {
+                                            return [
+                                                Forms\Components\Placeholder::make('not_found')
+                                                    ->label('')
+                                                    ->content('Familia no encontrada.'),
+                                            ];
+                                        }
+
+                                        $profile->load('responsibleMember');
+                                        $contact = $profile->responsibleMember;
+
+                                        return match ($locationType) {
+                                            VisitLocationType::Land->value => [
+                                                Forms\Components\Grid::make(3)
+                                                    ->schema([
+                                                        Forms\Components\Placeholder::make('land_city')
+                                                            ->label('Ciudad')
+                                                            ->content($profile->land_city ?? '-'),
+
+                                                        Forms\Components\Placeholder::make('land_colony')
+                                                            ->label('Colonia')
+                                                            ->content($profile->land_colony ?? '-'),
+
+                                                        Forms\Components\Placeholder::make('land_address')
+                                                            ->label('Dirección Exacta')
+                                                            ->content($profile->land_address ?? '-'),
+
+                                                        Forms\Components\Placeholder::make('action_link')
+                                                            ->label('Mapa')
+                                                            ->content($profile->land_address_link
+                                                                ? new HtmlString('<a href="'.$profile->land_address_link.'" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">'.'Abrir en Mapa'.'</a>')
+                                                                : '-'),
+                                                    ]),
+                                            ],
+                                            VisitLocationType::Home->value => [
+                                                Forms\Components\Grid::make(3)
+                                                    ->schema([
+                                                        Forms\Components\Placeholder::make('home_city')
+                                                            ->label('Ciudad')
+                                                            ->content($profile->home_city ?? '-'),
+
+                                                        Forms\Components\Placeholder::make('home_colony')
+                                                            ->label('Colonia')
+                                                            ->content($profile->home_colony ?? '-'),
+
+                                                        Forms\Components\Placeholder::make('home_address')
+                                                            ->label('Dirección Exacta')
+                                                            ->content($profile->home_address ?? '-'),
+
+                                                        Forms\Components\Placeholder::make('action_link')
+                                                            ->label('Mapa')
+                                                            ->content($profile->home_address_link
+                                                                ? new HtmlString('<a href="'.$profile->home_address_link.'" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">'.'Abrir en Mapa'.'</a>')
+                                                                : '-'),
+                                                    ]),
+                                            ],
+                                            VisitLocationType::Virtual->value => [
+                                                Forms\Components\Grid::make(2)
+                                                    ->schema([
+                                                        Forms\Components\Placeholder::make('contact_name')
+                                                            ->label('Nombre del Aplicante')
+                                                            ->content($contact
+                                                                ? $contact->name.' '.$contact->paternal_surname.' '.$contact->maternal_surname
+                                                                : '-'),
+
+                                                        Forms\Components\Placeholder::make('contact_phone')
+                                                            ->label('Teléfono')
+                                                            ->content($contact
+                                                                ? new HtmlString('<a href="https://wa.me/'.preg_replace('/[^0-9]/', '', $contact->phone).'" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">'.$contact->phone.'</a>')
+                                                                : '-'),
+                                                    ]),
+                                            ],
+                                            default => [
+                                                Forms\Components\Placeholder::make('not_found')
+                                                    ->label('')
+                                                    ->content('Familia no encontrada.'),
+                                            ]
+                                        };
+                                    }),
 
                                 Forms\Components\Section::make('Notas para quien Visita')
                                     ->description('Instrucciones o contexto para la persona que realizará la visita.')
