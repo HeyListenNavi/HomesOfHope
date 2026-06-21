@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\VisitLocationType;
 use App\Enums\VisitStatus;
+use Database\Factories\VisitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Visit extends Model
 {
-    /** @use HasFactory<\Database\Factories\VisitFactory> */
+    /** @use HasFactory<VisitFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -26,6 +28,7 @@ class Visit extends Model
 
     protected $casts = [
         'status' => VisitStatus::class,
+        'location_type' => VisitLocationType::class,
         'scheduled_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

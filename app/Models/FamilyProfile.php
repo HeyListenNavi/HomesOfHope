@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
@@ -47,6 +48,7 @@ class FamilyProfile extends Model
         'home_monthly_rent_currency',
         'home_has_receipts',
         'house_description',
+        'condition_level',
         'responsible_member_id',
         'opened_at',
         'closed_at',
@@ -70,6 +72,7 @@ class FamilyProfile extends Model
         'status' => FamilyStatus::class,
         'home_status' => HousingStatus::class,
         'home_monthly_rent_currency' => Currency::class,
+        'condition_level' => ConditionLevel::class,
     ];
 
     protected static function booted()
@@ -136,6 +139,6 @@ class FamilyProfile extends Model
      */
     public function notes(): MorphMany
     {
-        return $this->morphMany(Note::class, 'notable');
+        return $this->morphMany(Note::class, 'noteable');
     }
 }

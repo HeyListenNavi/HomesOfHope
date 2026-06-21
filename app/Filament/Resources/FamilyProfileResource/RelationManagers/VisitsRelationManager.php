@@ -36,18 +36,6 @@ class VisitsRelationManager extends RelationManager
 
                 Tables\Columns\IconColumn::make('location_type')
                     ->label('Tipo')
-                    ->icon(fn (string $state): string => match ($state) {
-                        'home' => 'heroicon-s-home',
-                        'office' => 'heroicon-s-building-office',
-                        'virtual' => 'heroicon-s-video-camera',
-                        default => 'heroicon-s-map-pin',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'home' => 'success',
-                        'office' => 'info',
-                        'virtual' => 'warning',
-                        default => 'gray',
-                    })
                     ->tooltip('Modalidad'),
 
                 Tables\Columns\TextColumn::make('status')

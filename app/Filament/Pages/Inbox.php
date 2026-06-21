@@ -2,15 +2,14 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Resources\ApplicantResource;
 use App\Models\Applicant;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Support\Enums\FontFamily;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -31,7 +30,7 @@ class Inbox extends Page implements HasTable
 
     public static function getNavigationBadge(): ?string
     {
-        return Applicant::where('process_status', 'requires_revision')->count() ?: null;
+        return Applicant::where('process_status', ApplicantStatus::RequiresRevision)->count() ?: null;
     }
 
     public function table(Table $table): Table
@@ -39,7 +38,7 @@ class Inbox extends Page implements HasTable
         return $table
             ->query(
                 Applicant::query()
-                    ->where('process_status', 'requires_revision')
+                    ->where('process_status', ApplicantStatus::RequiresRevision)
                     ->latest('updated_at')
             )
             ->columns([
@@ -51,10 +50,13 @@ class Inbox extends Page implements HasTable
                     ->label('Número de Telefono')
                     ->icon('heroicon-m-chat-bubble-left-right')
                     ->formatStateUsing(function ($state) {
-                        if (!$state) return '-';
+                        if (! $state) {
+                            return '-';
+                        }
+
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
-                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->url(fn ($state) => 'https://wa.me/'.$state)
                     ->openUrlInNewTab()
                     ->searchable(),
 
@@ -80,7 +82,7 @@ class Inbox extends Page implements HasTable
                     ->modalHeading('Confirmar Revisión')
                     ->modalDescription('El aplicante volverá al estado "En Progreso" y saldrá de esta bandeja.')
                     ->action(function (Applicant $record) {
-                        $record->update(['process_status' => 'in_progress']);
+                        $record->update(['process_status' => ApplicantStatus::InProgress]);
 
                         Notification::make()
                             ->title('Aplicante Procesado')
@@ -96,12 +98,12 @@ class Inbox extends Page implements HasTable
                         ->color('success')
                         ->requiresConfirmation()
                         ->action(function (Collection $records) {
-                            $records->each->update(['process_status' => 'in_progress']);
+                            $records->each->update(['process_status' => ApplicantStatus::InProgress]);
                             Notification::make()->title('Aplicantes procesados')->success()->send();
                         }),
                 ]),
             ])
-            ->recordUrl(fn($record) => ApplicantResource::getUrl('view', ['record' => $record]))
+            ->recordUrl(fn ($record) => ApplicantResource::getUrl('view', ['record' => $record]))
             ->emptyStateHeading('¡Todo al día!')
             ->emptyStateDescription('No hay aplicantes que requieran revisión manual por el momento.')
             ->emptyStateIcon('heroicon-o-check-badge');

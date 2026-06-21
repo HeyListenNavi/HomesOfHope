@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ApplicantGender;
+use App\Enums\ApplicantStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
-use App\Models\Stage;
-use App\Models\Question;
 use App\Models\ApplicantQuestionResponse;
+use App\Models\Question;
+use App\Models\Stage;
 use App\Services\GroupAssignmentService;
+use App\Services\WhatsappApiNotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Services\WhatsappApiNotificationService;
-
-
 
 /**
  * Clase controladora para gestionar el flujo de evaluación de los solicitantes a través del bot.
@@ -31,8 +32,7 @@ class BotApplicantController extends Controller
     /**
      * Inicia el proceso de evaluación para un nuevo solicitante.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function startEvaluation(Request $request)
     {
@@ -44,7 +44,7 @@ class BotApplicantController extends Controller
         $firstStage = Stage::orderBy('order')->first();
         $firstQuestion = $firstStage ? $firstStage->questions()->orderBy('order')->first() : null;
 
-        if (!$firstStage || !$firstQuestion) {
+        if (! $firstStage || ! $firstQuestion) {
             return response()->json(['error' => 'No hay etapas o preguntas configuradas.'], 404);
         }
 
@@ -52,7 +52,7 @@ class BotApplicantController extends Controller
             'chat_id' => $validated['chat_id'],
             'current_stage_id' => $firstStage->id,
             'current_question_id' => $firstQuestion->id,
-            'process_status' => 'in_progress',
+            'process_status' => ApplicantStatus::InProgress,
         ]);
 
         // Crea un registro de respuesta vacío para todas las preguntas para el historial
@@ -78,9 +78,8 @@ class BotApplicantController extends Controller
     /**
      * Procesa la respuesta de un usuario a una pregunta.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param string $chatId El ID del chat del solicitante.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $chatId  El ID del chat del solicitante.
+     * @return JsonResponse
      */
     public function submitAnswer(Request $request, string $chatId)
     {
@@ -92,11 +91,11 @@ class BotApplicantController extends Controller
         ]);
 
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->firstOrFail();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->firstOrFail();
 
         $question = Question::find($validated['question_id']);
-        if (!$question) {
+        if (! $question) {
             return response()->json(['error' => 'La pregunta no fue encontrada.'], 404);
         }
 
@@ -115,23 +114,23 @@ class BotApplicantController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.'
+            'message' => 'Respuesta guardada. Continúa con la siguiente pregunta o llama al endpoint de evaluación de etapa.',
         ]);
     }
 
     /**
      * Obtiene la siguiente pregunta en el flujo de evaluación.
      *
-     * @param string $chatId El ID del chat del solicitante.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $chatId  El ID del chat del solicitante.
+     * @return JsonResponse
      */
     public function getNextQuestion(string $chatId)
     {
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->first();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->first();
 
-        if (!$applicant) {
+        if (! $applicant) {
             return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'], 404);
         }
 
@@ -139,7 +138,7 @@ class BotApplicantController extends Controller
         $currentQuestion = $applicant->currentQuestion;
         $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
 
-        if (!$nextQuestion) {
+        if (! $nextQuestion) {
             // Se debe decidir la aprobación de la etapa
             return response()->json([
                 'status' => 'waiting_for_approval',
@@ -163,8 +162,7 @@ class BotApplicantController extends Controller
      * Nuevo método para recibir la decisión de la IA desde n8n
      * y avanzar a la siguiente etapa o finalizar el proceso.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function handleStageApproval(Request $request)
     {
@@ -173,21 +171,22 @@ class BotApplicantController extends Controller
         ]);
 
         $applicant = Applicant::where('chat_id', $validated['chat_id'])
-                             ->where('process_status', 'in_progress')
-                             ->firstOrFail();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->firstOrFail();
 
         $responses = $applicant->responses()
-                               ->whereIn('question_id', $applicant->currentStage->questions->pluck('id'))
-                               ->get();
+            ->whereIn('question_id', $applicant->currentStage->questions->pluck('id'))
+            ->get();
 
         $rejectionFound = $responses->contains('ai_decision', 'not_valid');
         $supervisionNeeded = $responses->contains('ai_decision', 'requires_supervision');
 
         if ($rejectionFound) {
             $applicant->update([
-                'process_status' => 'rejected',
-                'rejection_reason' => $applicant->currentStage->rejection_message ?? 'Rechazado automáticamente por no cumplir con los criterios de la etapa.'
+                'process_status' => ApplicantStatus::Rejected,
+                'rejection_reason' => $applicant->currentStage->rejection_message ?? 'Rechazado automáticamente por no cumplir con los criterios de la etapa.',
             ]);
+
             return response()->json([
                 'status' => 'stage_rejected',
                 'message' => $applicant->currentStage->rejection_message ?? 'Tu solicitud ha sido rechazada.',
@@ -195,8 +194,9 @@ class BotApplicantController extends Controller
             ]);
         } elseif ($supervisionNeeded) {
             $applicant->update([
-                'process_status' => 'requires_revision',
+                'process_status' => ApplicantStatus::RequiresRevision,
             ]);
+
             return response()->json([
                 'status' => 'requires_supervision',
                 'message' => $applicant->currentStage->requires_evaluatio_message ?? 'Tu solicitud requiere supervisión humana.',
@@ -211,6 +211,7 @@ class BotApplicantController extends Controller
                     'current_stage_id' => $nextStage->id,
                     'current_question_id' => $firstQuestionOfNextStage->id,
                 ]);
+
                 return response()->json([
                     'status' => 'stage_approved',
                     'message' => $applicant->currentStage->approval_message ?? 'Has pasado a la siguiente etapa.',
@@ -218,11 +219,11 @@ class BotApplicantController extends Controller
                 ]);
             } else {
                 $applicant->update([
-                    'process_status' => 'approved',
+                    'process_status' => ApplicantStatus::Approved,
                     'confirmation_status' => 'pending',
                 ]);
 
-                $notificationService = new WhatsappApiNotificationService();
+                $notificationService = new WhatsappApiNotificationService;
                 $notificationService->sendGroupSelectionLink($applicant);
 
                 return response()->json([
@@ -237,14 +238,14 @@ class BotApplicantController extends Controller
     /**
      * Obtiene los datos de la etapa para ser enviados a la IA para su evaluación.
      *
-     * @param string $chatId El ID del chat del solicitante.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $chatId  El ID del chat del solicitante.
+     * @return JsonResponse
      */
     public function getStageDataForAi(string $chatId)
     {
         $applicant = Applicant::where('chat_id', $chatId)
-                              ->where('process_status', 'in_progress')
-                              ->firstOrFail();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->firstOrFail();
 
         $currentStage = $applicant->currentStage;
 
@@ -252,7 +253,7 @@ class BotApplicantController extends Controller
             'stage_id' => $currentStage->id,
             'stage_name' => $currentStage->name,
             'approval_criteria' => $currentStage->approval_criteria,
-            'questions' => []
+            'questions' => [],
         ];
 
         $questionsInStage = $currentStage->questions()->get();
@@ -264,36 +265,38 @@ class BotApplicantController extends Controller
                 'question_key' => $question->key,
                 'question_text' => $question->question_text,
                 'user_response' => $userResponse ? $userResponse->user_response : 'Sin respuesta',
-                'approval_criteria' => $question->approval_criteria
+                'approval_criteria' => $question->approval_criteria,
             ];
         }
 
         return response()->json($stageData);
     }
 
-    public function applicantCurrentStatus( $chatId ){
-        $applicant = Applicant::where("chat_id", $chatId)->first();
+    public function applicantCurrentStatus($chatId)
+    {
+        $applicant = Applicant::where('chat_id', $chatId)->first();
 
-        if (!$applicant) {
+        if (! $applicant) {
             return response()->json(['error' => 'Solicitante no encontrado.'], 404);
         }
 
         return response()->json([
-            "applicant_name" => $applicant->applicant_name,
-            "current_stage" => $applicant->current_stage_id,
-            "status" => $applicant->process_status,
-            "current_question" => [
-                "question_id" => $applicant->currentQuestion->id,
-                "question_text" => $applicant->currentQuestion->question_text,
-                "question_criteria" => $applicant->currentQuestion->approval_criteria,
+            'applicant_name' => $applicant->applicant_name,
+            'current_stage' => $applicant->current_stage_id,
+            'status' => $applicant->process_status,
+            'current_question' => [
+                'question_id' => $applicant->currentQuestion->id,
+                'question_text' => $applicant->currentQuestion->question_text,
+                'question_criteria' => $applicant->currentQuestion->approval_criteria,
             ],
         ]);
     }
 
-    public function currentStageQuestions( $stageId ){
+    public function currentStageQuestions($stageId)
+    {
         $stage = Stage::find($stageId);
 
-        if (!$stage) {
+        if (! $stage) {
             return response()->json(['error' => 'Etapa no encontrada.'], 404);
         }
 
@@ -302,24 +305,25 @@ class BotApplicantController extends Controller
         return response()->json($questions);
     }
 
-    public function sendInitialData( Request $request ){
+    public function sendInitialData(Request $request)
+    {
         $validated = $request->validate([
-            "chat_id" => "required|string",
-            "applicant_name" => "required|string",
-            "curp" => "required|string",
-            "gender" => "required|string",
+            'chat_id' => 'required|string',
+            'applicant_name' => 'required|string',
+            'curp' => 'required|string',
+            'gender' => ['required', Rule::enum(ApplicantGender::class)],
         ]);
 
-        $applicant = Applicant::where("chat_id", $validated["chat_id"])->first();
+        $applicant = Applicant::where('chat_id', $validated['chat_id'])->first();
 
-        if (!$applicant) {
+        if (! $applicant) {
             return response()->json(['error' => 'Solicitante no encontrado.'], 404);
         }
 
         $applicant->update([
-            "curp" => $validated["curp"],
-            "applicant_name" => $validated["applicant_name"], // Corregido
-            "gender" => $validated["gender"],
+            'curp' => $validated['curp'],
+            'applicant_name' => $validated['applicant_name'], // Corregido
+            'gender' => $validated['gender'],
         ]);
 
         $applicant->conversation->update([
@@ -329,7 +333,8 @@ class BotApplicantController extends Controller
         return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);
     }
 
-    public function updateAnswer( Request $request ){
+    public function updateAnswer(Request $request)
+    {
         $request->validate([
             'chat_id' => 'required|integer',
             'question_id' => 'required|integer',
@@ -338,15 +343,15 @@ class BotApplicantController extends Controller
 
         $applicant = Applicant::where('chat_id', $request->input('chat_id'))->first();
 
-        if (!$applicant) {
+        if (! $applicant) {
             return response()->json(['error' => 'No se encontró al solicitante con ese chat_id.'], 404);
         }
 
         $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
-                                             ->where('question_id', $request->input('question_id'))
-                                             ->first();
+            ->where('question_id', $request->input('question_id'))
+            ->first();
 
-        if (!$response) {
+        if (! $response) {
             return response()->json(['error' => 'No se encontró una respuesta para esa pregunta.'], 404);
         }
 
@@ -356,4 +361,3 @@ class BotApplicantController extends Controller
         return response()->json(['message' => 'Respuesta actualizada exitosamente.'], 200);
     }
 }
-

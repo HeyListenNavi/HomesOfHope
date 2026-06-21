@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\ApplicantResource\RelationManagers;
 
+use App\Enums\MessageRole;
 use App\Models\Message;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 class ConversationRelationManager extends RelationManager
 {
@@ -42,10 +42,6 @@ class ConversationRelationManager extends RelationManager
                     ->schema([
                         Forms\Components\Select::make('role')
                             ->label('Emisor')
-                            ->options([
-                                'user' => 'Usuario (Aplicante)',
-                                'assistant' => 'Bot (Sistema)',
-                            ])
                             ->required()
                             ->native(false),
 
@@ -56,7 +52,7 @@ class ConversationRelationManager extends RelationManager
                             ->autosize()
                             ->columnSpanFull()
                             ->maxLength(65535),
-                    ])
+                    ]),
             ]);
     }
 
@@ -64,29 +60,15 @@ class ConversationRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('message')
-            ->defaultSort('created_at', 'desc') 
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 IconColumn::make('role')
                     ->label('Rol')
-                    ->icon(fn (string $state): string => match ($state) {
-                        'user' => 'heroicon-m-user',
-                        'assistant' => 'heroicon-m-cpu-chip', 
-                        default => 'heroicon-m-question-mark-circle',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'user' => 'info',
-                        'assistant' => 'primary',
-                        default => 'gray',
-                    })
-                    ->tooltip(fn (string $state): string => match ($state) {
-                        'user' => 'Enviado por el Usuario',
-                        'assistant' => 'Respuesta del Bot',
-                        default => $state,
-                    }),
+                    ->tooltip(fn (MessageRole $state): string => $state->getLabel()),
 
                 TextColumn::make('message')
                     ->label('Mensaje')
-                    ->color(fn (Message $record) => $record->role === 'assistant' ? 'gray' : 'black')
+                    ->color(fn (Message $record) => $record->role === MessageRole::Assistant ? 'gray' : 'black')
                     ->limit(150)
                     ->wrap()
                     ->searchable()
@@ -94,11 +76,7 @@ class ConversationRelationManager extends RelationManager
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
-                    ->label('Filtrar por Emisor')
-                    ->options([
-                        'user' => 'Usuario',
-                        'assistant' => 'Bot',
-                    ]),
+                    ->label('Filtrar por Emisor'),
             ])
             ->headerActions([
                 //
@@ -108,13 +86,12 @@ class ConversationRelationManager extends RelationManager
                     Tables\Actions\ViewAction::make()
                         ->modalHeading(''),
                 ])
-                ->color('gray'),
+                    ->color('gray'),
             ])
             ->bulkActions([
                 //
             ])
             ->emptyStateHeading('Sin mensajes')
-            ->emptyStateDescription('No se ha iniciado ninguna conversación con este aplicante.')
             ->emptyStateIcon('heroicon-o-chat-bubble-left-ellipsis');
     }
 }

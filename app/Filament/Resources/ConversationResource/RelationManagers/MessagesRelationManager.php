@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ConversationResource\RelationManagers;
 
+use App\Enums\MessageRole;
 use App\Models\Message;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -25,10 +26,6 @@ class MessagesRelationManager extends RelationManager
                     ->schema([
                         Forms\Components\Select::make('role')
                             ->label('Emisor')
-                            ->options([
-                                'user' => 'Usuario (Aplicante)',
-                                'assistant' => 'Bot (Sistema)',
-                            ])
                             ->required()
                             ->native(false),
 
@@ -39,7 +36,7 @@ class MessagesRelationManager extends RelationManager
                             ->autosize()
                             ->columnSpanFull()
                             ->maxLength(65535),
-                    ])
+                    ]),
             ]);
     }
 
@@ -47,29 +44,15 @@ class MessagesRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('message')
-            ->defaultSort('created_at', 'desc') 
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 IconColumn::make('role')
                     ->label('Rol')
-                    ->icon(fn (string $state): string => match ($state) {
-                        'user' => 'heroicon-m-user',
-                        'assistant' => 'heroicon-m-cpu-chip', 
-                        default => 'heroicon-m-question-mark-circle',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'user' => 'info',
-                        'assistant' => 'primary',
-                        default => 'gray',
-                    })
-                    ->tooltip(fn (string $state): string => match ($state) {
-                        'user' => 'Enviado por el Usuario',
-                        'assistant' => 'Respuesta del Bot',
-                        default => $state,
-                    }),
+                    ->tooltip(fn (MessageRole $state): string => $state->getLabel()),
 
                 TextColumn::make('message')
                     ->label('Mensaje')
-                    ->color(fn (Message $record) => $record->role === 'assistant' ? 'gray' : 'black')
+                    ->color(fn (Message $record) => $record->role === MessageRole::Assistant ? 'gray' : 'black')
                     ->limit(150)
                     ->wrap()
                     ->searchable()
@@ -77,11 +60,7 @@ class MessagesRelationManager extends RelationManager
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
-                    ->label('Filtrar por Emisor')
-                    ->options([
-                        'user' => 'Usuario',
-                        'assistant' => 'Bot',
-                    ]),
+                    ->label('Filtrar por Emisor'),
             ])
             ->headerActions([
                 //
@@ -91,7 +70,7 @@ class MessagesRelationManager extends RelationManager
                     Tables\Actions\ViewAction::make()
                         ->modalHeading(''),
                 ])
-                ->color('gray'),
+                    ->color('gray'),
             ])
             ->bulkActions([
                 //

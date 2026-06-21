@@ -2,13 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Enums\VisitLocationType;
 use App\Enums\VisitStatus;
-use App\Models\FamilyProfile;
 use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Visit>
+ * @extends Factory<Visit>
  */
 class VisitFactory extends Factory
 {
@@ -25,7 +26,7 @@ class VisitFactory extends Factory
             'status' => $status,
             'scheduled_at' => $scheduledDate,
             'completed_at' => $status === VisitStatus::Completed ? $scheduledDate : null,
-            'location_type' => fake()->randomElement(['home', 'office', 'virtual']),
+            'location_type' => fake()->randomElement(VisitLocationType::cases()),
             'outcome_summary' => $status === VisitStatus::Completed ? fake()->paragraph() : null,
         ];
     }

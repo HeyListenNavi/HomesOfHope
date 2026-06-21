@@ -2,18 +2,16 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\MessageRole;
 use App\Filament\Resources\MessageResource\Pages;
-use App\Filament\Resources\MessageResource\RelationManagers;
 use App\Models\Message;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class MessageResource extends Resource
 {
@@ -24,6 +22,7 @@ class MessageResource extends Resource
     protected static ?string $pluralModelLabel = 'Mensajes';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+
     protected static ?string $navigationGroup = 'Auditoría y Logs';
 
     public static function form(Form $form): Form
@@ -45,10 +44,7 @@ class MessageResource extends Resource
 
                         Forms\Components\Select::make('role')
                             ->label('Rol')
-                            ->options([
-                                'user' => 'Usuario',
-                                'assistant' => 'Bot',
-                            ])
+                            ->options(MessageRole::class)
                             ->required()
                             ->native(false)
                             ->prefixIcon('heroicon-m-user'),
@@ -75,21 +71,7 @@ class MessageResource extends Resource
             ->columns([
                 IconColumn::make('role')
                     ->label('Rol')
-                    ->icon(fn(string $state): string => match ($state) {
-                        'user' => 'heroicon-m-user',
-                        'assistant' => 'heroicon-m-cpu-chip',
-                        default => 'heroicon-m-question-mark-circle',
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        'user' => 'success',
-                        'assistant' => 'info',
-                        default => 'gray',
-                    })
-                    ->tooltip(fn(string $state): string => match ($state) {
-                        'user' => 'Mensaje Entrante (Usuario)',
-                        'assistant' => 'Mensaje Saliente (Bot)',
-                        default => $state,
-                    }),
+                    ->tooltip(fn (MessageRole $state): string => $state->getLabel()),
 
                 TextColumn::make('conversation.user_name')
                     ->label('Usuario')
@@ -100,18 +82,20 @@ class MessageResource extends Resource
                     ->label('Número de Telefono')
                     ->icon('heroicon-m-chat-bubble-left-right')
                     ->formatStateUsing(function ($state) {
-                        if (!$state) return '-';
+                        if (! $state) {
+                            return '-';
+                        }
 
                         return str_starts_with($state, '521') ? substr($state, 3) : $state;
                     })
-                    ->url(fn($state) => 'https://wa.me/' . $state)
+                    ->url(fn ($state) => 'https://wa.me/'.$state)
                     ->openUrlInNewTab()
                     ->searchable(),
 
                 TextColumn::make('message')
                     ->label('Contenido')
                     ->limit(60)
-                    ->tooltip(fn(Message $record) => $record->message)
+                    ->tooltip(fn (Message $record) => $record->message)
                     ->searchable()
                     ->wrap(),
 
@@ -125,11 +109,8 @@ class MessageResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
-                    ->label('Filtrar por Rok')
-                    ->options([
-                        'user' => 'Entrantes (Usuarios)',
-                        'assistant' => 'Salientes (Bot)',
-                    ]),
+                    ->label('Filtrar por Rol')
+                    ->options(MessageRole::class),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

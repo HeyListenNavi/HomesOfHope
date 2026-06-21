@@ -41,17 +41,7 @@ class ApplicantsRelationManager extends RelationManager
 
                 TextColumn::make('gender')
                     ->label('Género')
-                    ->badge()
-                    ->color(fn(string $state) => match ($state) {
-                        'man' => Color::hex('#3b82f6'),
-                        'woman' => Color::hex('#ec4899'),
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn(string $state) => match ($state) {
-                        'man' => 'Hombre',
-                        'woman' => 'Mujer',
-                        default => 'Otro',
-                    }),
+                    ->badge(),
 
                 TextColumn::make('chat_id')
                     ->label('Número de Telefono')

@@ -2,14 +2,16 @@
 
 namespace App\Filament\Resources\VisitResource\RelationManagers;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use Filament\Forms;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
-use Filament\Support\Enums\FontWeight;
-use Filament\Forms\Components\ToggleButtons;
+use Illuminate\Support\Str;
 
 class TasksRelationManager extends RelationManager
 {
@@ -59,36 +61,14 @@ class TasksRelationManager extends RelationManager
                                         // ToggleButtons para Prioridad (Visualmente impactante)
                                         ToggleButtons::make('priority')
                                             ->label('Prioridad')
-                                            ->options([
-                                                'low' => 'Baja',
-                                                'medium' => 'Media',
-                                                'high' => 'Alta',
-                                                'critical' => 'Crítica',
-                                            ])
-                                            ->colors([
-                                                'low' => 'success',
-                                                'medium' => 'info',
-                                                'high' => 'warning',
-                                                'critical' => 'danger',
-                                            ])
-                                            ->icons([
-                                                'low' => 'heroicon-s-arrow-down',
-                                                'medium' => 'heroicon-s-minus',
-                                                'high' => 'heroicon-s-arrow-up',
-                                                'critical' => 'heroicon-s-exclamation-triangle',
-                                            ])
-                                            ->default('medium')
+                                            ->options(TaskPriority::class)
+                                            ->default(TaskPriority::Medium)
                                             ->required(),
 
                                         Forms\Components\Select::make('status')
                                             ->label('Estado Actual')
-                                            ->options([
-                                                'pending' => 'Pendiente',
-                                                'in_progress' => 'En Progreso',
-                                                'completed' => 'Completada',
-                                                'cancelled' => 'Cancelada',
-                                            ])
-                                            ->default('pending')
+                                            ->options(TaskStatus::class)
+                                            ->default(TaskStatus::Pending)
                                             ->native(false)
                                             ->required()
                                             ->prefixIcon('heroicon-s-arrow-path'),
@@ -123,51 +103,16 @@ class TasksRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('title')
                     ->label('Tarea')
                     ->searchable()
-                    ->description(fn ($record) => \Illuminate\Support\Str::limit($record->description, 40))
+                    ->description(fn ($record) => Str::limit($record->description, 40))
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('priority')
                     ->label('Prioridad')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'low' => 'Baja',
-                        'medium' => 'Media',
-                        'high' => 'Alta',
-                        'critical' => 'Crítica',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'critical' => 'danger',
-                        'high' => 'warning',
-                        'medium' => 'info',
-                        'low' => 'success',
-                        default => 'gray',
-                    })
-                    ->icon(fn (string $state): ?string => match ($state) {
-                        'critical' => 'heroicon-s-exclamation-triangle',
-                        'high' => 'heroicon-s-arrow-up',
-                        'medium' => 'heroicon-s-minus',
-                        'low' => 'heroicon-s-arrow-down',
-                        default => null,
-                    }),
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Pendiente',
-                        'in_progress' => 'En Progreso',
-                        'completed' => 'Completada',
-                        'cancelled' => 'Cancelada',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'in_progress' => 'info',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->label('Responsable')
@@ -178,7 +123,7 @@ class TasksRelationManager extends RelationManager
                     ->label('Vence')
                     ->date('d M Y')
                     ->sortable()
-                    ->color(fn ($record) => $record->due_date && $record->due_date->isPast() && $record->status !== 'completed' ? 'danger' : 'gray'), // Rojo si venció
+                    ->color(fn ($record) => $record->due_date && $record->due_date->isPast() && $record->status !== TaskStatus::Completed ? 'danger' : 'gray'),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()

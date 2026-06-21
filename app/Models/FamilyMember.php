@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\EducationLevel;
+use App\Enums\IndigenousLanguage;
+use App\Enums\MaritalStatus;
 use App\Enums\Occupation;
 use App\Enums\Relationship;
-use App\Enums\MaritalStatus;
-use App\Enums\EducationLevel;
 use App\Enums\Religion;
-use App\Enums\IndigenousLanguage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\EducationLevel;
+use App\Enums\MaritalStatus;
 use App\Enums\Occupation;
 use App\Enums\Relationship;
-use App\Enums\MaritalStatus;
-use App\Enums\EducationLevel;
 use App\Enums\Religion;
 use App\Http\Controllers\Controller;
 use App\Models\FamilyMember;

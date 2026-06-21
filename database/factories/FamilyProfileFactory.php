@@ -2,9 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
+use App\Enums\LandService;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -42,7 +44,7 @@ class FamilyProfileFactory extends Factory
             'land_last_payment_date' => fake()->dateTimeBetween('-1 month', 'now'),
             'land_is_up_to_date' => fake()->boolean(80),
             'land_is_flat' => fake()->boolean(50),
-            'land_services' => fake()->randomElements(['electricity', 'water', 'septic_tank', 'sewage'], rand(1, 4)),
+            'land_services' => fake()->randomElements(array_map(fn ($case) => $case->value, LandService::cases()), rand(1, 4)),
 
             'home_status' => $housingStatus,
             'home_ownership_time' => fake()->numberBetween(1, 15).' años',
@@ -55,6 +57,7 @@ class FamilyProfileFactory extends Factory
             'closed_at' => fake()->boolean(20) ? fake()->dateTimeBetween('now', '+1 year') : null,
             'has_addictions' => $hasAddictions = fake()->boolean(20),
             'addictions_details' => $hasAddictions ? fake()->randomElement(['Alcoholismo', 'Drogadicción', 'Tabaquismo severo', 'Ludopatía']) : null,
+            'condition_level' => fake()->randomElement(ConditionLevel::cases()),
             'general_observations' => fake()->paragraph(),
             'responsible_member_id' => FamilyMember::where('is_responsible', true)->inRandomOrder()->first(),
         ];

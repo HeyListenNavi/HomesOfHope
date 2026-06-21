@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ApplicantStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
-use App\Models\Question;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 /**
  * Clase controladora para gestionar las actualizaciones manuales de solicitantes.
@@ -19,9 +20,8 @@ class BotApplicantManualController extends Controller
     /**
      * Actualiza el estado de un solicitante manualmente.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $applicantId El ID del solicitante.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $applicantId  El ID del solicitante.
+     * @return JsonResponse
      */
     public function updateManually(Request $request, int $applicantId)
     {
@@ -33,9 +33,9 @@ class BotApplicantManualController extends Controller
             'user_response' => 'nullable|string',
             'current_stage_id' => 'nullable|exists:stages,id',
             'current_question_id' => 'nullable|exists:questions,id',
-            'process_status' => 'nullable|string|in:in_progress,approved,rejected,requires_revision,canceled',
+            'process_status' => ['nullable', Rule::enum(ApplicantStatus::class)],
         ]);
-        
+
         // Actualiza la respuesta en el historial
         $response = $applicant->responses()->where('question_id', $validated['question_id'])->firstOrFail();
         $response->update(['user_response' => $validated['user_response']]);

@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
+use App\Enums\LandService;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
 use App\Models\FamilyProfile;
@@ -229,12 +231,7 @@ class FamilyProfileResource extends Resource
 
                                                 Forms\Components\CheckboxList::make('land_services')
                                                     ->label('Servicios Instalados')
-                                                    ->options([
-                                                        'electricity' => 'Luz eléctrica',
-                                                        'water' => 'Agua potable',
-                                                        'septic_tank' => 'Fosa séptica',
-                                                        'sewage' => 'Drenaje municipal',
-                                                    ])
+                                                    ->options(LandService::class)
                                                     ->columns(2)
                                                     ->columnSpan(2)
                                                     ->gridDirection('row'),
@@ -293,27 +290,26 @@ class FamilyProfileResource extends Resource
 
                                                 Forms\Components\TextInput::make('home_owner_name')
                                                     ->label('Dueño de la casa')
-                                                    ->placeholder('Nombre de quien renta/presta')
-                                                    ->visible(fn (Forms\Get $get) => in_array($get('home_status'), ['rented', 'borrowed'])),
+                                                    ->placeholder('Nombre de quien renta/presta'),
 
                                                 Grid::make(3)
                                                     ->schema([
                                                         Forms\Components\Select::make('home_monthly_rent_currency')
                                                             ->label('Moneda')
-                                                            ->visible(fn (Forms\Get $get) => $get('home_status') === 'rented')
+                                                            ->visible(fn (Forms\Get $get) => $get('home_status') === HousingStatus::Rented->value)
                                                             ->options(Currency::class)
                                                             ->default('mxn')
                                                             ->native(false),
 
                                                         Forms\Components\TextInput::make('home_monthly_rent')
                                                             ->label('Monto de renta')
-                                                            ->visible(fn (Forms\Get $get) => $get('home_status') === 'rented')
+                                                            ->visible(fn (Forms\Get $get) => $get('home_status') === HousingStatus::Rented->value)
                                                             ->numeric()
                                                             ->prefix('$'),
 
                                                         ToggleButtons::make('home_has_receipts')
                                                             ->label('Comprobantes')
-                                                            ->visible(fn (Forms\Get $get) => $get('home_status') === 'rented')
+                                                            ->visible(fn (Forms\Get $get) => $get('home_status') === HousingStatus::Rented->value)
                                                             ->options([
                                                                 true => 'Si Tiene',
                                                                 false => 'No Tiene',
@@ -335,6 +331,13 @@ class FamilyProfileResource extends Resource
                                             ->placeholder('Describa materiales, distribución, condición, etc.')
                                             ->rows(5)
                                             ->autosize()
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Select::make('condition_level')
+                                            ->label('Estado de la vivienda')
+                                            ->options(ConditionLevel::class)
+                                            ->native(false)
+                                            ->placeholder('Selecciona una opción')
                                             ->columnSpanFull(),
                                     ]),
 

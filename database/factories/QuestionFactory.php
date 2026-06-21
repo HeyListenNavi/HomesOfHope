@@ -2,11 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Enums\ApprovalRule;
+use App\Models\Question;
 use App\Models\Stage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Question>
+ * @extends Factory<Question>
  */
 class QuestionFactory extends Factory
 {
@@ -21,7 +23,11 @@ class QuestionFactory extends Factory
             'stage_id' => Stage::inRandomOrder()->first()->id,
             'question_text' => $this->faker->sentence,
             'approval_criteria' => [
-                $this->faker->word => $this->faker->word
+                [
+                    'rule' => fake()->randomElement(ApprovalRule::cases())->value,
+                    'operator' => fake()->randomElement(['is', 'is_not', 'contains', 'is_equal_to', 'is_greater_than', 'between']),
+                    'value' => fake()->word(),
+                ],
             ],
             'order' => $this->faker->unique()->numberBetween(1, 1000),
         ];

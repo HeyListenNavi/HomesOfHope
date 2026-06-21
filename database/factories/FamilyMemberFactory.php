@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\EducationLevel;
+use App\Enums\IndigenousLanguage;
+use App\Enums\MaritalStatus;
 use App\Enums\Occupation;
 use App\Enums\Relationship;
-use App\Enums\MaritalStatus;
-use App\Enums\EducationLevel;
 use App\Enums\Religion;
-use App\Enums\IndigenousLanguage;
 use App\Models\FamilyMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

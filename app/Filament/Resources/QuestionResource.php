@@ -2,16 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ApprovalRule;
+use App\Enums\NumericOperator;
+use App\Enums\TextOperator;
 use App\Filament\Resources\QuestionResource\Pages;
 use App\Models\Question;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\TextColumn\TextColumnFontFamily;
+use Filament\Tables\Table;
 
 class QuestionResource extends Resource
 {
@@ -61,44 +63,26 @@ class QuestionResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('rule')
                                             ->label('Acción')
-                                            ->options([
-                                                'approve_if' => 'Aprobar automáticamente sí...',
-                                                'reject_if' => 'Rechazar automáticamente sí...',
-                                                'human_if' => 'Solicitar revisión humana sí...',
-                                            ])
+                                            ->options(ApprovalRule::class)
                                             ->prefixIcon('heroicon-m-play')
                                             ->required(),
 
                                         Forms\Components\Select::make('operator')
                                             ->label('Condición')
                                             ->options([
-                                                'Texto' => [
-                                                    'is' => 'es igual a',
-                                                    'is_not' => 'no es igual a',
-                                                    'contains' => 'contiene la palabra',
-                                                    'does_not_contain' => 'no contiene',
-                                                    'is_empty' => 'está vacío',
-                                                    'is_not_empty' => 'tiene contenido',
-                                                ],
-                                                'Números' => [
-                                                    'is_equal_to' => '= igual a',
-                                                    'is_greater_than' => '> mayor que',
-                                                    'is_less_than' => '< menor que',
-                                                    'is_greater_than_or_equal_to' => '>= mayor o igual',
-                                                    'is_less_than_or_equal_to' => '<= menor o igual',
-                                                    'between' => 'está entre rango',
-                                                ],
+                                                'Texto' => collect(TextOperator::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])->toArray(),
+                                                'Números' => collect(NumericOperator::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])->toArray(),
                                             ])
                                             ->required()
                                             ->searchable()
-                                            ->columnSpan(fn (Get $get) => in_array($get('operator'), ['is_empty', 'is_not_empty']) ? 2 : 1)
+                                            ->columnSpan(fn (Get $get) => in_array($get('operator'), [TextOperator::IsEmpty->value, TextOperator::IsNotEmpty->value]) ? 2 : 1)
                                             ->reactive(),
 
                                         Forms\Components\TextInput::make('value')
                                             ->label('Valor de Comparación')
                                             ->required()
                                             ->placeholder('Valor...')
-                                            ->hidden(fn (Get $get) => in_array($get('operator'), ['is_empty', 'is_not_empty'])),
+                                            ->hidden(fn (Get $get) => in_array($get('operator'), [TextOperator::IsEmpty->value, TextOperator::IsNotEmpty->value])),
                                     ]),
                             ])
                             ->collapsible()

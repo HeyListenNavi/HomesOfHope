@@ -2,20 +2,23 @@
 
 namespace App\Services;
 
+use App\Enums\MessageRole;
 use App\Models\Applicant;
 use App\Models\Message;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
-
 class WhatsappApiNotificationService
 {
     protected string $apiUrl;
+
     protected string $apiKey;
+
     protected string $instance;
+
     protected string $templateName;
+
     protected string $templateLang;
 
     public function __construct()
@@ -36,8 +39,8 @@ class WhatsappApiNotificationService
 
         $message = "¡Felicidades, {$applicant->applicant_name}! Has sido aprobado(a) en el proceso. 🎉\n\n";
         $message .= "Para continuar, por favor elige la fecha y grupo para tu entrevista, haciendo clic en el siguiente enlace:\n\n";
-        $message .= $selectionUrl . "\n\n";
-        $message .= "Este enlace es personal y expirará en 3 días. ¡No lo compartas!";
+        $message .= $selectionUrl."\n\n";
+        $message .= 'Este enlace es personal y expirará en 3 días. ¡No lo compartas!';
 
         $this->sendCustomMessage($applicant, $message);
     }
@@ -46,8 +49,9 @@ class WhatsappApiNotificationService
     {
         $currentQuestion = $applicant->currentQuestion;
 
-        if (!$currentQuestion) {
+        if (! $currentQuestion) {
             Log::warning("No hay una pregunta actual para el aplicante con chat_id {$applicant->chat_id}.");
+
             return false;
         }
 
@@ -58,19 +62,18 @@ class WhatsappApiNotificationService
 
     public function sendSuccessInfo(Applicant $applicant)
     {
-        $message = "Felicidades! La cita para tu entrevista presencial fue " .
-            "registrada con exito.\n" .
-            "Por favor recuerda la siguiente informacion:\n" .
-            "Tu cita es el dia: " . $applicant->group->date_time->toDateString() . "\n" .
-            "A las: " . $applicant->group->date_time->toTimeString() . "\n" .
-            "Con direccion: : " . $applicant->group->location . "\n" .
-            "Ubicacion: " . $applicant->group->location_link . "\n";
+        $message = 'Felicidades! La cita para tu entrevista presencial fue '.
+            "registrada con exito.\n".
+            "Por favor recuerda la siguiente informacion:\n".
+            'Tu cita es el dia: '.$applicant->group->date_time->toDateString()."\n".
+            'A las: '.$applicant->group->date_time->toTimeString()."\n".
+            'Con direccion: : '.$applicant->group->location."\n".
+            'Ubicacion: '.$applicant->group->location_link."\n";
 
-        $message .= "No olvides leer la siguiente informacion importante: \n" . $applicant->group->message;
+        $message .= "No olvides leer la siguiente informacion importante: \n".$applicant->group->message;
 
         $this->sendCustomMessage($applicant, $message);
     }
-
 
     public function sendCustomMessage(Applicant $applicant, string $message)
     {
@@ -78,7 +81,7 @@ class WhatsappApiNotificationService
             'conversation_id' => $applicant->conversation->id,
             'phone' => $applicant->chat_id,
             'message' => $message,
-            'role' => 'assistant',
+            'role' => MessageRole::Assistant,
             'name' => $applicant->applicant_name,
         ]);
 
@@ -105,18 +108,22 @@ class WhatsappApiNotificationService
 
             if ($response->successful()) {
                 Log::info("Mensaje de texto enviado a {$recipientId}.");
+
                 return true;
             }
 
-            Log::error("Error al enviar mensaje a {$recipientId}: " . $response->body());
+            Log::error("Error al enviar mensaje a {$recipientId}: ".$response->body());
+
             return false;
         } catch (\Exception $e) {
-            Log::critical("Excepción al enviar mensaje con Evolution API: " . $e->getMessage());
+            Log::critical('Excepción al enviar mensaje con Evolution API: '.$e->getMessage());
+
             return false;
         }
     }
 
-    public function sendTemplate( Applicant $applicant, ?string $templateName = null, array $parameters = [] ) {
+    public function sendTemplate(Applicant $applicant, ?string $templateName = null, array $parameters = [])
+    {
         $payload = [
             'messaging_product' => 'whatsapp',
             'to' => $applicant->chat_id,
@@ -129,7 +136,7 @@ class WhatsappApiNotificationService
             ],
         ];
 
-        if (!empty($parameters)) {
+        if (! empty($parameters)) {
             $payload['template']['components'][] = [
                 'type' => 'body',
                 'parameters' => collect($parameters)->map(fn ($value) => [
@@ -142,12 +149,13 @@ class WhatsappApiNotificationService
         $url = "{$this->apiUrl}/messages";
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Authorization' => 'Bearer '.$this->apiKey,
             'Content-Type' => 'application/json',
         ])->post($url, $payload);
 
         if ($response->failed()) {
-            Log::error("Error al enviar template a {$applicant->chat_id}: " . $response->body());
+            Log::error("Error al enviar template a {$applicant->chat_id}: ".$response->body());
+
             return;
         }
 
@@ -156,10 +164,9 @@ class WhatsappApiNotificationService
         Message::create([
             'conversation_id' => $applicant->conversation->id,
             'phone' => $applicant->chat_id,
-            'message' => '[TEMPLATE] ' . ($templateName ?? $this->templateName),
-            'role' => 'assistant',
+            'message' => '[TEMPLATE] '.($templateName ?? $this->templateName),
+            'role' => MessageRole::Assistant,
             'name' => $applicant->applicant_name,
         ]);
     }
-
 }

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ApplicantGender;
+use App\Enums\ApplicantStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,9 +16,9 @@ class Applicant extends Model
 
     protected $fillable = [
         'chat_id',
-        "applicant_name",
+        'applicant_name',
         'curp',
-        "gender",
+        'gender',
         'current_stage_id',
         'current_question_id',
         'process_status',
@@ -26,14 +28,15 @@ class Applicant extends Model
     ];
 
     protected $casts = [
-        'is_approved' => 'boolean',
+        'gender' => ApplicantGender::class,
+        'process_status' => ApplicantStatus::class,
     ];
 
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
     }
-    
+
     public function currentStage(): BelongsTo
     {
         return $this->belongsTo(Stage::class, 'current_stage_id');
@@ -48,7 +51,7 @@ class Applicant extends Model
     {
         return $this->hasOne(Conversation::class, 'chat_id', 'chat_id');
     }
-    
+
     public function responses(): HasMany
     {
         return $this->hasMany(ApplicantQuestionResponse::class);

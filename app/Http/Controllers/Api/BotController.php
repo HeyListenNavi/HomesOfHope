@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ApplicantStatus;
+use App\Enums\MessageRole;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Applicant;
+use App\Models\ApplicantQuestionResponse;
 use App\Models\Conversation;
 use App\Models\Message;
-use App\Models\Applicant;
-use App\Models\Group;
-use App\Services\GroupAssignmentService;
-use App\Models\Stage;
 use App\Models\Question;
-use App\Models\ApplicantQuestionResponse;
-use Illuminate\Support\Facades\DB;
+use App\Models\Stage;
+use App\Services\GroupAssignmentService;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class BotController extends Controller
 {
@@ -32,7 +33,7 @@ class BotController extends Controller
             'conversation_id' => 'required',
             'phone' => 'string',
             'message' => 'required|string',
-            'role' => 'required|in:user,assistant',
+            'role' => ['required', Rule::enum(MessageRole::class)],
             'name' => 'nullable|string|max:255',
         ]);
 
@@ -40,7 +41,7 @@ class BotController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message_id' => $message->id
+            'message_id' => $message->id,
         ], 201);
     }
 
@@ -51,17 +52,17 @@ class BotController extends Controller
     {
         $limit = $request->query('limit', 5); // Por defecto 5 mensajes
         $messages = Message::where('conversation_id', $conversationId)
-                            ->orderBy('created_at', 'desc')
-                            ->limit($limit)
-                            ->get()
-                            ->sortBy('created_at') // Ordena de nuevo ascendente para el historial
-                            ->map(function($message) {
-                                return [
-                                    'role' => $message->role,
-                                    'message' => $message->message,
-                                ];
-                            })
-                            ->values(); // Para reindexar el array
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->sortBy('created_at') // Ordena de nuevo ascendente para el historial
+            ->map(function ($message) {
+                return [
+                    'role' => $message->role,
+                    'message' => $message->message,
+                ];
+            })
+            ->values(); // Para reindexar el array
 
         return response()->json($messages);
     }
@@ -94,12 +95,12 @@ class BotController extends Controller
         $conversation->update($request->only([
             'current_process',
             'process_status',
-            'process_id'
+            'process_id',
         ]));
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Conversation updated.'
+            'message' => 'Conversation updated.',
         ]);
     }
 
@@ -114,7 +115,7 @@ class BotController extends Controller
         $firstStage = Stage::orderBy('order')->first();
         $firstQuestion = $firstStage ? $firstStage->questions()->orderBy('order')->first() : null;
 
-        if (!$firstStage || !$firstQuestion) {
+        if (! $firstStage || ! $firstQuestion) {
             return response()->json(['error' => 'No hay etapas o preguntas configuradas.'], 404);
         }
 
@@ -122,7 +123,7 @@ class BotController extends Controller
             'chat_id' => $validated['chat_id'],
             'current_stage_id' => $firstStage->id,
             'current_question_id' => $firstQuestion->id,
-            'process_status' => 'in_progress',
+            'process_status' => ApplicantStatus::InProgress,
         ]);
 
         // Crea un registro de respuesta vacío para todas las preguntas para el historial
@@ -152,13 +153,13 @@ class BotController extends Controller
             'user_response' => 'required|string',
         ]);
 
-        $applicant = Applicant::where('chat_id', $chat_id)->where('process_status', 'in_progress')->firstOrFail();
+        $applicant = Applicant::where('chat_id', $chat_id)->where('process_status', ApplicantStatus::InProgress)->firstOrFail();
         $question = Question::where('key', $validated['question_key'])->firstOrFail();
 
         // Guarda la respuesta en el historial y en evaluation_data
         $response = ApplicantQuestionResponse::where('applicant_id', $applicant->id)
-                                            ->where('question_id', $question->id)
-                                            ->first();
+            ->where('question_id', $question->id)
+            ->first();
         if ($response) {
             $response->update([
                 'user_response' => $validated['user_response'],
@@ -182,9 +183,9 @@ class BotController extends Controller
             'user_response' => 'nullable|string',
             'current_stage_id' => 'nullable|exists:stages,id',
             'current_question_id' => 'nullable|exists:questions,id',
-            'process_status' => 'nullable|string|in:in_progress,completed,rejected,approved',
+            'process_status' => ['nullable', Rule::enum(ApplicantStatus::class)],
         ]);
-        
+
         // Actualiza la respuesta en el historial
         $response = $applicant->responses()->where('question_id', $validated['question_id'])->firstOrFail();
         $response->update(['user_response' => $validated['user_response']]);
@@ -210,7 +211,7 @@ class BotController extends Controller
 
         return response()->json(['status' => 'success', 'applicant' => $applicant]);
     }
-    
+
     // --- Métodos de Ayuda (Lógica de Negocio) ---
 
     private function validateResponse(array $rules, string $response)
@@ -237,18 +238,16 @@ class BotController extends Controller
         // TODO: Implementar la lógica para la aprobación final
         // Esto incluirá la lógica de negocio completa de los criterios del programa
         $isApproved = true; // Lógica de negocio
-        
+
         if ($isApproved) {
             $group = $this->groupAssignmentService->assignApplicantToGroup($applicant);
             $applicant->update([
-                'is_approved' => true,
-                'process_status' => 'completed',
+                'process_status' => ApplicantStatus::Approved,
                 'group_id' => $group->id,
             ]);
         } else {
             $applicant->update([
-                'is_approved' => false,
-                'process_status' => 'rejected',
+                'process_status' => ApplicantStatus::Rejected,
                 'rejection_reason' => 'No cumple con todos los requisitos finales.',
             ]);
         }
@@ -257,10 +256,10 @@ class BotController extends Controller
     public function getNextQuestion(string $chat_id)
     {
         $applicant = Applicant::where('chat_id', $chat_id)
-                                ->where('process_status', 'in_progress')
-                                ->first();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->first();
 
-        if (!$applicant) {
+        if (! $applicant) {
             return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'], 404);
         }
 
@@ -268,7 +267,7 @@ class BotController extends Controller
         $currentQuestion = $applicant->currentQuestion;
         $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
 
-        if (!$nextQuestion) {
+        if (! $nextQuestion) {
             // La IA debe decidir la aprobación de la etapa
             return response()->json([
                 'status' => 'waiting_for_ai_approval',
@@ -278,7 +277,7 @@ class BotController extends Controller
         } else {
             // ... (resto de la lógica para avanzar a la siguiente pregunta de la misma etapa)
             $applicant->update(['current_question_id' => $nextQuestion->id]);
-            
+
             return response()->json([
                 'status' => 'next_question',
                 'question' => $nextQuestion,
@@ -299,8 +298,8 @@ class BotController extends Controller
         ]);
 
         $applicant = Applicant::where('chat_id', $validated['chat_id'])
-                                ->where('process_status', 'in_progress')
-                                ->firstOrFail();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->firstOrFail();
 
         // Verificamos que la decisión sea para la etapa actual del solicitante
         if ($applicant->current_stage_id != $validated['stage_id']) {
@@ -318,6 +317,7 @@ class BotController extends Controller
                     'current_stage_id' => $nextStage->id,
                     'current_question_id' => $firstQuestionOfNextStage->id,
                 ]);
+
                 return response()->json([
                     'status' => 'stage_approved',
                     'message' => 'Has pasado a la siguiente etapa.',
@@ -326,6 +326,7 @@ class BotController extends Controller
             } else {
                 // Fin del proceso, aprobación final
                 $this->finalizeApplicant($applicant);
+
                 return response()->json([
                     'status' => 'process_completed',
                     'applicant_id' => $applicant->id,
@@ -336,10 +337,10 @@ class BotController extends Controller
         } else {
             // Si la IA rechazó, actualizamos el estado del solicitante
             $applicant->update([
-                'process_status' => 'rejected',
-                'is_approved' => false,
+                'process_status' => ApplicantStatus::Rejected,
                 'rejection_reason' => $validated['rejection_reason'],
             ]);
+
             return response()->json([
                 'status' => 'stage_rejected',
                 'message' => $validated['rejection_reason'],
@@ -351,29 +352,29 @@ class BotController extends Controller
     public function getStageDataForAi(string $chat_id)
     {
         $applicant = Applicant::where('chat_id', $chat_id)
-                            ->where('process_status', 'in_progress')
-                            ->firstOrFail();
+            ->where('process_status', ApplicantStatus::InProgress)
+            ->firstOrFail();
 
         $currentStage = $applicant->currentStage;
-        
+
         // Obtenemos todas las preguntas y respuestas de la etapa actual
         $stageData = [
             'stage_id' => $currentStage->id,
             'stage_name' => $currentStage->name,
             'approval_criteria' => $currentStage->approval_criteria,
-            'questions' => []
+            'questions' => [],
         ];
 
         $questionsInStage = $currentStage->questions()->get();
-        
+
         foreach ($questionsInStage as $question) {
             $userResponse = $applicant->responses()->where('question_id', $question->id)->first();
-            
+
             $stageData['questions'][] = [
                 'question_key' => $question->key,
                 'question_text' => $question->question_text,
                 'user_response' => $userResponse ? $userResponse->user_response : 'Sin respuesta',
-                'approval_criteria' => $question->approval_criteria
+                'approval_criteria' => $question->approval_criteria,
             ];
         }
 

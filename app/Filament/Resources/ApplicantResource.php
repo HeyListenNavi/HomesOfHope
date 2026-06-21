@@ -2,23 +2,24 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ApplicantGender;
+use App\Enums\ApplicantStatus;
+use App\Enums\MessageRole;
 use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Models\Applicant;
 use App\Models\Question;
 use App\Services\ApplicantActions;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Support\Colors\Color;
 use Filament\Support\Enums\FontFamily;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantResource extends Resource
@@ -71,10 +72,7 @@ class ApplicantResource extends Resource
                         Forms\Components\Select::make('gender')
                             ->label('Género')
                             ->required()
-                            ->options([
-                                'man' => 'Hombre',
-                                'woman' => 'Mujer',
-                            ])
+                            ->options(ApplicantGender::class)
                             ->native(false),
                     ]),
 
@@ -85,15 +83,7 @@ class ApplicantResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('process_status')
                             ->label('Estatus')
-                            ->options([
-                                'in_progress' => 'En Progreso',
-                                'approved' => 'Aprobado',
-                                "staff_approved" => "Aprobado por Staff",
-                                'rejected' => 'Rechazado',
-                                "staff_rejected" => "Rechazado por Staff",
-                                'requires_revision' => 'Requiere Revisión',
-                                'canceled' => 'Cancelado',
-                            ])
+                            ->options(ApplicantStatus::class)
                             ->required()
                             ->live()
                             ->native(false)
@@ -105,8 +95,8 @@ class ApplicantResource extends Resource
                             ->searchable()
                             ->preload()
                             ->prefixIcon('heroicon-m-user-group')
-                            ->disabled(fn(Get $get) => !in_array($get('process_status'), ['approved', 'staff_approved']))
-                            ->helperText(fn(Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
+                            ->disabled(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]))
+                            ->helperText(fn (Get $get) => in_array($get('process_status'), [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
                     ]),
 
                 Forms\Components\Section::make('Seguimiento')
@@ -134,7 +124,7 @@ class ApplicantResource extends Resource
 
                 Forms\Components\Section::make('Detalles de Rechazo')
                     ->icon('heroicon-m-x-circle')
-                    ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected', 'staff_rejected']))
+                    ->hidden(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Rejected->value, ApplicantStatus::StaffRejected->value]))
                     ->schema([
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Motivo')
@@ -145,46 +135,53 @@ class ApplicantResource extends Resource
                 Forms\Components\Actions::make([
                     // Botón para aprobar una etapa y pasar a la siguiente
                     Action::make('approveStage')
-                        ->label("Aprobar etapa")
+                        ->label('Aprobar etapa')
                         ->icon('heroicon-o-check-circle')
                         ->requiresConfirmation()
                         ->modalHeading('Pasar a la siguiente etapa')
-                        ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.")
+                        ->modalDescription('¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.')
                         ->modalSubmitActionLabel('Sí, aprobar!')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::approveStage($record)),
-
+                        ->action(fn (Applicant $record) => ApplicantActions::approveStage($record)),
 
                     // Botón para aprobar al aplicante de forma definitiva
                     Action::make('approveFinal')
-                        ->label("Aprobar definitivamente")
+                        ->label('Aprobar definitivamente')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalHeading('Aprobar aplicante')
-                        ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?")
+                        ->modalDescription('Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
+                        ->action(fn (Applicant $record) => ApplicantActions::approveApplicantFinal($record)),
 
                     // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
-                        ->label("Enviar mensaje personalizado")
+                        ->label('Enviar mensaje personalizado')
                         ->icon('heroicon-o-chat-bubble-bottom-center-text')
                         ->form([
                             Forms\Components\Textarea::make('message')
@@ -196,10 +193,14 @@ class ApplicantResource extends Resource
                         ->modalHeading('Enviar mensaje personalizado')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
@@ -209,7 +210,7 @@ class ApplicantResource extends Resource
 
                     // Botón para reenviar la pregunta actual
                     Action::make('resendQuestion')
-                        ->label("Reenviar pregunta actual")
+                        ->label('Reenviar pregunta actual')
                         ->icon('heroicon-o-question-mark-circle')
                         ->color('warning')
                         ->requiresConfirmation()
@@ -217,18 +218,22 @@ class ApplicantResource extends Resource
                         ->modalDescription('¿Estás seguro de reenviar la pregunta actual a este aplicante?')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
+                        ->action(fn (Applicant $record) => ApplicantActions::reSendCurrentQuestion($record)),
 
                     // Botón para reenviar el enlace de selección de grupo
                     Action::make('resendGroupLink')
-                        ->label("Reenviar enlace de grupo")
+                        ->label('Reenviar enlace de grupo')
                         ->icon('heroicon-o-link')
                         ->color('warning')
                         ->requiresConfirmation()
@@ -236,37 +241,45 @@ class ApplicantResource extends Resource
                         ->modalDescription('¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
+                        ->action(fn (Applicant $record) => ApplicantActions::reSendGroupSelectionLink($record)),
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')
-                        ->label("Reiniciar")
+                        ->label('Reiniciar')
                         ->icon('heroicon-o-arrow-path')
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Reiniciar proceso del aplicante')
-                        ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.")
+                        ->modalDescription('¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
-                        ->action(fn(Applicant $record) => ApplicantActions::resetApplicant($record)),
+                        ->action(fn (Applicant $record) => ApplicantActions::resetApplicant($record)),
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
-                        ->label("Rechazar")
+                        ->label('Rechazar')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->form([
@@ -279,13 +292,17 @@ class ApplicantResource extends Resource
 
                         ->requiresConfirmation()
                         ->modalHeading('Rechazar al aplicante')
-                        ->modalDescription("¿Estás seguro de rechazar a este aplicante?")
+                        ->modalDescription('¿Estás seguro de rechazar a este aplicante?')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            $last = $conversation->messages()->where('role', MessageRole::User)->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
@@ -337,49 +354,12 @@ class ApplicantResource extends Resource
                 TextColumn::make('process_status')
                     ->label('Estatus')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'in_progress' => 'En Progreso',
-                        'approved' => 'IA: Aprobado',
-                        'rejected' => 'IA: Rechazado',
-                        'staff_approved' => 'Staff: Aprobado',
-                        'staff_rejected' => 'Staff: Rechazado',
-                        'requires_revision' => 'Revisión',
-                        'canceled' => 'Cancelado',
-                        default => $state,
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        'in_progress' => 'info',
-                        'approved' => 'success',
-                        'staff_approved' => 'success',
-                        'rejected' => 'danger',
-                        'staff_rejected' => 'danger',
-                        'requires_revision' => 'warning',
-                        'canceled' => 'gray',
-                        default => 'gray',
-                    })
-                    ->icon(fn(string $state): string => match ($state) {
-                        'in_progress' => 'heroicon-m-arrow-path',
-                        'approved' => 'heroicon-m-sparkles',
-                        'staff_approved' => 'heroicon-m-check-badge',
-                        'rejected' => 'heroicon-m-x-circle',
-                        'staff_rejected' => 'heroicon-m-no-symbol',
-                        'requires_revision' => 'heroicon-m-exclamation-triangle',
-                        'canceled' => 'heroicon-m-x-mark',
-                        default => 'heroicon-m-minus',
-                    })
                     ->sortable()
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('process_status')
                     ->label('Filtrar por Estatus')
-                    ->options([
-                        'in_progress' => 'En Progreso',
-                        'approved' => 'Aprobado',
-                        "staff_approved" => "Aprobado por Staff",
-                        'rejected' => 'Rechazado',
-                        "staff_rejected" => "Rechazado por Staff",
-                        'requires_revision' => 'Requiere Revisión',
-                    ]),
+                    ->options(ApplicantStatus::class),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([

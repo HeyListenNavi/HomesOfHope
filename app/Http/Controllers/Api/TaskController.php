@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -22,7 +25,7 @@ class TaskController extends Controller
         if ($request->has('assigned_to')) {
             $query->where('assigned_to', $request->assigned_to);
         }
-        
+
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
@@ -36,7 +39,7 @@ class TaskController extends Controller
             'visit_id' => 'required|exists:visits,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'priority' => 'required|string|in:low,medium,high',
+            'priority' => ['required', Rule::enum(TaskPriority::class)],
             'due_date' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
@@ -44,19 +47,20 @@ class TaskController extends Controller
         // Automáticamente asignamos 'assigned_by' al usuario actual
         $data = $validated;
         $data['assigned_by'] = $request->user()->id;
-        $data['status'] = 'pending';
+        $data['status'] = TaskStatus::Pending;
 
         $task = Task::create($data);
 
         return response()->json([
             'message' => 'Task created successfully',
-            'data' => $task
+            'data' => $task,
         ], 201);
     }
 
     public function show(string $id)
     {
         $task = Task::with(['visit', 'assignee', 'notes'])->findOrFail($id);
+
         return response()->json($task);
     }
 
@@ -67,15 +71,14 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|string',
             'description' => 'nullable|string',
-            'status' => 'sometimes|string|in:pending,in_progress,completed,cancelled',
-            'priority' => 'sometimes|string',
+            'status' => ['sometimes', Rule::enum(TaskStatus::class)],
+            'priority' => ['sometimes', Rule::enum(TaskPriority::class)],
             'due_date' => 'nullable|date',
             'completed_at' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        // Si marcan completed, llenar completed_at automáticamente si no lo mandan
-        if (isset($validated['status']) && $validated['status'] === 'completed' && empty($validated['completed_at'])) {
+        if (isset($validated['status']) && $validated['status'] === TaskStatus::Completed->value && empty($validated['completed_at'])) {
             $validated['completed_at'] = now();
         }
 
@@ -83,7 +86,7 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Task updated successfully',
-            'data' => $task
+            'data' => $task,
         ]);
     }
 

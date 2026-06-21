@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum VisitStatus: string implements HasLabel, HasColor, HasIcon
+enum VisitStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Scheduled = 'scheduled';
     case Completed = 'completed';

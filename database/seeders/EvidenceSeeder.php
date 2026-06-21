@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\VisitStatus;
 use App\Models\Evidence;
 use App\Models\User;
 use App\Models\Visit;
@@ -12,9 +13,9 @@ class EvidenceSeeder extends Seeder
     public function run(): void
     {
         $user = User::first() ?? User::factory()->create();
-        
+
         // Solo agregamos evidencia a visitas que ya pasaron ('completed')
-        $completedVisits = Visit::where('status', 'completed')->get();
+        $completedVisits = Visit::where('status', VisitStatus::Completed)->get();
 
         foreach ($completedVisits as $visit) {
             Evidence::factory()->count(rand(1, 3))->create([

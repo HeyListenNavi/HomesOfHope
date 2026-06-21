@@ -2,18 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
+use App\Enums\VisitLocationType;
 use App\Enums\VisitStatus;
-use App\Models\Visit;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Forms\Components\ToggleButtons;
 use App\Filament\Resources\VisitResource\Pages;
 use App\Filament\Resources\VisitResource\RelationManagers;
+use App\Models\Visit;
+use Filament\Forms;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class VisitResource extends Resource
 {
@@ -48,27 +49,13 @@ class VisitResource extends Resource
                                             ->label('Familia a visitar')
                                             ->searchable()
                                             ->preload()
-                                            ->default(fn() => request('family_profile_id')) // Mantiene la magia del botón "Agendar"
+                                            ->default(fn () => request('family_profile_id')) // Mantiene la magia del botón "Agendar"
                                             ->required()
                                             ->prefixIcon('heroicon-s-users'),
 
                                         ToggleButtons::make('location_type')
                                             ->label('Lugar')
-                                            ->options([
-                                                'home' => 'Terreno',
-                                                'office' => 'Oficina',
-                                                'virtual' => 'Virtual',
-                                            ])
-                                            ->icons([
-                                                'home' => 'heroicon-s-home',
-                                                'office' => 'heroicon-s-building-office',
-                                                'virtual' => 'heroicon-s-phone',
-                                            ])
-                                            ->colors([
-                                                'home' => 'success',   // Verde = Ideal
-                                                'office' => 'info',    // Azul = Formal
-                                                'virtual' => 'warning', // Naranja = Distancia
-                                            ])
+                                            ->options(VisitLocationType::class)
                                             ->inline()
                                             ->required(),
                                     ]),
@@ -84,7 +71,7 @@ class VisitResource extends Resource
                                             ->autosize()
                                             ->columnSpanFull(),
                                     ])
-                                    ->disabled(fn(Forms\Get $get) => $get('status') !== VisitStatus::Scheduled->value),
+                                    ->disabled(fn (Forms\Get $get) => $get('status') !== VisitStatus::Scheduled->value),
                             ]),
 
                         // COLUMNA DERECHA (Barra Lateral: Agenda y Estatus)
@@ -113,7 +100,7 @@ class VisitResource extends Resource
                                             ->label('Cierre')
                                             ->native(false)
                                             // Solo visible cuando ya se cerró la visita
-                                            ->visible(fn(Forms\Get $get) => in_array($get('status'), [VisitStatus::Completed->value, VisitStatus::Cancelled->value])),
+                                            ->visible(fn (Forms\Get $get) => in_array($get('status'), [VisitStatus::Completed->value, VisitStatus::Cancelled->value])),
                                     ]),
 
                                 Forms\Components\Section::make('Estado')
@@ -124,7 +111,7 @@ class VisitResource extends Resource
                                             ->default(VisitStatus::Scheduled),
                                     ]),
                             ]),
-                    ])
+                    ]),
             ]);
     }
 
@@ -143,29 +130,12 @@ class VisitResource extends Resource
                 Tables\Columns\TextColumn::make('scheduled_at')
                     ->label('Fecha')
                     ->dateTime('d M Y')
-                    ->description(fn($record) => $record->scheduled_at->format('h:i A')) // Hora debajo
+                    ->description(fn ($record) => $record->scheduled_at->format('h:i A')) // Hora debajo
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('location_type')
                     ->label('Lugar')
-                    ->icon(fn(string $state): string => match ($state) {
-                        'home' => 'heroicon-s-home',
-                        'office' => 'heroicon-s-building-office',
-                        'virtual' => 'heroicon-s-phone',
-                        default => 'heroicon-s-map-pin',
-                    })
-                    ->tooltip(fn(string $state): string => match ($state) {
-                        'home' => 'Terreno',
-                        'office' => 'Oficina',
-                        'virtual' => 'Virtual',
-                        default => 'Otro',
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        'home' => 'success',
-                        'office' => 'info',
-                        'virtual' => 'warning',
-                        default => 'gray',
-                    }),
+                    ->tooltip(fn (VisitLocationType $state): string => $state->getLabel()),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
@@ -190,9 +160,9 @@ class VisitResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'], fn(Builder $query, $date) => $query->whereDate('scheduled_at', '>=', $date))
-                            ->when($data['until'], fn(Builder $query, $date) => $query->whereDate('scheduled_at', '<=', $date));
-                    })
+                            ->when($data['from'], fn (Builder $query, $date) => $query->whereDate('scheduled_at', '>=', $date))
+                            ->when($data['until'], fn (Builder $query, $date) => $query->whereDate('scheduled_at', '<=', $date));
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

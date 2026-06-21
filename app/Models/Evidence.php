@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\EvidenceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,11 +10,11 @@ use Illuminate\Support\Facades\Storage;
 
 class Evidence extends Model
 {
-    /** @use HasFactory<\Database\Factories\EvidenceFactory> */
+    /** @use HasFactory<EvidenceFactory> */
     use HasFactory;
-    
+
     // Si la tabla se creó como 'evidence' (singular), Laravel a veces necesita ayuda:
-    protected $table = 'evidence'; 
+    protected $table = 'evidence';
 
     protected $fillable = [
         'visit_id',

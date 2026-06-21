@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum FamilyStatus: string implements HasLabel, HasColor, HasIcon
+enum FamilyStatus: string implements HasColor, HasIcon, HasLabel
 {
     case New = 'new';
     case Potential = 'potential';

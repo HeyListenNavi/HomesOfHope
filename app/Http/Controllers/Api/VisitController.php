@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\VisitLocationType;
 use App\Enums\VisitStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Visit;
@@ -15,7 +16,7 @@ class VisitController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Visit::with(['attendant:id,name', 'familyProfile:id,family_name', "notes"]);
+        $query = Visit::with(['attendant:id,name', 'familyProfile:id,family_name', 'notes']);
 
         if ($request->has('family_profile_id')) {
             $query->where('family_profile_id', $request->family_profile_id);
@@ -45,10 +46,10 @@ class VisitController extends Controller
         $validated = $request->validate([
             'family_profile_id' => 'required|exists:family_profiles,id',
             'scheduled_at' => 'required|date',
-            'location_type' => 'nullable|string',
+            'location_type' => ['nullable', Rule::enum(VisitLocationType::class)],
             'status' => ['required', Rule::enum(VisitStatus::class)],
             // Si no envían attended_by, asignamos al usuario actual
-            'attended_by' => 'nullable|exists:users,id', 
+            'attended_by' => 'nullable|exists:users,id',
         ]);
 
         // Default al usuario autenticado si no se especifica otro
@@ -60,7 +61,7 @@ class VisitController extends Controller
 
         return response()->json([
             'message' => 'Visit scheduled successfully',
-            'data' => $visit
+            'data' => $visit,
         ], 201);
     }
 
@@ -81,7 +82,7 @@ class VisitController extends Controller
             'scheduled_at' => 'sometimes|date',
             'completed_at' => 'nullable|date',
             'status' => ['sometimes', Rule::enum(VisitStatus::class)],
-            'location_type' => 'nullable|string',
+            'location_type' => ['nullable', Rule::enum(VisitLocationType::class)],
             'outcome_summary' => 'nullable|string',
             'attended_by' => 'sometimes|exists:users,id',
         ]);
@@ -90,7 +91,7 @@ class VisitController extends Controller
 
         return response()->json([
             'message' => 'Visit updated successfully',
-            'data' => $visit
+            'data' => $visit,
         ]);
     }
 
