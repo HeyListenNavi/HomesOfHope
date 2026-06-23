@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
+use App\Enums\LandSize;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,6 +40,7 @@ class FamilyProfile extends Model
         'land_last_payment_date',
         'land_is_up_to_date',
         'land_is_flat',
+        'land_size',
         'land_services',
         'home_status',
         'home_ownership_time',
@@ -63,6 +65,7 @@ class FamilyProfile extends Model
         'land_last_payment_date' => 'date',
         'land_is_up_to_date' => 'boolean',
         'land_is_flat' => 'boolean',
+        'land_size' => LandSize::class,
         'lives_on_land' => 'boolean',
         'has_addictions' => 'boolean',
         'land_services' => 'array',

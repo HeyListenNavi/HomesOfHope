@@ -6,6 +6,7 @@ use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
 use App\Enums\LandService;
+use App\Enums\LandSize;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -43,6 +44,7 @@ class FamilyProfileFactory extends Factory
             'land_last_payment_date' => fake()->dateTimeBetween('-1 month', 'now'),
             'land_is_up_to_date' => fake()->boolean(80),
             'land_is_flat' => fake()->boolean(50),
+            'land_size' => fake()->randomElement(LandSize::cases()),
             'land_services' => fake()->randomElements(array_map(fn ($case) => $case->value, LandService::cases()), rand(1, 4)),
 
             'home_status' => $housingStatus,

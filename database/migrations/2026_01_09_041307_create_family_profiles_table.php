@@ -40,6 +40,7 @@ return new class extends Migration
             $table->date('land_last_payment_date')->nullable();
             $table->boolean('land_is_up_to_date')->nullable()->default(false);
             $table->boolean('land_is_flat')->nullable()->default(false);
+            $table->string('land_size')->nullable(); // 16x20 or 20x20
             $table->json('land_services')->nullable(); // Luz, Agua, Fosa, Drenaje, etc.
 
             // Situación Actual de la Vivienda (Home)

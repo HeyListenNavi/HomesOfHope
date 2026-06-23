@@ -6,6 +6,7 @@ use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
 use App\Enums\LandService;
+use App\Enums\LandSize;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
 use App\Models\FamilyProfile;
@@ -230,11 +231,21 @@ class FamilyProfileResource extends Resource
                                             ->columns(3)
                                             ->columnSpanFull()
                                             ->schema([
-                                                Forms\Components\Toggle::make('land_is_flat')
-                                                    ->label('¿Terreno plano?')
-                                                    ->helperText('Marcar si el terreno no requiere nivelarse.')
-                                                    ->onIcon('heroicon-m-check')
-                                                    ->offIcon('heroicon-m-minus'),
+                                                Grid::make(1)
+                                                    ->columnSpan(1)
+                                                    ->schema([
+                                                        Forms\Components\Toggle::make('land_is_flat')
+                                                            ->label('¿Terreno plano?')
+                                                            ->helperText('Marcar si el terreno no requiere nivelarse.')
+                                                            ->onIcon('heroicon-m-check')
+                                                            ->offIcon('heroicon-m-minus'),
+        
+                                                        Forms\Components\Select::make('land_size')
+                                                            ->label('Medida del Terreno')
+                                                            ->options(LandSize::class)
+                                                            ->native(false)
+                                                            ->placeholder('Selecciona la medida'),
+                                                    ]),
 
                                                 Forms\Components\CheckboxList::make('land_services')
                                                     ->label('Servicios Instalados')
@@ -491,6 +502,11 @@ class FamilyProfileResource extends Resource
                 Tables\Columns\IconColumn::make('land_is_flat')
                     ->label('Terreno Plano')
                     ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('land_size')
+                    ->label('Medida')
+                    ->formatStateUsing(fn ($state) => $state?->getLabel())
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('home_status')
