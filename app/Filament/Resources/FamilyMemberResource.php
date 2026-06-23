@@ -86,6 +86,16 @@ class FamilyMemberResource extends Resource
                                             ->searchable()
                                             ->native(false)
                                             ->prefixIcon('heroicon-s-briefcase'),
+
+                                        Forms\Components\TextInput::make('origin_country')
+                                            ->label('País de Origen')
+                                            ->placeholder('Ej. México')
+                                            ->prefixIcon('heroicon-s-globe-alt'),
+                                        
+                                        Forms\Components\TextInput::make('origin_state')
+                                            ->label('Estado de Origen')
+                                            ->placeholder('Ej. Oaxaca, Chiapas, Puebla...')
+                                            ->prefixIcon('heroicon-s-map-pin'),
                                     ]),
                             ]),
 

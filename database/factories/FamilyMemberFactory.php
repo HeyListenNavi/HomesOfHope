@@ -34,6 +34,8 @@ class FamilyMemberFactory extends Factory
             'education_level' => fake()->randomElement(EducationLevel::cases()),
             'education_grade' => fake()->numberBetween(1, 12),
             'weekly_income' => fake()->randomFloat(2, 500, 5000),
+            'origin_state' => fake()->state(),
+            'origin_country' => 'México',
             'religion' => fake()->randomElement(Religion::cases()),
             'indigenous_language' => fake()->boolean(20) ? fake()->randomElement(IndigenousLanguage::cases()) : null,
             'is_pregnant' => false,

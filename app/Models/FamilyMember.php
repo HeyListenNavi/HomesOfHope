@@ -34,6 +34,8 @@ class FamilyMember extends Model
         'education_grade',
         'weekly_income',
         'religion',
+        'origin_state',
+        'origin_country',
         'speaks_indigenous_language',
         'indigenous_language',
         'is_pregnant',

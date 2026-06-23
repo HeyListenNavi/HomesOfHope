@@ -25,6 +25,8 @@ return new class extends Migration
             $table->string('education_level')->nullable();
             $table->integer('education_grade')->nullable();
             $table->decimal('weekly_income', 10, 2)->nullable();
+            $table->string('origin_state')->nullable();
+            $table->string('origin_country')->nullable();
             $table->string('religion')->nullable();
             $table->boolean('speaks_indigenous_language')->default(false);
             $table->string('indigenous_language')->nullable();

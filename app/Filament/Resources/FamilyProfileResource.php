@@ -231,7 +231,7 @@ class FamilyProfileResource extends Resource
                                                             ->helperText('Marcar si el terreno no requiere nivelarse.')
                                                             ->onIcon('heroicon-m-check')
                                                             ->offIcon('heroicon-m-minus'),
-        
+
                                                         Forms\Components\Select::make('land_size')
                                                             ->label('Medida del Terreno')
                                                             ->options(LandSize::class)
