@@ -102,15 +102,7 @@ class FamilyProfileResource extends Resource
                                             ->visible(fn (Forms\Get $get) => in_array($get('status'), [FamilyStatus::NotEligible->value, FamilyStatus::DontBuild->value, FamilyStatus::Approved->value]))
                                             ->columnSpanFull(),
 
-                                        Grid::make(3)->schema([
-                                            Forms\Components\Select::make('responsible_member_id')
-                                                ->relationship('responsibleMember', 'name')
-                                                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} {$record->paternal_surname}")
-                                                ->searchable()
-                                                ->preload()
-                                                ->label('Aplicante')
-                                                ->prefixIcon('heroicon-s-user'),
-
+                                        Grid::make(2)->schema([
                                             Forms\Components\TextInput::make('interviewer_name')
                                                 ->label('Entrevistador')
                                                 ->prefixIcon('heroicon-s-user-circle'),
