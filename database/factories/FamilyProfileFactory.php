@@ -60,6 +60,11 @@ class FamilyProfileFactory extends Factory
             'addictions_details' => $hasAddictions ? fake()->randomElement(['Alcoholismo', 'Drogadicción', 'Tabaquismo severo', 'Ludopatía']) : null,
             'general_observations' => fake()->paragraph(),
             'responsible_member_id' => FamilyMember::where('is_responsible', true)->inRandomOrder()->first(),
+
+            'building_start_date' => fake()->boolean(40) ? fake()->dateTimeBetween('now', '+6 months') : null,
+            'building_finish_date' => null,
+            'building_team' => fake()->boolean(40) ? fake()->randomElement(['Alpha', 'Beta', 'Gamma', 'Delta', 'Hope Builders', 'Faith Team']) : null,
+            'building_team_color' => fake()->boolean(40) ? fake()->safeColorName() : null,
         ];
     }
 }

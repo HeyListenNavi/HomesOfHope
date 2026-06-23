@@ -60,6 +60,12 @@ return new class extends Migration
             $table->text('general_observations')->nullable();
             $table->boolean('construction_notified')->default(false);
 
+            // Información de la Construcción
+            $table->date('building_start_date')->nullable();
+            $table->date('building_finish_date')->nullable();
+            $table->string('building_team')->nullable();
+            $table->string('building_team_color')->nullable();
+
             $table->timestamps();
         });
     }

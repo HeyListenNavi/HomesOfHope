@@ -57,6 +57,10 @@ class FamilyProfile extends Model
         'general_observations',
         'reason',
         'construction_notified',
+        'building_start_date',
+        'building_finish_date',
+        'building_team',
+        'building_team_color',
     ];
 
     protected $casts = [
@@ -75,6 +79,8 @@ class FamilyProfile extends Model
         'home_status' => HousingStatus::class,
         'home_monthly_rent_currency' => Currency::class,
         'construction_notified' => 'boolean',
+        'building_start_date' => 'date',
+        'building_finish_date' => 'date',
     ];
 
     protected static function booted()

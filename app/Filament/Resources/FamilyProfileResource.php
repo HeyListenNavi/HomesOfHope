@@ -344,6 +344,41 @@ class FamilyProfileResource extends Resource
                                             ->columnSpanFull(),
                                     ]),
 
+                                Tabs\Tab::make('Construcción')
+                                    ->icon('heroicon-m-wrench-screwdriver')
+                                    ->schema([
+                                        Forms\Components\Fieldset::make('Fechas de Construcción')
+                                            ->columns(2)
+                                            ->columnSpanFull()
+                                            ->schema([
+                                                Forms\Components\DatePicker::make('building_start_date')
+                                                    ->label('Fecha de Inicio')
+                                                    ->native(false)
+                                                    ->displayFormat('d/m/Y'),
+
+                                                Forms\Components\DatePicker::make('building_finish_date')
+                                                    ->label('Fecha de Finalización')
+                                                    ->native(false)
+                                                    ->displayFormat('d/m/Y')
+                                                    ->afterOrEqual('building_start_date'),
+                                            ]),
+
+                                        Forms\Components\Fieldset::make('Equipo de Construcción')
+                                            ->columns(2)
+                                            ->columnSpanFull()
+                                            ->schema([
+                                                Forms\Components\TextInput::make('building_team')
+                                                    ->label('Nombre del Equipo')
+                                                    ->placeholder('Ej. Equipo Alpha')
+                                                    ->prefixIcon('heroicon-m-users'),
+
+                                                Forms\Components\TextInput::make('building_team_color')
+                                                    ->label('Color del Equipo')
+                                                    ->placeholder('Ej. Azul, Rojo, Verde')
+                                                    ->prefixIcon('heroicon-m-swatch'),
+                                            ]),
+                                    ]),
+
                                 Tabs\Tab::make('Notas y Comentarios')
                                     ->icon('heroicon-s-pencil-square')
                                     ->schema([
@@ -499,6 +534,30 @@ class FamilyProfileResource extends Resource
                 Tables\Columns\TextColumn::make('land_size')
                     ->label('Medida')
                     ->formatStateUsing(fn ($state) => $state?->getLabel())
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('building_team')
+                    ->label('Equipo')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->color(fn ($record) => $record->building_team_color),
+
+                Tables\Columns\TextColumn::make('building_team_color')
+                    ->label('Color')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->badge()
+                    ->color(fn ($record) => $record->building_team_color),
+
+                Tables\Columns\TextColumn::make('building_start_date')
+                    ->label('Inicio')
+                    ->date()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('building_finish_date')
+                    ->label('Fin')
+                    ->date()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('home_status')
