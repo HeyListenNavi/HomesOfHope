@@ -69,7 +69,6 @@ class DocumentsRelationManager extends RelationManager
                                             ->native(false)
                                             ->searchable(),
 
-                                        // Campos ocultos
                                         Forms\Components\Hidden::make('original_name'),
                                         Forms\Components\Hidden::make('mime_type'),
                                         Forms\Components\Hidden::make('size'),
@@ -78,6 +77,13 @@ class DocumentsRelationManager extends RelationManager
                                             ->default(Auth::id()),
                                     ]),
                             ]),
+
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descripción')
+                            ->rows(3)
+                            ->columnSpanFull()
+                            ->autosize()
+                            ->placeholder('Notas adicionales sobre este documento...'),
                     ]),
             ]);
     }
@@ -118,6 +124,11 @@ class DocumentsRelationManager extends RelationManager
                         'photo' => 'primary',
                         default => 'gray',
                     }),
+
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Descripción')
+                    ->limit(40)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('size')
                     ->label('Tamaño')

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->morphs('documentable');
             $table->string('document_type')->index(); // Ej: 'ine', 'contract', 'proof_of_address'
+            $table->text('description')->nullable();
             $table->string('original_name');
             $table->string('file_path');
             $table->string('mime_type')->nullable();

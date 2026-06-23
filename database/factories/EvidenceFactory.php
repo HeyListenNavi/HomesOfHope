@@ -15,6 +15,7 @@ class EvidenceFactory extends Factory
     {
         return [
             'file_path' => 'evidence/dummy/'.fake()->uuid().'.jpg',
+            'description' => fake()->boolean(60) ? fake()->sentence() : null,
             'taken_by' => User::factory(),
         ];
     }

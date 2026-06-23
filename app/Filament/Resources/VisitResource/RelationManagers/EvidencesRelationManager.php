@@ -38,6 +38,12 @@ class EvidencesRelationManager extends RelationManager
                             ->openable() // Permite abrir en nueva pestaña
                             ->previewable(),
 
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descripción')
+                            ->rows(3)
+                            ->autosize()
+                            ->placeholder('Notas sobre esta evidencia...'),
+
                         Forms\Components\Hidden::make('taken_by')
                             ->default(Auth::id()),
                     ]),
@@ -55,6 +61,11 @@ class EvidencesRelationManager extends RelationManager
                     ->square()
                     ->size(80)
                     ->extraImgAttributes(['class' => 'rounded-lg object-cover shadow-sm']),
+
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Descripción')
+                    ->limit(40)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('photographer.name')
                     ->label('Subido por')

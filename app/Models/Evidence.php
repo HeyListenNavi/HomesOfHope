@@ -19,6 +19,7 @@ class Evidence extends Model
     protected $fillable = [
         'visit_id',
         'file_path',
+        'description',
         'taken_by',
     ];
 

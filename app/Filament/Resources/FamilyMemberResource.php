@@ -91,7 +91,7 @@ class FamilyMemberResource extends Resource
                                             ->label('País de Origen')
                                             ->placeholder('Ej. México')
                                             ->prefixIcon('heroicon-s-globe-alt'),
-                                        
+
                                         Forms\Components\TextInput::make('origin_state')
                                             ->label('Estado de Origen')
                                             ->placeholder('Ej. Oaxaca, Chiapas, Puebla...')
