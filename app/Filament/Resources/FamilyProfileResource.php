@@ -85,6 +85,14 @@ class FamilyProfileResource extends Resource
                                             ->required()
                                             ->columnSpanFull(),
 
+                                        Forms\Components\Toggle::make('construction_notified')
+                                            ->label('Notificado sobre construcción')
+                                            ->helperText('¿La familia ya fue notificada de que se construirá?')
+                                            ->onIcon('heroicon-m-check')
+                                            ->offIcon('heroicon-m-x-mark')
+                                            ->visible(fn (Forms\Get $get) => $get('status') === FamilyStatus::Approved->value)
+                                            ->columnSpanFull(),
+
                                         Forms\Components\Textarea::make('reason')
                                             ->label('Motivo / Razón')
                                             ->rows(3)

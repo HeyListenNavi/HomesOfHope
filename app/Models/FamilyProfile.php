@@ -54,6 +54,7 @@ class FamilyProfile extends Model
         'addictions_details',
         'general_observations',
         'reason',
+        'construction_notified',
     ];
 
     protected $casts = [
@@ -70,7 +71,7 @@ class FamilyProfile extends Model
         'status' => FamilyStatus::class,
         'home_status' => HousingStatus::class,
         'home_monthly_rent_currency' => Currency::class,
-        'condition_level' => ConditionLevel::class,
+        'construction_notified' => 'boolean',
     ];
 
     protected static function booted()

@@ -57,6 +57,7 @@ return new class extends Migration
             $table->boolean('has_addictions')->nullable()->default(false);
             $table->text('addictions_details')->nullable();
             $table->text('general_observations')->nullable();
+            $table->boolean('construction_notified')->default(false);
 
             $table->timestamps();
         });
