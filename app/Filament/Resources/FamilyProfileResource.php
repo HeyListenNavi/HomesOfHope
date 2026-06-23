@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
@@ -331,13 +330,6 @@ class FamilyProfileResource extends Resource
                                             ->placeholder('Describa materiales, distribución, condición, etc.')
                                             ->rows(5)
                                             ->autosize()
-                                            ->columnSpanFull(),
-
-                                        Forms\Components\Select::make('condition_level')
-                                            ->label('Estado de la vivienda')
-                                            ->options(ConditionLevel::class)
-                                            ->native(false)
-                                            ->placeholder('Selecciona una opción')
                                             ->columnSpanFull(),
                                     ]),
 

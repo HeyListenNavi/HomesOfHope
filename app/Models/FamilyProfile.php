@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
@@ -48,7 +47,6 @@ class FamilyProfile extends Model
         'home_monthly_rent_currency',
         'home_has_receipts',
         'house_description',
-        'condition_level',
         'responsible_member_id',
         'opened_at',
         'closed_at',

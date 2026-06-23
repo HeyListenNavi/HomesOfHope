@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\ConditionLevel;
 use App\Enums\Currency;
 use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
@@ -57,7 +56,6 @@ class FamilyProfileFactory extends Factory
             'closed_at' => fake()->boolean(20) ? fake()->dateTimeBetween('now', '+1 year') : null,
             'has_addictions' => $hasAddictions = fake()->boolean(20),
             'addictions_details' => $hasAddictions ? fake()->randomElement(['Alcoholismo', 'Drogadicción', 'Tabaquismo severo', 'Ludopatía']) : null,
-            'condition_level' => fake()->randomElement(ConditionLevel::cases()),
             'general_observations' => fake()->paragraph(),
             'responsible_member_id' => FamilyMember::where('is_responsible', true)->inRandomOrder()->first(),
         ];
