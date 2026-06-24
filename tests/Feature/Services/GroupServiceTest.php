@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Services\Group\GroupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class GroupServiceTest extends TestCase
@@ -70,7 +71,7 @@ class GroupServiceTest extends TestCase
 
         // then the message should be sent via sendText (due to active session) and contain the pdf invitation link
         Http::assertSent(function ($request) use ($applicant) {
-            $url = route('selection.invitation.download', ['applicant' => $applicant]);
+            $url = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
 
             return str_contains($request['text']['body'], $url)
                 && str_contains($request['text']['body'], 'invitación en PDF');
@@ -88,7 +89,7 @@ class GroupServiceTest extends TestCase
 
         // then the message should be sent via sendTemplate and the template parameter 'detalles_extra' should contain the pdf invitation link
         Http::assertSent(function ($request) use ($applicant) {
-            $url = route('selection.invitation.download', ['applicant' => $applicant]);
+            $url = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
 
             // Extract the 'detalles_extra' parameter
             $parameters = $request['template']['components'][0]['parameters'] ?? [];
@@ -111,7 +112,7 @@ class GroupServiceTest extends TestCase
 
         // then the message template parameter 'detalles_extra' should NOT contain the pdf invitation link
         Http::assertSent(function ($request) use ($applicant) {
-            $url = route('selection.invitation.download', ['applicant' => $applicant]);
+            $url = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
 
             $parameters = $request['template']['components'][0]['parameters'] ?? [];
             $detallesExtra = collect($parameters)->firstWhere('parameter_name', 'detalles_extra')['text'] ?? '';

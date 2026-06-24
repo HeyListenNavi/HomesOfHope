@@ -32,7 +32,7 @@
     </div>
 
     <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
-        <x-button class="text-label-large" href="{{ route('selection.invitation.download', $applicant) }}">
+        <x-button class="text-label-large" href="{{ URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]) }}">
             <span>Descargar Invitación</span>
             <i class="bx bxs-download ml-2 w-5 !text-2xl"></i>
         </x-button>

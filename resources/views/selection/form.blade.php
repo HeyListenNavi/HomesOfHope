@@ -22,7 +22,7 @@
     <p class="mb-4">Hola {{ $applicant->applicant_name ?? 'solicitante' }}, aquí puedes escoger la fecha de tu
         entrevista personal. Solo selecciona la que mejor se acomode a tu horario entre las disponibles.</p>
 
-    <form action="{{ route('group.selection.assign', $applicant) }}" method="POST" class="w-full">
+    <form action="{{ URL::temporarySignedRoute('group.selection.assign', now()->addDays(3), ['applicant' => $applicant]) }}" method="POST" class="w-full">
         @csrf
 
         <fieldset class="grid gap-8 md:grid-cols-2 py-4">

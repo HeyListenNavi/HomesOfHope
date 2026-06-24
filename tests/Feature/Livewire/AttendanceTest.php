@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -50,8 +51,9 @@ class AttendanceTest extends TestCase
         ]);
 
         // when assigning the applicant to the group via the controller
+        $url = URL::temporarySignedRoute('group.selection.assign', now()->addDays(3), ['applicant' => $applicant->id]);
         $response = $this->withoutMiddleware(ValidateCsrfToken::class)
-            ->post(route('group.selection.assign', $applicant->id), [
+            ->post($url, [
                 'group_id' => $group->id,
             ]);
 

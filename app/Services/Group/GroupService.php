@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\Group;
 use App\Services\Whatsapp\WhatsappService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class GroupService
 {
@@ -76,8 +77,8 @@ class GroupService
         $groupMessage = $group->message;
 
         if ($daysRemaining === 1) {
-            $pdfLink = route('selection.invitation.download', ['applicant' => $applicant]);
-            $groupMessage .= " Puedes descargar tu invitación en PDF aquí: ".$pdfLink;
+            $pdfLink = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
+            $groupMessage .= ' Puedes descargar tu invitación en PDF aquí: '.$pdfLink;
         }
 
         $message = 'Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día '.$groupDateTime.'. La entrevista sera en '.$groupLocation."\n".

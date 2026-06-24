@@ -1,26 +1,27 @@
 <?php
 
-use App\Livewire\AttendancePage;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GroupSelectionController;
+use App\Livewire\AttendancePage;
+use Illuminate\Support\Facades\Route;
 
-
-Route::get('/', function() {
+Route::get('/', function () {
     return view('dates-form');
 });
 
 Route::get('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'showSelectionForm'])
+    ->middleware('signed')
     ->name('group.selection.form');
-    //->middleware('signed'); // <-- Middleware que valida la firma de la URL
 
 Route::post('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'assignToGroup'])
+    ->middleware('signed')
     ->name('group.selection.assign');
 
 Route::get('/seleccion/invitacion/{applicant:id}', [GroupSelectionController::class, 'downloadInvitation'])
+    ->middleware('signed')
     ->name('selection.invitation.download');
 
 Route::get('/seleccion/confirmado/{applicant:id}', [GroupSelectionController::class, 'showSuccess'])
+    ->middleware('signed')
     ->name('selection.success');
 
 Route::get('/seleccion/enlace-invalido', [GroupSelectionController::class, 'showInvalidLink'])

@@ -11,6 +11,7 @@ use chillerlan\QRCode\QRCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class GroupSelectionController extends Controller
 {
@@ -25,7 +26,7 @@ class GroupSelectionController extends Controller
         // Verificamos el estado lógico del aplicante.
         if ($applicant->group_id !== null) {
             return view('selection.invalid', [
-                'message' => 'Este enlace no es válido o ya has seleccionado un grupo.'
+                'message' => 'Este enlace no es válido o ya has seleccionado un grupo.',
             ]);
         }
 
@@ -51,7 +52,7 @@ class GroupSelectionController extends Controller
         }
 
         $request->validate([
-            'group_id' => 'required'
+            'group_id' => 'required',
         ]);
 
         // Usamos una transacción para garantizar la integridad de los datos
@@ -68,7 +69,7 @@ class GroupSelectionController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if (!$group) {
+            if (! $group) {
                 // Si el grupo se llenó mientras el usuario decidía.
                 return back()->with('error', 'Lo sentimos, el grupo que seleccionaste se acaba de llenar. Por favor, elige otra opción.');
             }
@@ -89,7 +90,7 @@ class GroupSelectionController extends Controller
 
             $this->groupService->sendInterviewDetails($applicant);
 
-            return redirect()->route('selection.success', $applicant->id)->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
+            return redirect(URL::temporarySignedRoute('selection.success', now()->addDays(3), ['applicant' => $applicant->id]))->with('success', '¡Excelente! Tu lugar en el grupo ha sido confirmado.');
         });
     }
 
@@ -121,7 +122,7 @@ class GroupSelectionController extends Controller
         }
 
         $pdf = Pdf::loadView('pdf.invitation', compact('applicant', 'qrCode'))
-            ->setPaper('letter', 'portrait');;
+            ->setPaper('letter', 'portrait');
 
         return $pdf->download("Invitacion_CasasDeEsperanza_{$applicant->id}.pdf");
     }
