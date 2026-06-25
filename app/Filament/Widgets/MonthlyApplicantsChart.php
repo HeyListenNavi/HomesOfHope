@@ -10,19 +10,55 @@ use Flowframe\Trend\TrendValue;
 
 class MonthlyApplicantsChart extends ChartWidget
 {
-    protected static ?string $heading = 'Total de Solicitantes por Mes';
+    public ?string $filter = 'month';
+
+    protected static ?string $heading = 'Total de Solicitantes';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
+
     protected static ?int $sort = 4;
+
     protected static ?string $maxHeight = '300px';
 
     protected function getData(): array
     {
+        [$start, $end] = $this->getPeriodDateRange();
+
+        $per = match ($this->filter) {
+            'week' => 'perDay',
+            'month' => 'perDay',
+            'year' => 'perMonth',
+        };
+
         $data = Trend::model(Applicant::class)
-            ->between(
-                start: now()->startOfYear(),
-                end: now()->endOfYear(),
-            )
-            ->perMonth()
+            ->between(start: $start, end: $end)
+            ->{$per}()
             ->count();
+
+        $dateFormat = match ($this->filter) {
+            'week' => 'D',
+            'month' => 'j',
+            'year' => 'M',
+        };
 
         return [
             'datasets' => [
@@ -36,7 +72,7 @@ class MonthlyApplicantsChart extends ChartWidget
                     'pointHoverRadius' => 6,
                 ],
             ],
-            'labels' => $data->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat('M')),
+            'labels' => $data->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat($dateFormat)),
         ];
     }
 

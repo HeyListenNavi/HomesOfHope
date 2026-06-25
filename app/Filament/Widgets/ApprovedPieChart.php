@@ -7,7 +7,30 @@ use Filament\Widgets\ChartWidget;
 
 class ApprovedPieChart extends ChartWidget
 {
+    public ?string $filter = 'month';
+
     protected static ?string $heading = 'Aprobados: Staff vs IA';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
 
     protected static ?int $sort = 10;
 
@@ -15,8 +38,14 @@ class ApprovedPieChart extends ChartWidget
 
     protected function getData(): array
     {
-        $staffApproved = Applicant::where('process_status', 'staff_approved')->count();
-        $aiApproved = Applicant::where('process_status', 'approved')->count();
+        [$start, $end] = $this->getPeriodDateRange();
+
+        $staffApproved = Applicant::where('process_status', 'staff_approved')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+        $aiApproved = Applicant::where('process_status', 'approved')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
 
         return [
             'datasets' => [

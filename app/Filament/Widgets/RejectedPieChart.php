@@ -7,7 +7,30 @@ use Filament\Widgets\ChartWidget;
 
 class RejectedPieChart extends ChartWidget
 {
+    public ?string $filter = 'month';
+
     protected static ?string $heading = 'Rechazados: Staff vs IA';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
 
     protected static ?int $sort = 11;
 
@@ -15,8 +38,14 @@ class RejectedPieChart extends ChartWidget
 
     protected function getData(): array
     {
-        $staffRejected = Applicant::where('process_status', 'staff_rejected')->count();
-        $aiRejected = Applicant::where('process_status', 'rejected')->count();
+        [$start, $end] = $this->getPeriodDateRange();
+
+        $staffRejected = Applicant::where('process_status', 'staff_rejected')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+        $aiRejected = Applicant::where('process_status', 'rejected')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
 
         return [
             'datasets' => [

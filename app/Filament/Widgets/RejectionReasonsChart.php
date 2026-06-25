@@ -7,26 +7,54 @@ use Filament\Widgets\ChartWidget;
 
 class RejectionReasonsChart extends ChartWidget
 {
+    public ?string $filter = 'month';
+
     protected static ?string $heading = 'Distribución de Razones de Rechazo';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
+
     protected static ?int $sort = 3;
+
     protected static ?string $maxHeight = '300px';
 
     protected function getData(): array
     {
+        [$start, $end] = $this->getPeriodDateRange();
+
         $data = Applicant::whereIn('process_status', ['rejected', 'staff_rejected'])
+            ->whereBetween('created_at', [$start, $end])
             ->pluck('rejection_reason')
             ->countBy()
             ->toArray();
 
         $statuses = [
-            'no_children'       => ['label' => 'No tiene hijos',            'color' => '#ef4444'],
-            'contract_issues'   => ['label' => 'Problemas con contrato',    'color' => '#f97316'],
-            'not_owner'         => ['label' => 'No es dueño',               'color' => '#f59e0b'],
-            'lives_too_far'     => ['label' => 'Muy lejos',                 'color' => '#eab308'],
-            'less_than_a_year'  => ['label' => 'Menos de 1 año',            'color' => '#84cc16'],
-            'late_payments'     => ['label' => 'Pagos atrasados',           'color' => '#22c55e'],
-            'out_of_coverage'   => ['label' => 'Colonia No Atendida',       'color' => '#10b981'],
-            'other'             => ['label' => 'Otros',                     'color' => '#64748b'],
+            'no_children' => ['label' => 'No tiene hijos',            'color' => '#ef4444'],
+            'contract_issues' => ['label' => 'Problemas con contrato',    'color' => '#f97316'],
+            'not_owner' => ['label' => 'No es dueño',               'color' => '#f59e0b'],
+            'lives_too_far' => ['label' => 'Muy lejos',                 'color' => '#eab308'],
+            'less_than_a_year' => ['label' => 'Menos de 1 año',            'color' => '#84cc16'],
+            'late_payments' => ['label' => 'Pagos atrasados',           'color' => '#22c55e'],
+            'out_of_coverage' => ['label' => 'Colonia No Atendida',       'color' => '#10b981'],
+            'other' => ['label' => 'Otros',                     'color' => '#64748b'],
         ];
 
         $labels = [];

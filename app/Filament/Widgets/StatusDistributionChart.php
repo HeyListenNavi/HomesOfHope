@@ -7,25 +7,53 @@ use Filament\Widgets\ChartWidget;
 
 class StatusDistributionChart extends ChartWidget
 {
+    public ?string $filter = 'month';
+
     protected static ?string $heading = 'Distribución de Estatus';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
+
     protected static ?int $sort = 2;
+
     protected static ?string $maxHeight = '300px';
 
     protected function getData(): array
     {
-        $data = Applicant::get()
+        [$start, $end] = $this->getPeriodDateRange();
+
+        $data = Applicant::whereBetween('created_at', [$start, $end])
+            ->get()
             ->pluck('process_status')
             ->countBy()
             ->toArray();
 
         $statuses = [
-            'staff_approved'    => ['label' => 'Staff: Aprobado', 'color' => '#15803d'],
-            'approved'          => ['label' => 'IA: Aprobado',    'color' => '#4ade80'],
-            'in_progress'       => ['label' => 'En Progreso',     'color' => '#3b82f6'],
+            'staff_approved' => ['label' => 'Staff: Aprobado', 'color' => '#15803d'],
+            'approved' => ['label' => 'IA: Aprobado',    'color' => '#4ade80'],
+            'in_progress' => ['label' => 'En Progreso',     'color' => '#3b82f6'],
             'requires_revision' => ['label' => 'Revisión Manual', 'color' => '#f59e0b'],
-            'rejected'          => ['label' => 'IA: Rechazado',   'color' => '#f87171'],
-            'staff_rejected'    => ['label' => 'Staff: Rechazado','color' => '#b91c1c'],
-            'canceled'          => ['label' => 'Cancelado',       'color' => '#9ca3af'],
+            'rejected' => ['label' => 'IA: Rechazado',   'color' => '#f87171'],
+            'staff_rejected' => ['label' => 'Staff: Rechazado', 'color' => '#b91c1c'],
+            'canceled' => ['label' => 'Cancelado',       'color' => '#9ca3af'],
         ];
 
         $labels = [];
@@ -64,10 +92,10 @@ class StatusDistributionChart extends ChartWidget
             ],
             'scales' => [
                 'x' => [
-                    'display' => false
+                    'display' => false,
                 ],
                 'y' => [
-                    'display' => false
+                    'display' => false,
                 ],
             ],
         ];

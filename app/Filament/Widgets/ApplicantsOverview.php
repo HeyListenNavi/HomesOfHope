@@ -10,44 +10,81 @@ use Flowframe\Trend\TrendValue;
 
 class ApplicantsOverview extends BaseWidget
 {
+    public ?string $filter = 'month';
+
     protected static ?int $sort = 1;
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
+
+    protected static string $view = 'filament.widgets.applicants-overview';
 
     protected function getStats(): array
     {
-        $counts = Applicant::get()
+        [$start, $end] = $this->getPeriodDateRange();
+
+        $counts = Applicant::whereBetween('created_at', [$start, $end])
+            ->get()
             ->pluck('process_status')
             ->countBy()
             ->toArray();
 
-        $get = fn($status) => $counts[$status] ?? 0;
+        $get = fn ($status) => $counts[$status] ?? 0;
 
         $approvedIA = $get('approved');
         $approvedStaff = $get('staff_approved');
         $rejectedIA = $get('rejected');
         $rejectedStaff = $get('staff_rejected');
 
-        $start = now()->subDays(13);
-        $end = now();
+        $per = match ($this->filter) {
+            'week' => 'perDay',
+            'month' => 'perDay',
+            'year' => 'perMonth',
+        };
+
+        $chartStart = match ($this->filter) {
+            'week' => now()->startOfWeek(),
+            'month' => now()->startOfMonth(),
+            'year' => now()->startOfYear(),
+        };
 
         $totalChart = Trend::model(Applicant::class)
-            ->between(start: $start, end: $end)
-            ->perDay()
+            ->between(start: $chartStart, end: $end)
+            ->{$per}()
             ->count()
             ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
         $approvedChart = Trend::query(Applicant::whereIn('process_status', ['approved', 'staff_approved']))
             ->dateColumn('updated_at')
-            ->between(start: $start, end: $end)
-            ->perDay()
+            ->between(start: $chartStart, end: $end)
+            ->{$per}()
             ->count()
             ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
         $rejectedChart = Trend::query(Applicant::whereIn('process_status', ['rejected', 'staff_rejected']))
             ->dateColumn('updated_at')
-            ->between(start: $start, end: $end)
-            ->perDay()
+            ->between(start: $chartStart, end: $end)
+            ->{$per}()
             ->count()
             ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();

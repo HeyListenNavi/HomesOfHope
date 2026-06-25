@@ -10,21 +10,49 @@ use Flowframe\Trend\TrendValue;
 
 class RejectedApplicantsChart extends ChartWidget
 {
+    public ?string $filter = 'month';
+
     protected static ?string $heading = 'Rechazados por Staff vs IA';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'week' => 'Esta Semana',
+            'month' => 'Este Mes',
+            'year' => 'Este Año',
+        ];
+    }
+
+    private function getPeriodDateRange(): array
+    {
+        $filter = $this->filter ?? 'month';
+
+        return match ($filter) {
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
 
     protected static ?int $sort = 9;
 
     protected function getData(): array
     {
-        $start = now()->startOfYear();
-        $end = now()->endOfYear();
+        [$start, $end] = $this->getPeriodDateRange();
+
+        $per = match ($this->filter) {
+            'week' => 'perDay',
+            'month' => 'perDay',
+            'year' => 'perMonth',
+        };
 
         $staffRejected = Trend::query(
             Applicant::where('process_status', 'staff_rejected')
         )
             ->dateColumn('created_at')
             ->between(start: $start, end: $end)
-            ->perMonth()
+            ->{$per}()
             ->count();
 
         $aiRejected = Trend::query(
@@ -32,8 +60,14 @@ class RejectedApplicantsChart extends ChartWidget
         )
             ->dateColumn('created_at')
             ->between(start: $start, end: $end)
-            ->perMonth()
+            ->{$per}()
             ->count();
+
+        $dateFormat = match ($this->filter) {
+            'week' => 'D',
+            'month' => 'j',
+            'year' => 'M',
+        };
 
         return [
             'datasets' => [
@@ -52,7 +86,7 @@ class RejectedApplicantsChart extends ChartWidget
                     'tension' => 0.4,
                 ],
             ],
-            'labels' => $staffRejected->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat('M')),
+            'labels' => $staffRejected->map(fn (TrendValue $value) => Carbon::parse($value->date)->translatedFormat($dateFormat)),
         ];
     }
 
