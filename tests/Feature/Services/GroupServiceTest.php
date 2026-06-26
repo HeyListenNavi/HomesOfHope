@@ -58,9 +58,9 @@ class GroupServiceTest extends TestCase
         Http::assertSentCount(1);
     }
 
-    public function test_send_interview_reminder_one_day_before_adds_pdf_link_active_session()
+    public function test_send_interview_reminder_sends_invitation_show_url_active_session()
     {
-        // given a group, applicant with active session, and 1 day remaining
+        // given a group, applicant with active session
         $group = Group::factory()->create(['date_time' => now()->addDays(1), 'location' => 'Test Location', 'message' => 'Info message']);
         $applicant = Applicant::factory()->create(['group_id' => $group->id]);
         $conv = Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
@@ -69,39 +69,38 @@ class GroupServiceTest extends TestCase
         // when sending the reminder for 1 day remaining
         $this->service->sendInterviewReminder($applicant, 1);
 
-        // then the message should be sent via sendText (due to active session) and contain the pdf invitation link
-        Http::assertSent(function ($request) use ($applicant) {
-            $url = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
+        // then the message is sent via sendText and contains the invitation.show URL
+        Http::assertSent(function ($request) use ($applicant, $group) {
+            $url = URL::temporarySignedRoute('invitation.show', $group->date_time->addDay(), ['applicant' => $applicant]);
 
             return str_contains($request['text']['body'], $url)
-                && str_contains($request['text']['body'], 'invitación en PDF');
+                && str_contains($request['text']['body'], 'QR de asistencia');
         });
     }
 
-    public function test_send_interview_reminder_one_day_before_adds_pdf_link_inactive_session()
+    public function test_send_interview_reminder_sends_invitation_show_url_inactive_session()
     {
-        // given a group, applicant with inactive session, and 1 day remaining
+        // given a group, applicant with inactive session
         $group = Group::factory()->create(['date_time' => now()->addDays(1), 'location' => 'Test Location', 'message' => 'Info message']);
         $applicant = Applicant::factory()->create(['group_id' => $group->id]);
 
         // when sending the reminder for 1 day remaining
         $this->service->sendInterviewReminder($applicant, 1);
 
-        // then the message should be sent via sendTemplate and the template parameter 'detalles_extra' should contain the pdf invitation link
-        Http::assertSent(function ($request) use ($applicant) {
-            $url = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
+        // then the template 'detalles_extra' contains the invitation.show URL
+        Http::assertSent(function ($request) use ($applicant, $group) {
+            $url = URL::temporarySignedRoute('invitation.show', $group->date_time->addDay(), ['applicant' => $applicant]);
 
-            // Extract the 'detalles_extra' parameter
             $parameters = $request['template']['components'][0]['parameters'] ?? [];
             $detallesExtra = collect($parameters)->firstWhere('parameter_name', 'detalles_extra')['text'] ?? '';
 
             return $request['template']['name'] === 'recordatorio_grupo'
                 && str_contains($detallesExtra, $url)
-                && str_contains($detallesExtra, 'invitación en PDF');
+                && str_contains($detallesExtra, 'QR de asistencia');
         });
     }
 
-    public function test_send_interview_reminder_other_days_does_not_add_pdf_link()
+    public function test_send_interview_reminder_includes_invitation_link_for_any_day()
     {
         // given a group, applicant, and 4 days remaining (inactive session)
         $group = Group::factory()->create(['date_time' => now()->addDays(4), 'location' => 'Test Location', 'message' => 'Info message']);
@@ -110,15 +109,15 @@ class GroupServiceTest extends TestCase
         // when sending the reminder for 4 days remaining
         $this->service->sendInterviewReminder($applicant, 4);
 
-        // then the message template parameter 'detalles_extra' should NOT contain the pdf invitation link
-        Http::assertSent(function ($request) use ($applicant) {
-            $url = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
+        // then the template 'detalles_extra' still contains the invitation.show URL
+        Http::assertSent(function ($request) use ($applicant, $group) {
+            $url = URL::temporarySignedRoute('invitation.show', $group->date_time->addDay(), ['applicant' => $applicant]);
 
             $parameters = $request['template']['components'][0]['parameters'] ?? [];
             $detallesExtra = collect($parameters)->firstWhere('parameter_name', 'detalles_extra')['text'] ?? '';
 
             return $request['template']['name'] === 'recordatorio_grupo'
-                && ! str_contains($detallesExtra, $url);
+                && str_contains($detallesExtra, $url);
         });
     }
 }
