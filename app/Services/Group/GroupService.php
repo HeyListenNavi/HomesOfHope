@@ -50,21 +50,36 @@ class GroupService
     public function sendInterviewDetails(Applicant $applicant): void
     {
         $group = $applicant->group;
+
+        $invitationUrl = URL::temporarySignedRoute(
+            'invitation.show',
+            $group->date_time->addDay(),
+            ['applicant' => $applicant]
+        );
+
+        $day = $group->date_time->translatedFormat('l d M, Y');
+        $time = $group->date_time->translatedFormat('h:i A');
+        $address = $group->location;
+        $address_link = $group->location_link;
+        $invitation = "En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: " . $invitationUrl;
+
         $message = "Felicidades! La cita para tu entrevista presencial fue registrada con exito.\n".
             "Por favor recuerda la siguiente informacion:\n".
-            'Tu cita es el dia: '.$group->date_time->translatedFormat('l d M, Y')."\n".
-            'A las: '.$group->date_time->translatedFormat('h:i A')."\n".
-            'Con direccion: : '.$group->location."\n".
-            'Ubicacion: '.$group->location_link."\n";
+            "Tu cita es el dia: {$day}\n".
+            "A las: {$time}\n".
+            "Con direccion: ${address}\n".
+            "Ubicacion: ${address_link}\n\n".
 
-        $message .= "No olvides leer la siguiente informacion importante: \n".$group->message;
+            "Aqui estan mas detalles sobre tu entrevista\n".
+            "${invitation}\n".
+            "No olvides leer la informacion, es importante para realizar tu entrevista correctamente\n";
 
         $this->whatsappService->send($applicant, $message, 'enviar_informacion_de_entrevista', [
-            'dia' => $group->date_time->translatedFormat('l d M, Y'),
-            'hora' => $group->date_time->translatedFormat('h:i A'),
-            'direccion' => $group->location,
-            'ubicacion' => $group->location_link,
-            'detalles_extra' => $group->message,
+            'dia' => $day,
+            'hora' => $time,
+            'direccion' => $address,
+            'ubicacion' => $address_link,
+            'detalles_extra' => $invitation,
         ]);
     }
 
@@ -72,25 +87,34 @@ class GroupService
     {
         $group = $applicant->group;
 
-        $groupDateTime = $group->date_time->translatedFormat('l d M, Y').' a las '.$group->date_time->translatedFormat('h:i A');
-        $groupLocation = $group->location;
-        $groupMessage = $group->message;
+        $invitationUrl = URL::temporarySignedRoute(
+            'invitation.show',
+            $group->date_time->addDay(),
+            ['applicant' => $applicant]
+        );
 
-        if ($daysRemaining === 1) {
-            $pdfLink = URL::temporarySignedRoute('selection.invitation.download', now()->addDays(3), ['applicant' => $applicant]);
-            $groupMessage .= ' Puedes descargar tu invitación en PDF aquí: '.$pdfLink;
-        }
+        $daysText = match (true) {
+            $daysRemaining === 1 => 'mañana',
+            default => "en {$daysRemaining} días",
+        };
 
-        $message = 'Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día '.$groupDateTime.'. La entrevista sera en '.$groupLocation."\n".
+        $dateTime = $group->date_time->translatedFormat('l d M, Y') . "a las " . $group->date_time->translatedFormat('h:i A');
+        $address = $group->location;
+        $invitation = "En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: " . $invitationUrl;
+
+
+        $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día {$dateTime}. La entrevista sera en ${address}\n".
             "Aquí hay mas detalles sobre tu entrevista:\n".
-            $groupMessage."\n\n".
-            "No olvides leer la información, es importante para realizar tu entrevista correctamente\n".
-            'En caso de que no vayas a poder asistir solo mandanos un mensaje aquí diciendo "No podre asistir" y nuestro asistente virtual se encargara de permitirte elegir otra fecha.';
+
+            "{$invitation}\n".
+
+            "No olvides leer la información, es importante para realizar tu entrevista correctamente.\n".
+            "En caso de que no vayas a poder asistir solo mandanos un mensaje aquí diciendo \"No podre asistir\" y nuestro asistente virtual se encargara de permitirte elegir otra fecha.";
 
         $this->whatsappService->send($applicant, $message, 'recordatorio_grupo', [
-            'fecha' => $groupDateTime,
-            'direccion' => $groupLocation,
-            'detalles_extra' => $groupMessage,
+            'fecha' => $dateTime,
+            'direccion' => $address,
+            'detalles_extra' => $invitation,
         ]);
     }
 }

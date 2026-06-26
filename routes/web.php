@@ -24,6 +24,10 @@ Route::get('/seleccion/confirmado/{applicant:id}', [GroupSelectionController::cl
     ->middleware('signed')
     ->name('selection.success');
 
+Route::get('/invitacion/{applicant:id}', [GroupSelectionController::class, 'showInvitation'])
+    ->middleware('signed')
+    ->name('invitation.show');
+
 Route::get('/seleccion/enlace-invalido', [GroupSelectionController::class, 'showInvalidLink'])
     ->name('selection.invalid');
 

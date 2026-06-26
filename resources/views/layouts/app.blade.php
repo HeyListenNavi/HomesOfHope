@@ -12,7 +12,6 @@
 
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
 
     <!-- Tailwind CSS (via Vite) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,7 +23,7 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-body min-h-screen font-sans antialiased text-white selection:bg-highlight selection:text-white">
+<body class="bg-body bg-fixed bg-cover min-h-screen font-sans antialiased text-white selection:bg-highlight selection:text-white">
     
     <main class="min-h-screen flex flex-col items-center justify-center">
         @yield('body')

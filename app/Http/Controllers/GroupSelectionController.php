@@ -127,6 +127,31 @@ class GroupSelectionController extends Controller
         return $pdf->download("Invitacion_CasasDeEsperanza_{$applicant->id}.pdf");
     }
 
+    public function showInvitation(Request $request, Applicant $applicant)
+    {
+        if (! $applicant->group) {
+            return view('selection.invalid', [
+                'message' => 'No tienes una entrevista agendada.',
+            ]);
+        }
+
+        if ($request->query('pdf')) {
+            return $this->downloadInvitation($applicant);
+        }
+
+        $applicant->load('group');
+
+        $qrCode = null;
+        if ($applicant->attendance?->attendance_code) {
+            $qrCode = (new QRCode)->render($applicant->attendance->attendance_code);
+        }
+
+        $number = config('services.whatsapp.number');
+        $whatsAppUrl = "https://wa.me/{$number}";
+
+        return view('invitation.show', compact('applicant', 'qrCode', 'whatsAppUrl'));
+    }
+
     /**
      * Muestra una página para enlaces inválidos.
      */
