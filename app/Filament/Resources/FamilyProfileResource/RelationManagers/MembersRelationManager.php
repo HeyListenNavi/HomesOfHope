@@ -50,7 +50,6 @@ class MembersRelationManager extends RelationManager
 
                                         Forms\Components\TextInput::make('maternal_surname')
                                             ->label('Apellido Materno')
-                                            ->required()
                                             ->placeholder('Ej. López')
                                             ->maxLength(255),
                                     ]),
@@ -60,7 +59,6 @@ class MembersRelationManager extends RelationManager
                                     ->schema([
                                         Forms\Components\DatePicker::make('birth_date')
                                             ->label('Fecha de Nacimiento')
-                                            ->required()
                                             ->native(false)
                                             ->maxDate(now())
                                             ->prefixIcon('heroicon-s-cake'),
@@ -70,7 +68,6 @@ class MembersRelationManager extends RelationManager
                                             ->maxLength(18)
                                             ->prefixIcon('heroicon-s-finger-print')
                                             ->placeholder('CURP')
-                                            ->required()
                                             ->formatStateUsing(fn (?string $state) => strtoupper($state)),
 
                                         Forms\Components\Select::make('occupation')
@@ -205,7 +202,6 @@ class MembersRelationManager extends RelationManager
                             ->schema([
                                 Forms\Components\TextInput::make('phone')
                                     ->label('Teléfono (WhatsApp)')
-                                    ->required()
                                     ->prefixIcon('heroicon-s-chat-bubble-left-right'),
                             ]),
                     ])

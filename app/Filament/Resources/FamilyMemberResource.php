@@ -57,7 +57,6 @@ class FamilyMemberResource extends Resource
 
                                         Forms\Components\TextInput::make('maternal_surname')
                                             ->label('Apellido Materno')
-                                            ->required()
                                             ->placeholder('Ej. López')
                                             ->maxLength(255),
                                     ]),
