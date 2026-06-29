@@ -91,6 +91,13 @@ class ApplicantsRelationManager extends RelationManager
         }
 
         array_push($columns,
+            TextColumn::make('tags.name')
+                ->label('Etiquetas')
+                ->badge()
+                ->color('primary')
+                ->separator(',')
+                ->toggleable(isToggledHiddenByDefault: true),
+
             TextColumn::make('process_status')
                 ->label('Estatus')
                 ->badge()
