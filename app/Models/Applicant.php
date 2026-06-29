@@ -41,6 +41,7 @@ class Applicant extends Model
             if ($applicant->chat_id) {
                 $applicant->conversation()->firstOrCreate(
                     ['chat_id' => $applicant->chat_id],
+                    ['user_name' => $applicant->applicant_name],
                 );
             }
 

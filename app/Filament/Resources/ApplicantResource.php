@@ -100,6 +100,7 @@ class ApplicantResource extends Resource
                                             ->unique(ignoreRecord: true)
                                             ->tel()
                                             ->prefixIcon('heroicon-m-phone')
+                                            ->helperText('Incluye el código del país completo. Para México usa 521 seguido del número')
                                             ->formatStateUsing(function ($state, string $operation) {
                                                 if (! $state) {
                                                     return '-';
