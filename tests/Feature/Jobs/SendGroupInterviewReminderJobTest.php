@@ -4,7 +4,6 @@ namespace Tests\Feature\Jobs;
 
 use App\Jobs\SendGroupInterviewReminderJob;
 use App\Models\Applicant;
-use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\Message;
 use App\Services\Group\GroupService;
@@ -21,7 +20,6 @@ class SendGroupInterviewReminderJobTest extends TestCase
         // given an applicant with a group and an active session
         $group = Group::factory()->create(['date_time' => now()->addDays(1), 'location' => 'Test Location', 'message' => 'Info']);
         $applicant = Applicant::factory()->create(['group_id' => $group->id]);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when handling the job

@@ -3,7 +3,7 @@
 namespace Tests\Feature\Services;
 
 use App\Models\Applicant;
-use App\Models\Conversation;
+use App\Models\Group;
 use App\Models\Message;
 use App\Models\Question;
 use App\Models\Stage;
@@ -26,6 +26,54 @@ class ApplicantServiceTest extends TestCase
         $this->service = app(ApplicantService::class);
     }
 
+    public function test_start_applicant_questions_sets_first_stage_and_question_and_sends_messages()
+    {
+        $stage1 = Stage::factory()->create(['order' => 1, 'starting_message' => 'Bienvenido {{nombre}} a la evaluación.']);
+        $stage2 = Stage::factory()->create(['order' => 2]);
+        $question1 = Question::factory()->create(['stage_id' => $stage1->id, 'order' => 1]);
+        Question::factory()->create(['stage_id' => $stage2->id, 'order' => 1]);
+        $applicant = Applicant::factory()->create();
+
+        $this->service->startApplicantQuestions($applicant);
+
+        $applicant->refresh();
+        $this->assertEquals($stage1->id, $applicant->current_stage_id);
+        $this->assertEquals($question1->id, $applicant->current_question_id);
+        $this->assertEquals('in_progress', $applicant->process_status);
+        $this->assertEquals('ask_question', $applicant->current_step);
+
+        $this->assertDatabaseHas('applicant_question_responses', [
+            'applicant_id' => $applicant->id,
+            'question_id' => $question1->id,
+            'user_response' => null,
+        ]);
+
+        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
+    }
+
+    public function test_start_applicant_questions_handles_no_stages_gracefully()
+    {
+        $applicant = Applicant::factory()->create();
+
+        $this->service->startApplicantQuestions($applicant);
+
+        $applicant->refresh();
+        $this->assertNull($applicant->current_stage_id);
+        Http::assertNothingSent();
+    }
+
+    public function test_start_applicant_questions_handles_no_questions_gracefully()
+    {
+        $stage1 = Stage::factory()->create(['order' => 1]);
+        $applicant = Applicant::factory()->create();
+
+        $this->service->startApplicantQuestions($applicant);
+
+        $applicant->refresh();
+        $this->assertNull($applicant->current_question_id);
+        Http::assertNothingSent();
+    }
+
     public function test_reset_applicant_restarts_the_process()
     {
         // given a staged applicant with a conversation
@@ -33,7 +81,6 @@ class ApplicantServiceTest extends TestCase
         $stage2 = Stage::factory()->create(['order' => 2]);
         $question1 = Question::factory()->create(['stage_id' => $stage1->id, 'order' => 1]);
         $applicant = Applicant::factory()->create(['current_stage_id' => $stage2->id, 'process_status' => 'staff_approved']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
 
         // when resetting the applicant
         $this->service->resetApplicant($applicant);
@@ -53,7 +100,6 @@ class ApplicantServiceTest extends TestCase
         $stage2 = Stage::factory()->create(['order' => 2]);
         $question2 = Question::factory()->create(['stage_id' => $stage2->id, 'order' => 1]);
         $applicant = Applicant::factory()->create(['current_stage_id' => $stage1->id, 'process_status' => 'in_progress']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
 
         // when approving the stage
         $this->service->approveStage($applicant);
@@ -69,7 +115,6 @@ class ApplicantServiceTest extends TestCase
         // given an applicant in the last stage
         $stage1 = Stage::factory()->create(['order' => 1]);
         $applicant = Applicant::factory()->create(['current_stage_id' => $stage1->id, 'process_status' => 'in_progress']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
 
         // when approving the stage
         $this->service->approveStage($applicant);
@@ -83,7 +128,6 @@ class ApplicantServiceTest extends TestCase
     {
         // given an applicant in progress
         $applicant = Applicant::factory()->create(['process_status' => 'in_progress']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
 
         // when rejecting the applicant
         $this->service->rejectApplicant($applicant, 'no_children');
@@ -100,7 +144,6 @@ class ApplicantServiceTest extends TestCase
         $stage1 = Stage::factory()->create(['order' => 1]);
         $question1 = Question::factory()->create(['stage_id' => $stage1->id, 'order' => 1]);
         $applicant = Applicant::factory()->create(['current_stage_id' => $stage1->id, 'current_question_id' => $question1->id, 'process_status' => 'staff_approved']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when resending the current question
@@ -109,7 +152,7 @@ class ApplicantServiceTest extends TestCase
         // then status is corrected to in_progress and a message is sent
         $applicant->refresh();
         $this->assertEquals('in_progress', $applicant->process_status);
-        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url') . '/messages');
+        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
 
     public function test_re_send_current_question_does_nothing_if_no_question()
@@ -129,7 +172,6 @@ class ApplicantServiceTest extends TestCase
         // given an approved applicant with a conversation and active session
         $stage1 = Stage::factory()->create(['order' => 1]);
         $applicant = Applicant::factory()->create(['applicant_name' => 'Juan', 'process_status' => 'approved']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when sending the selection link
@@ -147,9 +189,8 @@ class ApplicantServiceTest extends TestCase
     {
         // given an applicant with a group assigned and confirmed
         $stage1 = Stage::factory()->create(['order' => 1]);
-        $group = \App\Models\Group::factory()->create();
+        $group = Group::factory()->create();
         $applicant = Applicant::factory()->create(['process_status' => 'approved', 'group_id' => $group->id, 'confirmation_status' => 'confirmed', 'applicant_name' => 'Maria']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when resending the group selection link
@@ -160,16 +201,15 @@ class ApplicantServiceTest extends TestCase
         $this->assertEquals('staff_approved', $applicant->process_status);
         $this->assertNull($applicant->group_id);
         $this->assertEquals('pending', $applicant->confirmation_status);
-        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url') . '/messages');
+        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
 
     public function test_approve_applicant_final_sets_staff_approved_and_sends_link()
     {
         // given an applicant in progress
         $stage1 = Stage::factory()->create(['order' => 1]);
-        $group = \App\Models\Group::factory()->create();
+        $group = Group::factory()->create();
         $applicant = Applicant::factory()->create(['process_status' => 'in_progress', 'group_id' => $group->id]);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when approving the applicant final
@@ -179,14 +219,13 @@ class ApplicantServiceTest extends TestCase
         $applicant->refresh();
         $this->assertEquals('staff_approved', $applicant->process_status);
         $this->assertNull($applicant->group_id);
-        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url') . '/messages');
+        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
 
     public function test_send_custom_message_sends_text_to_applicant()
     {
         // given an applicant with an active conversation session
         $applicant = Applicant::factory()->create();
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when sending a custom message
@@ -228,7 +267,6 @@ class ApplicantServiceTest extends TestCase
     {
         // given an applicant in progress
         $applicant = Applicant::factory()->create(['process_status' => 'in_progress']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when rejecting with a known reason key
@@ -246,7 +284,6 @@ class ApplicantServiceTest extends TestCase
     {
         // given an applicant in progress
         $applicant = Applicant::factory()->create(['process_status' => 'in_progress']);
-        Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
         Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when rejecting with a custom reason not in the predefined map

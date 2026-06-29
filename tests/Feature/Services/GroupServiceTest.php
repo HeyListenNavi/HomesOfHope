@@ -3,7 +3,6 @@
 namespace Tests\Feature\Services;
 
 use App\Models\Applicant;
-use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\Message;
 use App\Services\Group\GroupService;
@@ -31,10 +30,8 @@ class GroupServiceTest extends TestCase
         $group = Group::factory()->create();
         $applicant1 = Applicant::factory()->create(['group_id' => $group->id]);
         $applicant2 = Applicant::factory()->create(['group_id' => $group->id]);
-        $conv1 = Conversation::factory()->create(['chat_id' => $applicant1->chat_id]);
-        $conv2 = Conversation::factory()->create(['chat_id' => $applicant2->chat_id]);
-        Message::factory()->create(['conversation_id' => $conv1->id, 'role' => 'user']);
-        Message::factory()->create(['conversation_id' => $conv2->id, 'role' => 'user']);
+        Message::factory()->create(['conversation_id' => $applicant1->conversation->id, 'role' => 'user']);
+        Message::factory()->create(['conversation_id' => $applicant2->conversation->id, 'role' => 'user']);
 
         // when sending a custom message to the group
         $this->service->sendCustomMessageToGroup($group, 'Test message');
@@ -48,8 +45,7 @@ class GroupServiceTest extends TestCase
         // given a group with interview info and an applicant with active session
         $group = Group::factory()->create(['date_time' => now()->addDays(1), 'location' => 'Test Location', 'location_link' => 'https://maps.test', 'message' => 'Additional info']);
         $applicant = Applicant::factory()->create(['group_id' => $group->id]);
-        $conv = Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
-        Message::factory()->create(['conversation_id' => $conv->id, 'role' => 'user']);
+        Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when resending the group interview message
         $this->service->reSendGroupMessage($group);
@@ -63,8 +59,7 @@ class GroupServiceTest extends TestCase
         // given a group, applicant with active session
         $group = Group::factory()->create(['date_time' => now()->addDays(1), 'location' => 'Test Location', 'message' => 'Info message']);
         $applicant = Applicant::factory()->create(['group_id' => $group->id]);
-        $conv = Conversation::factory()->create(['chat_id' => $applicant->chat_id]);
-        Message::factory()->create(['conversation_id' => $conv->id, 'role' => 'user']);
+        Message::factory()->create(['conversation_id' => $applicant->conversation->id, 'role' => 'user']);
 
         // when sending the reminder for 1 day remaining
         $this->service->sendInterviewReminder($applicant, 1);

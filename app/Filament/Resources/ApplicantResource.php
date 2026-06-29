@@ -8,7 +8,6 @@ use App\Models\Applicant;
 use App\Models\Question;
 use App\Models\Tag;
 use App\Services\Applicant\ApplicantService;
-use App\Services\Whatsapp\WhatsappService;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Grid;
@@ -16,7 +15,6 @@ use Filament\Forms\Components\Group;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Support\Colors\Color;
 use Filament\Support\Enums\FontFamily;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -24,7 +22,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantResource extends Resource
@@ -32,7 +29,9 @@ class ApplicantResource extends Resource
     protected static ?string $model = Applicant::class;
 
     protected static ?string $modelLabel = 'Aplicante';
+
     protected static ?string $pluralModelLabel = 'Aplicantes';
+
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 
     protected static ?string $recordTitleAttribute = 'applicant_name';
@@ -88,7 +87,7 @@ class ApplicantResource extends Resource
                                             ->label('CURP')
                                             ->prefixIcon('heroicon-m-finger-print')
                                             ->maxLength(18)
-                                            ->formatStateUsing(fn(?string $state) => strtoupper($state))
+                                            ->formatStateUsing(fn (?string $state) => strtoupper($state))
                                             ->unique(ignoreRecord: true)
                                             ->live(onBlur: true)
                                             ->validationMessages([
@@ -98,11 +97,16 @@ class ApplicantResource extends Resource
                                         Forms\Components\TextInput::make('chat_id')
                                             ->label('Número de Telefono')
                                             ->required()
+                                            ->unique(ignoreRecord: true)
                                             ->tel()
                                             ->prefixIcon('heroicon-m-phone')
                                             ->formatStateUsing(function ($state, string $operation) {
-                                                if (!$state) return '-';
-                                                if ($operation !== 'view') return $state;
+                                                if (! $state) {
+                                                    return '-';
+                                                }
+                                                if ($operation !== 'view') {
+                                                    return $state;
+                                                }
 
                                                 return str_starts_with($state, '521') ? substr($state, 3) : $state;
                                             }),
@@ -116,9 +120,9 @@ class ApplicantResource extends Resource
                                             ->native(false),
                                     ]),
 
-
                                 Forms\Components\Section::make('Seguimiento')
                                     ->description('Control de la etapa actual del bot.')
+                                    ->hidden(fn (string $operation) => $operation === 'create')
                                     ->columns(1)
                                     ->schema([
                                         Forms\Components\Select::make('current_stage_id')
@@ -126,49 +130,54 @@ class ApplicantResource extends Resource
                                             ->label('Etapa Actual')
                                             ->native(false)
                                             ->live()
-                                            ->afterStateUpdated(fn(callable $set) => $set('current_question_id', null)),
+                                            ->afterStateUpdated(fn (callable $set) => $set('current_question_id', null)),
 
                                         Forms\Components\Select::make('current_question_id')
                                             ->label('Pregunta Actual')
                                             ->native(false)
                                             ->options(function (Get $get) {
                                                 $stageId = $get('current_stage_id');
-                                                if (!$stageId) return [];
+                                                if (! $stageId) {
+                                                    return [];
+                                                }
+
                                                 return Question::where('stage_id', $stageId)->pluck('question_text', 'id');
                                             }),
                                     ]),
 
-                                    Forms\Components\Section::make('Etiquetas')
-                                        ->icon('heroicon-m-tag')
-                                        ->visible(fn (string $operation, Get $get) => $operation === 'edit' || $operation === 'create' || !empty($get('tags')))
-                                        ->schema([
-                                            Forms\Components\CheckboxList::make('tags')
-                                                ->label('Lista de Etiquetas')
-                                                ->relationship('tags', 'name')
-                                                ->searchable()
-                                                ->bulkToggleable()
-                                                ->columns(4)
-                                                ->live()
-                                                ->options(fn () => Tag::pluck('name', 'id'))
-                                                ->columnSpanFull()
-                                                ->visible(fn (string $operation) => $operation === 'edit' || $operation === 'create'),
+                                Forms\Components\Section::make('Etiquetas')
+                                    ->icon('heroicon-m-tag')
+                                    ->visible(fn (string $operation, Get $get) => $operation === 'edit' || $operation === 'create' || ! empty($get('tags')))
+                                    ->schema([
+                                        Forms\Components\CheckboxList::make('tags')
+                                            ->label('Lista de Etiquetas')
+                                            ->relationship('tags', 'name')
+                                            ->searchable()
+                                            ->bulkToggleable()
+                                            ->columns(4)
+                                            ->live()
+                                            ->options(fn () => Tag::pluck('name', 'id'))
+                                            ->columnSpanFull()
+                                            ->visible(fn (string $operation) => $operation === 'edit' || $operation === 'create'),
 
-                                            Forms\Components\Placeholder::make('tags_preview')
-                                                ->label('Lista de Etiquetas')
-                                                ->visible(fn (string $operation) => $operation === 'view')
-                                                ->content(function (Get $get) {
-                                                    $tagIds = $get('tags');
-                                                    if (empty($tagIds)) return null;
+                                        Forms\Components\Placeholder::make('tags_preview')
+                                            ->label('Lista de Etiquetas')
+                                            ->visible(fn (string $operation) => $operation === 'view')
+                                            ->content(function (Get $get) {
+                                                $tagIds = $get('tags');
+                                                if (empty($tagIds)) {
+                                                    return null;
+                                                }
 
-                                                    $tags = Tag::findMany($tagIds);
+                                                $tags = Tag::findMany($tagIds);
 
-                                                    return view('forms.components.tags-preview', [
-                                                        'tags' => $tags,
-                                                    ]);
-                                                })
-                                                ->columnSpanFull(),
-                                        ])
-                                        ->collapsible(),
+                                                return view('forms.components.tags-preview', [
+                                                    'tags' => $tags,
+                                                ]);
+                                            })
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible(),
                             ]),
                         Group::make()
                             ->columnSpan(1)
@@ -217,15 +226,15 @@ class ApplicantResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->prefixIcon('heroicon-m-user-group')
-                                            ->disabled(fn(Get $get) => !in_array($get('process_status'), ['approved', 'staff_approved']))
-                                            ->helperText(fn(Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
+                                            ->disabled(fn (Get $get) => ! in_array($get('process_status'), ['approved', 'staff_approved']))
+                                            ->helperText(fn (Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
 
                                         Forms\Components\TextInput::make('attendance.attendance_code')
                                             ->label('Código de Asistencia')
                                             ->prefixIcon('heroicon-m-qr-code')
                                             ->readOnly()
                                             ->disabled()
-                                            ->visible(fn($record) => $record?->attendance !== null)
+                                            ->visible(fn ($record) => $record?->attendance !== null)
                                             ->afterStateHydrated(function (Forms\Components\TextInput $component, $record) {
                                                 $component->state($record?->attendance?->attendance_code);
                                             })
@@ -233,13 +242,13 @@ class ApplicantResource extends Resource
                                                 Action::make('copy')
                                                     ->icon('heroicon-m-clipboard')
                                                     ->alpineClickHandler(
-                                                            fn ($state) => "window.navigator.clipboard.writeText('$state'); \$tooltip('Copied to clipboard', { timeout: 1500 });"
+                                                        fn ($state) => "window.navigator.clipboard.writeText('$state'); \$tooltip('Copied to clipboard', { timeout: 1500 });"
                                                     )
                                             ),
 
                                         Forms\Components\Textarea::make('rejection_reason')
                                             ->label('Detalles de Rechazo')
-                                            ->hidden(fn(Get $get) => !in_array($get('process_status'), ['rejected', 'staff_rejected']))
+                                            ->hidden(fn (Get $get) => ! in_array($get('process_status'), ['rejected', 'staff_rejected']))
                                             ->formatStateUsing(function (?string $state) {
                                                 $reasons = [
                                                     'no_children' => 'No tiene hijos',
@@ -260,41 +269,36 @@ class ApplicantResource extends Resource
                             ]),
                     ]),
 
-
                 Forms\Components\Actions::make([
                     // Botón para aprobar una etapa y pasar a la siguiente
                     Action::make('approveStage')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.update')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
                         )
-                        ->label("Aprobar etapa")
+                        ->label('Aprobar etapa')
                         ->icon('heroicon-o-check-circle')
                         ->requiresConfirmation()
                         ->modalHeading('Pasar a la siguiente etapa')
                         ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->modalSubmitActionLabel('Sí, aprobar!')
-                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->approveStage($record)),
-
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->approveStage($record)),
 
                     // Botón para aprobar al aplicante de forma definitiva
                     Action::make('approveFinal')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.update')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
                         )
-                        ->label("Aprobar definitivamente")
+                        ->label('Aprobar definitivamente')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
                         ->modalHeading('Aprobar aplicante')
                         ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->approveApplicantFinal($record)),
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->approveApplicantFinal($record)),
 
                     // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.update')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
                         )
-                        ->label("Enviar mensaje personalizado")
+                        ->label('Enviar mensaje personalizado')
                         ->icon('heroicon-o-chat-bubble-bottom-center-text')
                         ->form([
                             Forms\Components\Textarea::make('message')
@@ -306,10 +310,14 @@ class ApplicantResource extends Resource
                         ->modalHeading('Enviar mensaje personalizado')
                         ->disabled(function (Applicant $applicant) {
                             $conversation = $applicant->conversation;
-                            if (! $conversation) return true;
+                            if (! $conversation) {
+                                return true;
+                            }
 
                             $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) return true;
+                            if (! $last) {
+                                return true;
+                            }
 
                             return $last->created_at->lt(now()->subHours(23));
                         })
@@ -319,47 +327,43 @@ class ApplicantResource extends Resource
 
                     // Botón para reenviar la pregunta actual
                     Action::make('resendQuestion')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.update')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
                         )
-                        ->label("Reenviar pregunta actual")
+                        ->label('Reenviar pregunta actual')
                         ->icon('heroicon-o-question-mark-circle')
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar pregunta')
                         ->modalDescription("¿Estás seguro de reenviar la pregunta actual a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->reSendCurrentQuestion($record)),
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->reSendCurrentQuestion($record)),
 
                     // Botón para reenviar el enlace de selección de grupo
                     Action::make('resendGroupLink')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.update')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
                         )
-                        ->label("Reenviar enlace de grupo")
+                        ->label('Reenviar enlace de grupo')
                         ->icon('heroicon-o-link')
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar enlace de grupo')
                         ->modalDescription("¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->reSendGroupSelectionLink($record)),
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->reSendGroupSelectionLink($record)),
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.delete')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.delete')
                         )
-                        ->label("Reiniciar")
+                        ->label('Reiniciar')
                         ->icon('heroicon-o-arrow-path')
                         ->color('danger')
                         ->requiresConfirmation()
                         ->modalHeading('Reiniciar proceso del aplicante')
                         ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn(Applicant $record, ApplicantService $applicantService) => $applicantService->resetApplicant($record)),
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->resetApplicant($record)),
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
-                        ->visible(fn (string $operation) =>
-                            $operation !== 'create' && auth()->user()->can('applicant.update')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
                         )
                         ->label('Rechazar')
                         ->icon('heroicon-o-x-circle')
@@ -383,8 +387,8 @@ class ApplicantResource extends Resource
 
                             Forms\Components\Textarea::make('reason')
                                 ->label('Especificar razón')
-                                ->required(fn(Get $get) => $get('predefined_reason') === 'other')
-                                ->visible(fn(Get $get) => $get('predefined_reason') === 'other')
+                                ->required(fn (Get $get) => $get('predefined_reason') === 'other')
+                                ->visible(fn (Get $get) => $get('predefined_reason') === 'other')
                                 ->rows(3)
                                 ->autoSize()
                                 ->placeholder('Escribe la razón detallada...'),
@@ -404,48 +408,51 @@ class ApplicantResource extends Resource
     public static function table(Table $table): Table
     {
         $columns = [
-                TextColumn::make('applicant_name')
-                    ->label('Nombre')
-                    ->searchable()
-                    ->description(function (Applicant $record): ?string {
-                        if (in_array($record->process_status, ['approved', 'staff_approved'])) {
-                            if ($record->group) {
-                                return $record->group->name;
-                            }
-
-                            return 'Sin grupo asignado';
+            TextColumn::make('applicant_name')
+                ->label('Nombre')
+                ->searchable()
+                ->description(function (Applicant $record): ?string {
+                    if (in_array($record->process_status, ['approved', 'staff_approved'])) {
+                        if ($record->group) {
+                            return $record->group->name;
                         }
-                        return null;
-                    }),
 
-                TextColumn::make('chat_id')
-                    ->label('Número de Telefono')
-                    ->icon('heroicon-m-chat-bubble-left-right')
-                    ->searchable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) return '-';
+                        return 'Sin grupo asignado';
+                    }
 
-                        return str_starts_with($state, '521') ? substr($state, 3) : $state;
-                    })
-                    ->url(fn($state) => 'https://wa.me/' . $state)
-                    ->openUrlInNewTab()
-                    ->toggleable(),
+                    return null;
+                }),
 
-                TextColumn::make('curp')
-                    ->label('CURP')
-                    ->fontFamily(FontFamily::Mono)
-                    ->formatStateUsing(fn(string $state) => strtoupper($state))
-                    ->color('gray')
-                    ->searchable()
-                    ->toggleable(),
+            TextColumn::make('chat_id')
+                ->label('Número de Telefono')
+                ->icon('heroicon-m-chat-bubble-left-right')
+                ->searchable()
+                ->formatStateUsing(function ($state) {
+                    if (! $state) {
+                        return '-';
+                    }
+
+                    return str_starts_with($state, '521') ? substr($state, 3) : $state;
+                })
+                ->url(fn ($state) => 'https://wa.me/'.$state)
+                ->openUrlInNewTab()
+                ->toggleable(),
+
+            TextColumn::make('curp')
+                ->label('CURP')
+                ->fontFamily(FontFamily::Mono)
+                ->formatStateUsing(fn (string $state) => strtoupper($state))
+                ->color('gray')
+                ->searchable()
+                ->toggleable(),
         ];
 
         $dynamicQuestions = Question::orderBy('order', 'asc')->get();
 
         foreach ($dynamicQuestions->values() as $index => $question) {
             $columns[] =
-            TextColumn::make('dynamic_question_' . $question->id)
-                ->label('Pregunta ' . ($index + 1))
+            TextColumn::make('dynamic_question_'.$question->id)
+                ->label('Pregunta '.($index + 1))
                 ->size(TextColumn\TextColumnSize::ExtraSmall)
                 ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
                 ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)
@@ -463,16 +470,16 @@ class ApplicantResource extends Resource
 
         array_push($columns,
             TextColumn::make('currentStage.name')
-                    ->label('Etapa')
-                    ->badge()
-                    ->color('gray')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                ->label('Etapa')
+                ->badge()
+                ->color('gray')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
 
             TextColumn::make('process_status')
                 ->label('Estatus')
                 ->badge()
-                ->formatStateUsing(fn(string $state): string => match ($state) {
+                ->formatStateUsing(fn (string $state): string => match ($state) {
                     'in_progress' => 'En Progreso',
                     'approved' => 'IA: Aprobado',
                     'rejected' => 'IA: Rechazado',
@@ -482,7 +489,7 @@ class ApplicantResource extends Resource
                     'canceled' => 'Cancelado',
                     default => $state,
                 })
-                ->color(fn(string $state): string => match ($state) {
+                ->color(fn (string $state): string => match ($state) {
                     'in_progress' => 'info',
                     'approved' => 'success',
                     'staff_approved' => 'success',
@@ -492,7 +499,7 @@ class ApplicantResource extends Resource
                     'canceled' => 'gray',
                     default => 'gray',
                 })
-                ->icon(fn(string $state): string => match ($state) {
+                ->icon(fn (string $state): string => match ($state) {
                     'in_progress' => 'heroicon-m-arrow-path',
                     'approved' => 'heroicon-m-sparkles',
                     'staff_approved' => 'heroicon-m-check-badge',
@@ -538,9 +545,9 @@ class ApplicantResource extends Resource
                     ->options([
                         'in_progress' => 'En Progreso',
                         'approved' => 'Aprobado',
-                        "staff_approved" => "Aprobado por Staff",
+                        'staff_approved' => 'Aprobado por Staff',
                         'rejected' => 'Rechazado',
-                        "staff_rejected" => "Rechazado por Staff",
+                        'staff_rejected' => 'Rechazado por Staff',
                         'requires_revision' => 'Requiere Revisión',
                     ]),
 
@@ -561,10 +568,10 @@ class ApplicantResource extends Resource
                     ->query(function (Builder $query) {
                         return $query->whereHas('conversation.latestMessage', function (Builder $q) {
                             $q->where('role', 'user')
-                            ->where('created_at', '<=', now()->subMinutes(30));
+                                ->where('created_at', '<=', now()->subMinutes(30));
                         });
                     })
-                    ->indicator('IA Pendiente (>30m)')
+                    ->indicator('IA Pendiente (>30m)'),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -603,7 +610,7 @@ class ApplicantResource extends Resource
                                 fclose($handle);
                             }, 200, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="aplicantes-export-' . now()->format('Y-m-d') . '.csv"',
+                                'Content-Disposition' => 'attachment; filename="aplicantes-export-'.now()->format('Y-m-d').'.csv"',
                             ]);
                         }),
                 ]),
@@ -612,7 +619,9 @@ class ApplicantResource extends Resource
 
     public static function extractLocationUrl(?string $state): ?string
     {
-        if (empty($state)) return null;
+        if (empty($state)) {
+            return null;
+        }
 
         $cleanState = trim($state);
 
@@ -625,12 +634,12 @@ class ApplicantResource extends Resource
 
         // Match a coordenadas
         if (preg_match('/(?<![\d.\-+])[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)(?![\d.])/', $cleanState, $matches)) {
-            return "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
+            return 'https://maps.google.com/?q='.urlencode(trim($matches[0]));
         }
 
         // Match a Plus Code
         if (preg_match('/([23456789C][23456789CFGHJMPQRV][23456789CFGHJMPQRVWX]{6}\+[23456789CFGHJMPQRVWX]{2,7}|[23456789CFGHJMPQRVWX]{4,6}\+[23456789CFGHJMPQRVWX]{2,3})/i', $cleanState, $matches)) {
-            return "https://maps.google.com/?q=" . urlencode($matches[0]);
+            return 'https://maps.google.com/?q='.urlencode($matches[0]);
         }
 
         return null;

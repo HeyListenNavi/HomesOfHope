@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Applicant\ApplicantService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,9 +16,9 @@ class Applicant extends Model
 
     protected $fillable = [
         'chat_id',
-        "applicant_name",
+        'applicant_name',
         'curp',
-        "gender",
+        'gender',
         'current_stage_id',
         'current_question_id',
         'process_status',
@@ -33,6 +34,21 @@ class Applicant extends Model
         'is_approved' => 'boolean',
         'last_reminded_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Applicant $applicant) {
+            if ($applicant->chat_id) {
+                $applicant->conversation()->firstOrCreate(
+                    ['chat_id' => $applicant->chat_id],
+                );
+            }
+
+            if ($applicant->applicant_name && is_null($applicant->current_step)) {
+                app(ApplicantService::class)->startApplicantQuestions($applicant);
+            }
+        });
+    }
 
     public function tags(): MorphToMany
     {

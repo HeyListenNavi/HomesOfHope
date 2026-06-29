@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class WhatsappClient
 {
     protected string $apiUrl;
+
     protected string $apiKey;
 
     public function __construct()
@@ -20,7 +21,7 @@ class WhatsappClient
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Content-Type' => 'application/json',
             ])->post("{$this->apiUrl}/messages", [
                 'messaging_product' => 'whatsapp',
@@ -34,13 +35,16 @@ class WhatsappClient
 
             if ($response->successful()) {
                 Log::info("Text message sent to {$to}.");
+
                 return true;
             }
 
-            Log::error("Error sending message to {$to}: " . $response->body());
+            Log::error("Error sending message to {$to}: ".$response->body());
+
             return false;
         } catch (\Exception $e) {
-            Log::critical("Exception sending message to {$to}: " . $e->getMessage());
+            Log::critical("Exception sending message to {$to}: ".$e->getMessage());
+
             return false;
         }
     }
@@ -59,10 +63,10 @@ class WhatsappClient
             ],
         ];
 
-        if (!empty($parameters)) {
+        if (! empty($parameters)) {
             $payload['template']['components'][] = [
                 'type' => 'body',
-                'parameters' => collect($parameters)->map(fn($value, $key) => [
+                'parameters' => collect($parameters)->map(fn ($value, $key) => [
                     'type' => 'text',
                     'parameter_name' => $key,
                     'text' => (string) $value,
@@ -72,19 +76,22 @@ class WhatsappClient
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Content-Type' => 'application/json',
             ])->post("{$this->apiUrl}/messages", $payload);
 
             if ($response->successful()) {
                 Log::info("Template {$templateName} sent to {$to}.");
+
                 return true;
             }
 
-            Log::error("Error sending template {$templateName} to {$to}: " . $response->body());
+            Log::error("Error sending template {$templateName} to {$to}: ".$response->body());
+
             return false;
         } catch (\Exception $e) {
-            Log::critical("Exception sending template {$templateName} to {$to}: " . $e->getMessage());
+            Log::critical("Exception sending template {$templateName} to {$to}: ".$e->getMessage());
+
             return false;
         }
     }

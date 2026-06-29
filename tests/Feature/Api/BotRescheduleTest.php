@@ -3,7 +3,6 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Applicant;
-use App\Models\Conversation;
 use App\Models\Group;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -24,8 +23,7 @@ class BotRescheduleTest extends TestCase
         // given a group and an applicant assigned to it
         $group = Group::factory()->create(['name' => 'Grupo de Prueba', 'capacity' => 10]);
         $applicant = Applicant::factory()->create(['chat_id' => '1234567890', 'applicant_name' => 'Nombre', 'group_id' => $group->id, 'process_status' => 'approved', 'confirmation_status' => 'confirmed']);
-        $conversation = Conversation::create(['chat_id' => $applicant->chat_id, 'user_name' => $applicant->applicant_name]);
-        $conversation->messages()->create([
+        $applicant->conversation->messages()->create([
             'phone' => $applicant->chat_id,
             'message' => 'Hola',
             'role' => 'user',
@@ -41,7 +39,7 @@ class BotRescheduleTest extends TestCase
         $this->assertNull($applicant->group_id);
         $this->assertEquals('pending', $applicant->confirmation_status);
         $this->assertEquals('staff_approved', $applicant->process_status);
-        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url') . '/messages' && $request['to'] == $applicant->chat_id);
+        Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages' && $request['to'] == $applicant->chat_id);
     }
 
     public function test_returns_404_if_applicant_not_found()

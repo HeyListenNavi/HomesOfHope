@@ -61,7 +61,7 @@ class GroupService
         $time = $group->date_time->translatedFormat('h:i A');
         $address = $group->location;
         $address_link = $group->location_link;
-        $invitation = "En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: " . $invitationUrl;
+        $invitation = 'En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: '.$invitationUrl;
 
         $message = "Felicidades! La cita para tu entrevista presencial fue registrada con exito.\n".
             "Por favor recuerda la siguiente informacion:\n".
@@ -98,10 +98,9 @@ class GroupService
             default => "en {$daysRemaining} días",
         };
 
-        $dateTime = $group->date_time->translatedFormat('l d M, Y') . "a las " . $group->date_time->translatedFormat('h:i A');
+        $dateTime = $group->date_time->translatedFormat('l d M, Y').' a las '.$group->date_time->translatedFormat('h:i A');
         $address = $group->location;
-        $invitation = "En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: " . $invitationUrl;
-
+        $invitation = 'En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: '.$invitationUrl;
 
         $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día {$dateTime}. La entrevista sera en ${address}\n".
             "Aquí hay mas detalles sobre tu entrevista:\n".
@@ -109,7 +108,7 @@ class GroupService
             "{$invitation}\n".
 
             "No olvides leer la información, es importante para realizar tu entrevista correctamente.\n".
-            "En caso de que no vayas a poder asistir solo mandanos un mensaje aquí diciendo \"No podre asistir\" y nuestro asistente virtual se encargara de permitirte elegir otra fecha.";
+            'En caso de que no vayas a poder asistir solo mandanos un mensaje aquí diciendo "No podre asistir" y nuestro asistente virtual se encargara de permitirte elegir otra fecha.';
 
         $this->whatsappService->send($applicant, $message, 'recordatorio_grupo', [
             'fecha' => $dateTime,
