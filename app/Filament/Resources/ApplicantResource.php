@@ -379,6 +379,8 @@ class ApplicantResource extends Resource
                                     'less_than_a_year' => 'Tiene menos de un año con el terreno',
                                     'late_payments' => 'Atrasado con los pagos',
                                     'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
+                                    'other_family_members' => 'Abuelos - Tios - Hermanos',
+                                    'out_of_coverage_approved' => 'Fuera de Zona',
                                     'other' => 'Otro (Especificar)',
                                 ])
                                 ->required()
