@@ -472,6 +472,13 @@ class ApplicantResource extends Resource
         }
 
         array_push($columns,
+            TextColumn::make('tags.name')
+                ->label('Etiquetas')
+                ->badge()
+                ->color('primary')
+                ->separator(',')
+                ->toggleable(isToggledHiddenByDefault: true),
+
             TextColumn::make('currentStage.name')
                 ->label('Etapa')
                 ->badge()
@@ -575,6 +582,14 @@ class ApplicantResource extends Resource
                         });
                     })
                     ->indicator('IA Pendiente (>30m)'),
+
+                Tables\Filters\Filter::make('approved_without_group')
+                    ->label('Aprobados sin grupo')
+                    ->query(function (Builder $query) {
+                        return $query->whereIn('process_status', ['approved', 'staff_approved'])
+                            ->whereNull('group_id');
+                    })
+                    ->indicator('Aprobados sin grupo'),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
