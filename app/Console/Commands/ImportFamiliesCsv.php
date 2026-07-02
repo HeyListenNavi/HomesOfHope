@@ -456,6 +456,18 @@ class ImportFamiliesCsv extends Command
         }
         $string = trim($string);
 
+        $spanishMonths = [
+            'ene' => 'Jan', 'feb' => 'Feb', 'mar' => 'Mar', 'abr' => 'Apr',
+            'may' => 'May', 'jun' => 'Jun', 'jul' => 'Jul', 'ago' => 'Aug',
+            'sep' => 'Sep', 'oct' => 'Oct', 'nov' => 'Nov', 'dic' => 'Dec',
+        ];
+
+        $string = preg_replace_callback(
+            '/\b([a-z]{3})\b/i',
+            fn ($m) => $spanishMonths[strtolower($m[1])] ?? $m[1],
+            $string,
+        );
+
         try {
             $date = Carbon::createFromFormat('d-M-Y', $string);
 
