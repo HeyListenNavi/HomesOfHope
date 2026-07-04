@@ -16,6 +16,8 @@ class ImportFamiliesCsv extends Command
 
     protected $description = 'Import families from legacy CSV files';
 
+    private array $profilesByRow = [];
+
     public function handle()
     {
         $file1 = base_path('BD Familias - Registro general.csv');
@@ -80,10 +82,13 @@ class ImportFamiliesCsv extends Command
             $familyName = trim($data['FAMILIA'] ?? '');
 
             if (empty($familyName)) {
+                $count++;
+
                 continue;
             }
 
-            $profile = FamilyProfile::firstOrNew(['family_name' => $familyName]);
+            $profile = new FamilyProfile;
+            $profile->family_name = $familyName;
             $profile->lives_on_land = true;
 
             $interviewer = $data['Nombre de Entrevistador/Nombre de Entrevistador'] ?? null;
@@ -131,6 +136,8 @@ class ImportFamiliesCsv extends Command
             $profile->building_team_color = $data['Color del equipo'] ?? null;
 
             $profile->save();
+
+            $this->profilesByRow[$count] = $profile;
 
             // Extract parents
             $this->extractParent($profile, $data['Nombre de la madre  Teléfono de la madre'] ?? '', Relationship::Mother, true);
@@ -207,15 +214,22 @@ class ImportFamiliesCsv extends Command
             $data = array_combine($headers, $row);
             $familyName = trim($data['Apellidos de su Hijo menor'] ?? '');
 
-            if (empty($familyName)) {
-                continue;
-            }
+            $profile = $this->profilesByRow[$count] ?? null;
 
-            $profile = FamilyProfile::firstOrCreate(['family_name' => $familyName], [
-                'opened_at' => '1900-01-01',
-                'lives_on_land' => true,
-                'status' => 'in_process',
-            ]);
+            if (! $profile) {
+                if (empty($familyName)) {
+                    $count++;
+
+                    continue;
+                }
+
+                $profile = FamilyProfile::create([
+                    'family_name' => $familyName,
+                    'opened_at' => '1900-01-01',
+                    'lives_on_land' => true,
+                    'status' => 'in_process',
+                ]);
+            }
 
             $interviewer1 = trim($data['Nombre de Entrevistador'] ?? '', ' /');
             $interviewer2 = trim($data['Nombre de Entrevistador_2'] ?? '', ' /');
