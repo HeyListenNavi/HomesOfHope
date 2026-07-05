@@ -7,9 +7,9 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 class ApplicantQuestionResponseRelationManager extends RelationManager
@@ -17,6 +17,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
     protected static string $relationship = 'responses';
 
     protected static ?string $title = 'Respuestas';
+
     protected static ?string $icon = 'heroicon-m-chat-bubble-left-right';
 
     public function form(Form $form): Form
@@ -30,6 +31,8 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->schema([
                         Forms\Components\Textarea::make('question_text_snapshot')
                             ->label('Pregunta Realizada')
+                            ->disabled()
+                            ->readonly()
                             ->autosize(),
 
                         Forms\Components\Textarea::make('user_response')
@@ -58,10 +61,30 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                             ->label('Razonamiento de la IA')
                             ->rows(3)
                             ->autosize()
-                            ->visible(fn(Get $get) => in_array($get('ai_decision'), ['not_valid', 'requires_supervision']))
+                            ->visible(fn (Get $get) => in_array($get('ai_decision'), ['not_valid', 'requires_supervision']))
                             ->helperText('Explica por qué la IA marcó esta respuesta como inválida o dudosa.'),
                     ]),
             ]);
+    }
+
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
+    public function canEdit(Model $record): bool
+    {
+        return true;
+    }
+
+    public function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
+    public function canCreate(): bool
+    {
+        return false;
     }
 
     public function table(Table $table): Table
@@ -78,13 +101,13 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
 
                 IconColumn::make('ai_decision')
                     ->label('IA')
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'valid' => 'success',
                         'requires_supervision' => 'warning',
                         'not_valid' => 'danger',
                         default => 'gray',
                     })
-                    ->icon(fn(string $state): string => match ($state) {
+                    ->icon(fn (string $state): string => match ($state) {
                         'valid' => 'heroicon-m-check-circle',
                         'requires_supervision' => 'heroicon-m-eye',
                         'not_valid' => 'heroicon-m-x-circle',
@@ -108,7 +131,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
                     ->formatStateUsing(fn (?string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
                     ->color(fn (?string $state) => self::extractLocationUrl($state) ? 'primary' : null)
                     ->url(fn (?string $state) => self::extractLocationUrl($state))
-                    ->openUrlInNewTab()
+                    ->openUrlInNewTab(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('ai_decision')
@@ -141,7 +164,9 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
 
     public static function extractLocationUrl(?string $state): ?string
     {
-        if (empty($state)) return null;
+        if (empty($state)) {
+            return null;
+        }
 
         $cleanState = trim($state);
 
@@ -154,12 +179,12 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
 
         // Match a coordenadas
         if (preg_match('/(?<![\d.\-+])[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)(?![\d.])/', $cleanState, $matches)) {
-            return "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
+            return 'https://maps.google.com/?q='.urlencode(trim($matches[0]));
         }
 
         // Match a Plus Code
         if (preg_match('/([23456789C][23456789CFGHJMPQRV][23456789CFGHJMPQRVWX]{6}\+[23456789CFGHJMPQRVWX]{2,7}|[23456789CFGHJMPQRVWX]{4,6}\+[23456789CFGHJMPQRVWX]{2,3})/i', $cleanState, $matches)) {
-            return "https://maps.google.com/?q=" . urlencode(trim($matches[0]));
+            return 'https://maps.google.com/?q='.urlencode(trim($matches[0]));
         }
 
         return null;
