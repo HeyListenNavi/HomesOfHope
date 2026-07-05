@@ -21,6 +21,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class FamilyProfileResource extends Resource
 {
@@ -33,6 +34,25 @@ class FamilyProfileResource extends Resource
     protected static ?string $label = 'Perfil';
 
     protected static ?string $pluralLabel = 'Perfiles';
+
+    protected static ?string $recordTitleAttribute = 'family_name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['family_name'];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Estatus' => $record->status?->getLabel() ?? 'N/A',
+        ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return FamilyProfileResource::getUrl('edit', ['record' => $record]);
+    }
 
     public static function form(Form $form): Form
     {

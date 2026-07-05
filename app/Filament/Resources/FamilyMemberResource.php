@@ -15,6 +15,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class FamilyMemberResource extends Resource
 {
@@ -29,6 +30,31 @@ class FamilyMemberResource extends Resource
     protected static ?string $navigationGroup = 'Familias';
 
     protected static ?int $navigationSort = 1;
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'name',
+            'paternal_surname',
+            'maternal_surname',
+            'curp',
+            'phone',
+        ];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Rol' => $record->relationship?->getLabel() ?? 'N/A',
+        ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return FamilyMemberResource::getUrl('edit', ['record' => $record]);
+    }
 
     public static function form(Form $form): Form
     {
