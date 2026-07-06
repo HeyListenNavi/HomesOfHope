@@ -4,8 +4,6 @@ namespace App\Filament\Widgets\Concerns;
 
 trait HasDatePeriod
 {
-    public ?string $filter = 'month';
-
     public int $offset = 0;
 
     public function previous(): void

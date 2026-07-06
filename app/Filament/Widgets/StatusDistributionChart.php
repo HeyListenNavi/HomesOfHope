@@ -12,6 +12,11 @@ class StatusDistributionChart extends ChartWidget
 
     protected static ?string $heading = 'Distribución de Estatus';
 
+    protected function getDefaultFilter(): ?string
+    {
+        return 'month';
+    }
+
     protected static string $view = 'filament.widgets.date-period-chart-widget';
 
     protected static ?int $sort = 2;

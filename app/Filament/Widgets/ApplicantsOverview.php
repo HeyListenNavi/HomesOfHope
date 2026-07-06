@@ -13,6 +13,8 @@ class ApplicantsOverview extends BaseWidget
 {
     use HasDatePeriod;
 
+    public ?string $filter = 'month';
+
     protected static ?int $sort = 1;
 
     protected static string $view = 'filament.widgets.applicants-overview';
