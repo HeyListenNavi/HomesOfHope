@@ -251,6 +251,11 @@ class ApplicantResource extends Resource
                                                     )
                                             ),
 
+                                        Forms\Components\Placeholder::make('last_edited_by_name')
+                                            ->label('Última edición por')
+                                            ->content(fn (Applicant $record): ?string => $record->last_edited_by_name)
+                                            ->visible(fn (string $operation) => in_array($operation, ['edit', 'view'])),
+
                                         Forms\Components\Section::make('Detalles de Rechazo')
                                             ->icon('heroicon-m-x-circle')
                                             ->collapsed()
@@ -539,10 +544,14 @@ class ApplicantResource extends Resource
                 ->dateTime('d/m/Y H:i')
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
+
+            TextColumn::make('last_edited_by_name')
+                ->label('Última edición por')
+                ->toggleable(isToggledHiddenByDefault: true),
         );
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'group', 'currentStage', 'tags']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'group', 'currentStage', 'tags', 'lastEditedBy']))
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])

@@ -240,5 +240,7 @@ class ApplicantService
     public function sendCustomMessage(Applicant $applicant, string $message): void
     {
         $this->whatsappService->send($applicant, $message);
+
+        $applicant->save();
     }
 }

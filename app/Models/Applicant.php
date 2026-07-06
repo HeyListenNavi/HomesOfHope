@@ -37,6 +37,12 @@ class Applicant extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Applicant $applicant) {
+            if (auth()->check()) {
+                $applicant->last_edited_by = auth()->id();
+            }
+        });
+
         static::created(function (Applicant $applicant) {
             if ($applicant->chat_id) {
                 $applicant->conversation()->firstOrCreate(
@@ -84,5 +90,17 @@ class Applicant extends Model
     public function responses(): HasMany
     {
         return $this->hasMany(ApplicantQuestionResponse::class);
+    }
+
+    public function lastEditedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'last_edited_by');
+    }
+
+    public function getLastEditedByNameAttribute(): ?string
+    {
+        return $this->last_edited_by
+            ? ($this->lastEditedBy?->name ?? 'Usuario eliminado')
+            : null;
     }
 }
