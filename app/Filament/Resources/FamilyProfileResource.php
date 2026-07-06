@@ -162,8 +162,13 @@ class FamilyProfileResource extends Resource
 
                                                         Forms\Components\TextInput::make('land_address_link')
                                                             ->label('Ubicación en Google Maps')
-                                                            ->url()
+                                                            ->helperText('Pega un plus code para generar el enlace automáticamente')
                                                             ->prefixIcon('heroicon-m-map')
+                                                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                                                if ($state && ! str_starts_with($state, 'http') && str_contains($state, '+')) {
+                                                                    $set('land_address_link', 'https://www.google.com/maps/search/?api=1&query='.urlencode($state));
+                                                                }
+                                                            })
                                                             ->suffixAction(
                                                                 Forms\Components\Actions\Action::make('open_map')
                                                                     ->icon('heroicon-m-arrow-top-right-on-square')
@@ -295,8 +300,13 @@ class FamilyProfileResource extends Resource
 
                                                         Forms\Components\TextInput::make('home_address_link')
                                                             ->label('Ubicación en Google Maps')
-                                                            ->url()
+                                                            ->helperText('Pega un plus code para generar el enlace automáticamente')
                                                             ->prefixIcon('heroicon-m-map')
+                                                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                                                if ($state && ! str_starts_with($state, 'http') && str_contains($state, '+')) {
+                                                                    $set('home_address_link', 'https://www.google.com/maps/search/?api=1&query='.urlencode($state));
+                                                                }
+                                                            })
                                                             ->suffixAction(
                                                                 Forms\Components\Actions\Action::make('open_map_home')
                                                                     ->icon('heroicon-m-arrow-top-right-on-square')
