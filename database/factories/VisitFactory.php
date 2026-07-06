@@ -22,12 +22,24 @@ class VisitFactory extends Factory
             : fake()->dateTimeBetween('now', '+1 month');
 
         return [
-            'attended_by' => User::factory(),
             'status' => $status,
             'scheduled_at' => $scheduledDate,
             'completed_at' => $status === VisitStatus::Completed ? $scheduledDate : null,
             'location_type' => fake()->randomElement(VisitLocationType::cases()),
             'outcome_summary' => $status === VisitStatus::Completed ? fake()->paragraph() : null,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Visit $visit) {
+            $users = User::inRandomOrder()->take(rand(1, 2))->get();
+
+            if ($users->isEmpty()) {
+                $users = User::factory()->count(1)->create();
+            }
+
+            $visit->attendants()->sync($users);
+        });
     }
 }

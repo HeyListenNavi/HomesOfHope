@@ -12,18 +12,26 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('family_profile_id')->constrained('family_profiles')->cascadeOnDelete();
-            $table->foreignId('attended_by')->constrained('users');
-            $table->string('status')->default('scheduled')->index(); // scheduled, completed, canceled, rescheduled
+            $table->string('status')->default('scheduled')->index();
             $table->dateTime('scheduled_at');
             $table->dateTime('completed_at')->nullable();
-            $table->string('location_type')->nullable(); // 'current_address', 'construction_site', 'office', 'other'
+            $table->string('location_type')->nullable();
             $table->text('outcome_summary')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('visit_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('visit_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+            $table->unique(['visit_id', 'user_id']);
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('visit_user');
         Schema::dropIfExists('visits');
     }
 };

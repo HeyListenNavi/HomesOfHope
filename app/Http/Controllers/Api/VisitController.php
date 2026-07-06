@@ -7,6 +7,7 @@ use App\Enums\VisitStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Visit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 class VisitController extends Controller
@@ -16,7 +17,7 @@ class VisitController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Visit::with(['attendant:id,name', 'familyProfile:id,family_name', 'notes']);
+        $query = Visit::with(['attendants:id,name', 'familyProfile:id,family_name', 'notes']);
 
         if ($request->has('family_profile_id')) {
             $query->where('family_profile_id', $request->family_profile_id);
@@ -34,8 +35,6 @@ class VisitController extends Controller
             $query->whereDate('scheduled_at', '>=', $request->min_date);
         }
 
-        // Ordenar: Próximas visitas primero, luego las recientes
-        // O simplemente cronológico descendente
         $query->orderBy('scheduled_at', 'desc');
 
         return response()->json($query->paginate(20));
@@ -48,27 +47,24 @@ class VisitController extends Controller
             'scheduled_at' => 'required|date',
             'location_type' => ['nullable', Rule::enum(VisitLocationType::class)],
             'status' => ['required', Rule::enum(VisitStatus::class)],
-            // Si no envían attended_by, asignamos al usuario actual
-            'attended_by' => 'nullable|exists:users,id',
+            'attendants' => 'nullable|array',
+            'attendants.*' => 'exists:users,id',
         ]);
 
-        // Default al usuario autenticado si no se especifica otro
-        if (empty($validated['attended_by'])) {
-            $validated['attended_by'] = $request->user()->id;
-        }
+        $attendants = $validated['attendants'] ?? [$request->user()->id];
 
-        $visit = Visit::create($validated);
+        $visit = Visit::create(Arr::except($validated, 'attendants'));
+        $visit->attendants()->sync($attendants);
 
         return response()->json([
             'message' => 'Visit scheduled successfully',
-            'data' => $visit,
+            'data' => $visit->load('attendants:id,name'),
         ], 201);
     }
 
     public function show(string $id)
     {
-        // Cargamos relaciones útiles para la vista de detalle
-        $visit = Visit::with(['familyProfile.responsibleMember', 'attendant', 'notes.author:id,name', 'documents', 'tasks'])
+        $visit = Visit::with(['familyProfile.responsibleMember', 'attendants', 'notes.author:id,name', 'documents', 'tasks'])
             ->findOrFail($id);
 
         return response()->json($visit);
@@ -84,14 +80,19 @@ class VisitController extends Controller
             'status' => ['sometimes', Rule::enum(VisitStatus::class)],
             'location_type' => ['nullable', Rule::enum(VisitLocationType::class)],
             'outcome_summary' => 'nullable|string',
-            'attended_by' => 'sometimes|exists:users,id',
+            'attendants' => 'nullable|array',
+            'attendants.*' => 'exists:users,id',
         ]);
 
-        $visit->update($validated);
+        $visit->update(Arr::except($validated, 'attendants'));
+
+        if (isset($validated['attendants'])) {
+            $visit->attendants()->sync($validated['attendants']);
+        }
 
         return response()->json([
             'message' => 'Visit updated successfully',
-            'data' => $visit,
+            'data' => $visit->load('attendants:id,name'),
         ]);
     }
 

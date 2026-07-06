@@ -8,6 +8,7 @@ use Database\Factories\VisitFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -18,7 +19,6 @@ class Visit extends Model
 
     protected $fillable = [
         'family_profile_id',
-        'attended_by',
         'status',
         'scheduled_at',
         'completed_at',
@@ -42,11 +42,11 @@ class Visit extends Model
     }
 
     /**
-     * The user (staff) who performed or will perform the visit.
+     * The staff users assigned to perform this visit.
      */
-    public function attendant(): BelongsTo
+    public function attendants(): BelongsToMany
     {
-        return $this->belongsTo(User::class, 'attended_by');
+        return $this->belongsToMany(User::class, 'visit_user')->withTimestamps();
     }
 
     /**

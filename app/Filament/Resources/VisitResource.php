@@ -16,7 +16,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 
 class VisitResource extends Resource
@@ -196,10 +195,10 @@ class VisitResource extends Resource
                                             ->format('Y-m-d')
                                             ->prefixIcon('heroicon-s-clock'),
 
-                                        Forms\Components\Select::make('attended_by')
-                                            ->relationship('attendant', 'name')
-                                            ->label('Responsable de Visitar')
-                                            ->default(Auth::id())
+                                        Forms\Components\Select::make('attendants')
+                                            ->relationship('attendants', 'name')
+                                            ->label('Equipo de Visita')
+                                            ->multiple()
                                             ->searchable()
                                             ->preload()
                                             ->prefixIcon('heroicon-s-user-circle'),
@@ -250,9 +249,10 @@ class VisitResource extends Resource
                     ->badge()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('attendant.name')
-                    ->label('Atiende')
+                Tables\Columns\TextColumn::make('attendants.name')
+                    ->label('Equipo de Visita')
                     ->icon('heroicon-s-user')
+                    ->badge()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('scheduled_at', 'desc')
