@@ -20,22 +20,40 @@
             </p>
         </div>
 
-        <x-filament::input.wrapper
-            class="w-max sm:-my-2"
-            inline-prefix
-            wire:target="filter"
-        >
-            <x-filament::input.select
+        <div class="flex items-center gap-1">
+            <button type="button" wire:click="previous" class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors">
+                <x-filament::icon icon="heroicon-m-chevron-left" class="w-5 h-5" />
+            </button>
+
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-24 text-center px-1">
+                {{ $this->getPeriodLabel() }}
+            </span>
+
+            <button type="button" wire:click="next" @disabled($this->isAtCurrentPeriod()) @class([
+                'flex items-center justify-center w-8 h-8 rounded-full transition-colors',
+                'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400' => !$this->isAtCurrentPeriod(),
+                'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600' => $this->isAtCurrentPeriod(),
+            ])>
+                <x-filament::icon icon="heroicon-m-chevron-right" class="w-5 h-5" />
+            </button>
+
+            <x-filament::input.wrapper
+                class="w-max sm:-my-2 ml-1"
                 inline-prefix
-                wire:model.live="filter"
+                wire:target="filter"
             >
-                @foreach ($filters as $value => $label)
-                    <option value="{{ $value }}">
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </x-filament::input.select>
-        </x-filament::input.wrapper>
+                <x-filament::input.select
+                    inline-prefix
+                    wire:model.live="filter"
+                >
+                    @foreach ($filters as $value => $label)
+                        <option value="{{ $value }}">
+                            {{ $label }}
+                        </option>
+                    @endforeach
+                </x-filament::input.select>
+            </x-filament::input.wrapper>
+        </div>
     </div>
 
     <div @class([

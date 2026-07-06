@@ -190,14 +190,17 @@ class ApplicantResource extends Resource
                                     ->schema([
                                         Forms\Components\ToggleButtons::make('process_status')
                                             ->label('Estatus')
-                                            ->options([
-                                                'in_progress' => 'En Progreso',
-                                                'approved' => 'Aprobado',
-                                                'staff_approved' => 'Aprobado por Staff',
-                                                'rejected' => 'Rechazado',
-                                                'staff_rejected' => 'Rechazado por Staff',
-                                                'requires_revision' => 'Requiere Revisión',
-                                                'canceled' => 'Cancelado',
+                                            ->options(fn ($record) => [
+                                                ($record?->process_status ?? 'in_progress') => match ($record?->process_status ?? 'in_progress') {
+                                                    'in_progress' => 'En Progreso',
+                                                    'approved' => 'Aprobado',
+                                                    'staff_approved' => 'Aprobado por Staff',
+                                                    'rejected' => 'Rechazado',
+                                                    'staff_rejected' => 'Rechazado por Staff',
+                                                    'requires_revision' => 'Requiere Revisión',
+                                                    'canceled' => 'Cancelado',
+                                                    default => $record->process_status,
+                                                },
                                             ])
                                             ->icons([
                                                 'in_progress' => 'heroicon-m-arrow-path',
@@ -217,6 +220,7 @@ class ApplicantResource extends Resource
                                                 'requires_revision' => 'warning',
                                                 'canceled' => 'gray',
                                             ])
+                                            ->disabled()
                                             ->inline()
                                             ->required()
                                             ->live(),
@@ -247,25 +251,27 @@ class ApplicantResource extends Resource
                                                     )
                                             ),
 
-                                        Forms\Components\Textarea::make('rejection_reason')
-                                            ->label('Detalles de Rechazo')
+                                        Forms\Components\Section::make('Detalles de Rechazo')
+                                            ->icon('heroicon-m-x-circle')
+                                            ->collapsed()
                                             ->hidden(fn (Get $get) => ! in_array($get('process_status'), ['rejected', 'staff_rejected']))
-                                            ->formatStateUsing(function (?string $state) {
-                                                $reasons = [
-                                                    'no_children' => 'No tiene hijos',
-                                                    'contract_issues' => 'Problemas con el contrato',
-                                                    'not_owner' => 'No es dueño del terreno',
-                                                    'lives_too_far' => 'Vive muy lejos del terreno',
-                                                    'less_than_a_year' => 'Tiene menos de un año con el terreno',
-                                                    'late_payments' => 'Atrasado con los pagos',
-                                                    'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
-                                                ];
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('rejection_reason')
+                                                    ->label('Motivo')
+                                                    ->content(function (?string $state, $record) {
+                                                        $reasons = [
+                                                            'no_children' => 'No tiene hijos',
+                                                            'contract_issues' => 'Problemas con el contrato',
+                                                            'not_owner' => 'No es dueño del terreno',
+                                                            'lives_too_far' => 'Vive muy lejos del terreno',
+                                                            'less_than_a_year' => 'Tiene menos de un año con el terreno',
+                                                            'late_payments' => 'Atrasado con los pagos',
+                                                            'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
+                                                        ];
 
-                                                return $reasons[$state] ?? $state;
-                                            })
-                                            ->columnSpanFull()
-                                            ->autoSize()
-                                            ->disabled(),
+                                                        return $reasons[$record->rejection_reason] ?? $record->rejection_reason ?? 'N/A';
+                                                    }),
+                                            ]),
                                     ]),
                             ]),
                     ]),

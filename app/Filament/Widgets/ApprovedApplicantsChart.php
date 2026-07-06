@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
@@ -10,30 +11,11 @@ use Flowframe\Trend\TrendValue;
 
 class ApprovedApplicantsChart extends ChartWidget
 {
-    public ?string $filter = 'month';
+    use HasDatePeriod;
 
     protected static ?string $heading = 'Aprobados por Staff vs IA';
 
-    protected function getFilters(): ?array
-    {
-        return [
-            'week' => 'Esta Semana',
-            'month' => 'Este Mes',
-            'year' => 'Este Año',
-        ];
-    }
-
-    private function getPeriodDateRange(): array
-    {
-        $filter = $this->filter ?? 'month';
-
-        return match ($filter) {
-            'week' => [now()->startOfWeek(), now()->endOfWeek()],
-            'month' => [now()->startOfMonth(), now()->endOfMonth()],
-            'year' => [now()->startOfYear(), now()->endOfYear()],
-            default => [now()->startOfMonth(), now()->endOfMonth()],
-        };
-    }
+    protected static string $view = 'filament.widgets.date-period-chart-widget';
 
     protected static ?int $sort = 8;
 
