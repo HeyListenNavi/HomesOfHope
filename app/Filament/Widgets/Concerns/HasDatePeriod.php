@@ -45,6 +45,10 @@ trait HasDatePeriod
                 $now->copy()->addYears($this->offset)->startOfYear(),
                 $now->copy()->addYears($this->offset)->endOfYear(),
             ],
+            default => [
+                $now->copy()->addMonths($this->offset)->startOfMonth(),
+                $now->copy()->addMonths($this->offset)->endOfMonth(),
+            ],
         };
     }
 
@@ -54,12 +58,14 @@ trait HasDatePeriod
             'week' => now()->addWeeks($this->offset),
             'month' => now()->addMonths($this->offset),
             'year' => now()->addYears($this->offset),
+            default => now()->addMonths($this->offset),
         };
 
         return match ($this->filter) {
             'week' => 'Semana del '.$date->startOfWeek()->isoFormat('D MMM'),
             'month' => ucfirst($date->isoFormat('MMMM YYYY')),
             'year' => (string) $date->year,
+            default => ucfirst($date->isoFormat('MMMM YYYY')),
         };
     }
 

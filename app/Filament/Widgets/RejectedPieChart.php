@@ -12,10 +12,7 @@ class RejectedPieChart extends ChartWidget
 
     protected static ?string $heading = 'Rechazados: Staff vs IA';
 
-    protected function getDefaultFilter(): ?string
-    {
-        return 'month';
-    }
+    public ?string $filter = 'month';
 
     protected static string $view = 'filament.widgets.date-period-chart-widget';
 

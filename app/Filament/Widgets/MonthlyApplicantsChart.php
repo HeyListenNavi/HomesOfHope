@@ -15,10 +15,7 @@ class MonthlyApplicantsChart extends ChartWidget
 
     protected static ?string $heading = 'Total de Solicitantes';
 
-    protected function getDefaultFilter(): ?string
-    {
-        return 'month';
-    }
+    public ?string $filter = 'month';
 
     protected static string $view = 'filament.widgets.date-period-chart-widget';
 

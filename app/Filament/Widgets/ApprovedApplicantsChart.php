@@ -15,10 +15,7 @@ class ApprovedApplicantsChart extends ChartWidget
 
     protected static ?string $heading = 'Aprobados por Staff vs IA';
 
-    protected function getDefaultFilter(): ?string
-    {
-        return 'month';
-    }
+    public ?string $filter = 'month';
 
     protected static string $view = 'filament.widgets.date-period-chart-widget';
 
