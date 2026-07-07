@@ -222,7 +222,6 @@ class ApplicantResource extends Resource
                                             ])
                                             ->disabled()
                                             ->inline()
-                                            ->required()
                                             ->live(),
 
                                         Forms\Components\Select::make('group_id')
