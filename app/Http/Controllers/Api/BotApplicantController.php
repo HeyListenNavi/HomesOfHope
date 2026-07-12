@@ -209,6 +209,18 @@ class BotApplicantController extends Controller
             ]);
         }
 
+        $hasAnsweredCurrent = $applicant->responses()
+            ->where('question_id', $currentQuestion->id)
+            ->whereNotNull('user_response')
+            ->exists();
+
+        if (! $hasAnsweredCurrent) {
+            return response()->json([
+                'status' => 'next_question',
+                'question' => $currentQuestion,
+            ]);
+        }
+
         $nextQuestion = $currentStage->questions()->where('order', '>', $currentQuestion->order)->first();
 
         if (! $nextQuestion) {
