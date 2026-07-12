@@ -200,8 +200,8 @@ class ApplicantResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->prefixIcon('heroicon-m-user-group')
-                                            ->disabled(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Approved, ApplicantStatus::StaffApproved]))
-                                            ->helperText(fn (Get $get) => in_array($get('process_status'), [ApplicantStatus::Approved, ApplicantStatus::StaffApproved]) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
+                                            ->disabled(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]))
+                                            ->helperText(fn (Get $get) => in_array($get('process_status'), [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
 
                                         Forms\Components\TextInput::make('attendance.attendance_code')
                                             ->label('Código de Asistencia')
@@ -228,7 +228,7 @@ class ApplicantResource extends Resource
                                         Forms\Components\Section::make('Detalles de Rechazo')
                                             ->icon('heroicon-m-x-circle')
                                             ->collapsed()
-                                            ->hidden(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Rejected, ApplicantStatus::StaffRejected]))
+                                            ->hidden(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Rejected->value, ApplicantStatus::StaffRejected->value]))
                                             ->schema([
                                                 Forms\Components\Placeholder::make('rejection_reason')
                                                     ->label('Motivo')
