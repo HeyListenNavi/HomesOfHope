@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\FamilyStatus;
 use App\Http\Controllers\Controller;
 use App\Models\FamilyProfile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class FamilyProfileController extends Controller
 {
@@ -35,21 +36,12 @@ class FamilyProfileController extends Controller
     public function index(Request $request)
     {
         $profiles = FamilyProfile::with('responsibleMember')
-            ->when($request->family_name, fn($q, $val) => 
-                $q->where('family_name', 'like', "%{$val}%")
-            )
-            ->when($request->curp, fn($q, $val) => 
-                $q->whereHas('responsibleMember', fn($sq) => 
-                    $sq->where('curp', 'like', "%{$val}%")
-                )
-            )
-            ->when($request->responsible_name, fn($q, $val) => 
-                $q->whereHas('responsibleMember', fn($sq) => 
-                    $sq->where('name', 'like', "%{$val}%")
-                       ->orWhere('paternal_surname', 'like', "%{$val}%")
-                       ->orWhere('maternal_surname', 'like', "%{$val}%")
-                )
-            )
+            ->when($request->family_name, fn ($q, $val) => $q->where('family_name', 'like', "%{$val}%"))
+            ->when($request->curp, fn ($q, $val) => $q->whereHas('responsibleMember', fn ($sq) => $sq->where('curp', 'like', "%{$val}%")))
+            ->when($request->responsible_name, fn ($q, $val) => $q->whereHas('responsibleMember', fn ($sq) => $sq->where('name', 'like', "%{$val}%")
+                ->orWhere('paternal_surname', 'like', "%{$val}%")
+                ->orWhere('maternal_surname', 'like', "%{$val}%")
+            ))
             ->latest()
             ->paginate($request->input('limit', 15));
 
@@ -63,20 +55,18 @@ class FamilyProfileController extends Controller
     {
         $validated = $request->validate([
             'family_name' => 'required|string|max:255',
-            'status' => 'required|string|in:prospect,active,in_follow_up,closed',
-            'current_address' => 'required|array',
-            'construction_address' => 'nullable|array',
+            'status' => ['required', Rule::enum(FamilyStatus::class)],
+            'current_address' => 'required|string',
+            'construction_address' => 'nullable|string',
             'opened_at' => 'required|date',
             'general_observations' => 'nullable|string',
         ]);
-
-        $validated['slug'] = Str::slug($validated['family_name']) . '-' . uniqid();
 
         $profile = FamilyProfile::create($validated);
 
         return response()->json([
             'message' => 'Family Profile created successfully',
-            'data' => $profile
+            'data' => $profile,
         ], 201);
     }
 
@@ -85,7 +75,7 @@ class FamilyProfileController extends Controller
      */
     public function show(string $id)
     {
-        $profile = FamilyProfile::with(['members', 'responsibleMember']) 
+        $profile = FamilyProfile::with(['members', 'responsibleMember', 'documents'])
             ->findOrFail($id);
 
         return response()->json($profile);
@@ -100,24 +90,20 @@ class FamilyProfileController extends Controller
 
         $validated = $request->validate([
             'family_name' => 'sometimes|string|max:255',
-            'status' => 'sometimes|string|in:prospect,active,in_follow_up,closed',
-            'current_address' => 'sometimes|array',
-            'construction_address' => 'nullable|array',
+            'status' => ['sometimes', Rule::enum(FamilyStatus::class)],
+            'current_address' => 'sometimes|string',
+            'construction_address' => 'nullable|string',
             'responsible_member_id' => 'nullable|exists:family_members,id', // Validación segura
             'opened_at' => 'sometimes|date',
             'closed_at' => 'nullable|date',
             'general_observations' => 'nullable|string',
         ]);
 
-        if (isset($validated['family_name'])) {
-            $validated['slug'] = Str::slug($validated['family_name']) . '-' . $profile->id;
-        }
-
         $profile->update($validated);
 
         return response()->json([
             'message' => 'Family Profile updated successfully',
-            'data' => $profile
+            'data' => $profile,
         ]);
     }
 
@@ -127,12 +113,12 @@ class FamilyProfileController extends Controller
     public function destroy(string $id)
     {
         $profile = FamilyProfile::findOrFail($id);
-        
+
         // Opcional: Validar si tiene relaciones activas antes de borrar
         $profile->delete();
 
         return response()->json([
-            'message' => 'Family Profile deleted successfully'
+            'message' => 'Family Profile deleted successfully',
         ], 200);
     }
 }

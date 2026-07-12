@@ -2,11 +2,13 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Enums\MessageRole;
 use App\Models\Conversation;
+use App\Models\Message;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Message>
+ * @extends Factory<Message>
  */
 class MessageFactory extends Factory
 {
@@ -21,7 +23,7 @@ class MessageFactory extends Factory
             'conversation_id' => Conversation::inRandomOrder()->first(),
             'phone' => $this->faker->phoneNumber,
             'message' => $this->faker->sentence,
-            'role' => $this->faker->randomElement(['user', 'assistant']),
+            'role' => fake()->randomElement(MessageRole::cases()),
             'name' => $this->faker->name,
         ];
     }

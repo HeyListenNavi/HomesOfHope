@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\ApplicantGender;
+use App\Enums\ApplicantStatus;
 use App\Models\Applicant;
 use App\Models\ApplicantQuestionResponse;
 use App\Models\BotSetting;
@@ -93,7 +95,7 @@ class BotApplicantControllerTest extends TestCase
         // then the gender is saved and step advances to ask_question with stage and question set
         $response->assertStatus(200)->assertJson(['status' => 'success']);
         $applicant->refresh();
-        $this->assertEquals('woman', $applicant->gender);
+        $this->assertEquals(ApplicantGender::Woman, $applicant->gender);
         $this->assertEquals('ask_question', $applicant->current_step);
         $this->assertEquals($stage->id, $applicant->current_stage_id);
         $this->assertEquals($question->id, $applicant->current_question_id);
@@ -251,7 +253,7 @@ class BotApplicantControllerTest extends TestCase
         // then the process is completed and selection link is sent
         $response->assertStatus(200)->assertJson(['status' => 'process_completed']);
         $applicant->refresh();
-        $this->assertEquals('approved', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::Approved, $applicant->process_status);
         $this->assertEquals('pending', $applicant->confirmation_status);
         Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
@@ -270,7 +272,7 @@ class BotApplicantControllerTest extends TestCase
         // then the applicant is rejected
         $response->assertStatus(200)->assertJson(['status' => 'stage_rejected']);
         $applicant->refresh();
-        $this->assertEquals('rejected', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::Rejected, $applicant->process_status);
         $this->assertEquals('No cumples con los requisitos', $applicant->rejection_reason);
     }
 
@@ -288,7 +290,7 @@ class BotApplicantControllerTest extends TestCase
         // then the process status becomes requires_revision
         $response->assertStatus(200)->assertJson(['status' => 'requires_supervision']);
         $applicant->refresh();
-        $this->assertEquals('requires_revision', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::RequiresRevision, $applicant->process_status);
     }
 
     public function test_get_stage_data_for_ai()
@@ -383,7 +385,7 @@ class BotApplicantControllerTest extends TestCase
         $applicant->refresh();
         $this->assertEquals('Juan Perez', $applicant->applicant_name);
         $this->assertEquals('CURP123456', $applicant->curp);
-        $this->assertEquals('man', $applicant->gender);
+        $this->assertEquals(ApplicantGender::Man, $applicant->gender);
         $this->assertEquals('Juan Perez', $applicant->conversation->fresh()->user_name);
     }
 
@@ -454,7 +456,7 @@ class BotApplicantControllerTest extends TestCase
         $applicant->refresh();
         $this->assertNull($applicant->group_id);
         $this->assertEquals('pending', $applicant->confirmation_status);
-        $this->assertEquals('staff_approved', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffApproved, $applicant->process_status);
         Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
 }

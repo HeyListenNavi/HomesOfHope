@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
-use Illuminate\Support\Facades\DB;
-
 
 class Stage extends Model implements Sortable
 {
@@ -23,10 +21,10 @@ class Stage extends Model implements Sortable
     protected $fillable = [
         'name',
         'order',
-        "starting_message",
+        'starting_message',
         'approval_message',
         'rejection_message',
-        'requires_evaluatio_message'
+        'requires_evaluatio_message',
     ];
 
     protected $casts = [

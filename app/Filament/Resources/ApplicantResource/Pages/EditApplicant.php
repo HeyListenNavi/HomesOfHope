@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use App\Models\Applicant;
 
 class EditApplicant extends EditRecord
 {
@@ -21,7 +20,7 @@ class EditApplicant extends EditRecord
                 ->url(function () {
                     $number = $this->record->chat_id;
 
-                    $text = "Hola! Soy del equipo de Casas de Esperanza, y me gustaría realizarte algunas preguntas sobre tu aplicación";
+                    $text = 'Hola! Soy del equipo de Casas de Esperanza, y me gustaría realizarte algunas preguntas sobre tu aplicación';
 
                     $encodedMessage = urlencode($text);
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ApplicantGender;
+use App\Enums\ApplicantStatus;
 use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Models\Applicant;
@@ -51,7 +53,7 @@ class ApplicantResource extends Resource
         return [
             'CURP' => $record->curp ?? 'N/A',
             'Teléfono' => str_starts_with($record->chat_id, '521') ? substr($record->chat_id, 3) : $record->chat_id,
-            'Estatus' => match ($record->process_status) {
+            'Estatus' => $record->process_status?->getLabel() ?? match ($record->process_status) {
                 'in_progress' => 'En Progreso',
                 'approved' => 'Aprobado',
                 'staff_approved' => 'Aprobado por Staff',
@@ -114,10 +116,7 @@ class ApplicantResource extends Resource
 
                                         Forms\Components\Select::make('gender')
                                             ->label('Género')
-                                            ->options([
-                                                'man' => 'Hombre',
-                                                'woman' => 'Mujer',
-                                            ])
+                                            ->options(ApplicantGender::class)
                                             ->native(false),
                                     ]),
 
@@ -190,36 +189,7 @@ class ApplicantResource extends Resource
                                     ->schema([
                                         Forms\Components\ToggleButtons::make('process_status')
                                             ->label('Estatus')
-                                            ->options(fn ($record) => [
-                                                ($record?->process_status ?? 'in_progress') => match ($record?->process_status ?? 'in_progress') {
-                                                    'in_progress' => 'En Progreso',
-                                                    'approved' => 'Aprobado',
-                                                    'staff_approved' => 'Aprobado por Staff',
-                                                    'rejected' => 'Rechazado',
-                                                    'staff_rejected' => 'Rechazado por Staff',
-                                                    'requires_revision' => 'Requiere Revisión',
-                                                    'canceled' => 'Cancelado',
-                                                    default => $record->process_status,
-                                                },
-                                            ])
-                                            ->icons([
-                                                'in_progress' => 'heroicon-m-arrow-path',
-                                                'approved' => 'heroicon-m-sparkles',
-                                                'staff_approved' => 'heroicon-m-check-badge',
-                                                'rejected' => 'heroicon-m-x-circle',
-                                                'staff_rejected' => 'heroicon-m-no-symbol',
-                                                'requires_revision' => 'heroicon-m-exclamation-triangle',
-                                                'canceled' => 'heroicon-m-x-mark',
-                                            ])
-                                            ->colors([
-                                                'in_progress' => 'info',
-                                                'approved' => 'success',
-                                                'staff_approved' => 'success',
-                                                'rejected' => 'danger',
-                                                'staff_rejected' => 'danger',
-                                                'requires_revision' => 'warning',
-                                                'canceled' => 'gray',
-                                            ])
+                                            ->options(ApplicantStatus::class)
                                             ->disabled()
                                             ->inline()
                                             ->live(),
@@ -230,8 +200,8 @@ class ApplicantResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->prefixIcon('heroicon-m-user-group')
-                                            ->disabled(fn (Get $get) => ! in_array($get('process_status'), ['approved', 'staff_approved']))
-                                            ->helperText(fn (Get $get) => in_array($get('process_status'), ['approved', 'staff_approved']) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
+                                            ->disabled(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Approved, ApplicantStatus::StaffApproved]))
+                                            ->helperText(fn (Get $get) => in_array($get('process_status'), [ApplicantStatus::Approved, ApplicantStatus::StaffApproved]) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
 
                                         Forms\Components\TextInput::make('attendance.attendance_code')
                                             ->label('Código de Asistencia')
@@ -258,7 +228,7 @@ class ApplicantResource extends Resource
                                         Forms\Components\Section::make('Detalles de Rechazo')
                                             ->icon('heroicon-m-x-circle')
                                             ->collapsed()
-                                            ->hidden(fn (Get $get) => ! in_array($get('process_status'), ['rejected', 'staff_rejected']))
+                                            ->hidden(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Rejected, ApplicantStatus::StaffRejected]))
                                             ->schema([
                                                 Forms\Components\Placeholder::make('rejection_reason')
                                                     ->label('Motivo')
@@ -425,7 +395,7 @@ class ApplicantResource extends Resource
                 ->label('Nombre')
                 ->searchable()
                 ->description(function (Applicant $record): ?string {
-                    if (in_array($record->process_status, ['approved', 'staff_approved'])) {
+                    if (in_array($record->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved])) {
                         if ($record->group) {
                             return $record->group->name;
                         }
@@ -499,36 +469,9 @@ class ApplicantResource extends Resource
             TextColumn::make('process_status')
                 ->label('Estatus')
                 ->badge()
-                ->formatStateUsing(fn (string $state): string => match ($state) {
-                    'in_progress' => 'En Progreso',
-                    'approved' => 'IA: Aprobado',
-                    'rejected' => 'IA: Rechazado',
-                    'staff_approved' => 'Staff: Aprobado',
-                    'staff_rejected' => 'Staff: Rechazado',
-                    'requires_revision' => 'Revisión',
-                    'canceled' => 'Cancelado',
-                    default => $state,
-                })
-                ->color(fn (string $state): string => match ($state) {
-                    'in_progress' => 'info',
-                    'approved' => 'success',
-                    'staff_approved' => 'success',
-                    'rejected' => 'danger',
-                    'staff_rejected' => 'danger',
-                    'requires_revision' => 'warning',
-                    'canceled' => 'gray',
-                    default => 'gray',
-                })
-                ->icon(fn (string $state): string => match ($state) {
-                    'in_progress' => 'heroicon-m-arrow-path',
-                    'approved' => 'heroicon-m-sparkles',
-                    'staff_approved' => 'heroicon-m-check-badge',
-                    'rejected' => 'heroicon-m-x-circle',
-                    'staff_rejected' => 'heroicon-m-no-symbol',
-                    'requires_revision' => 'heroicon-m-exclamation-triangle',
-                    'canceled' => 'heroicon-m-x-mark',
-                    default => 'heroicon-m-minus',
-                })
+                ->formatStateUsing(fn (ApplicantStatus $state): string => $state->getLabel())
+                ->color(fn (ApplicantStatus $state): string => $state->getColor())
+                ->icon(fn (ApplicantStatus $state): string => $state->getIcon())
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
 
@@ -566,14 +509,7 @@ class ApplicantResource extends Resource
 
                 Tables\Filters\SelectFilter::make('process_status')
                     ->label('Filtrar por Estatus')
-                    ->options([
-                        'in_progress' => 'En Progreso',
-                        'approved' => 'Aprobado',
-                        'staff_approved' => 'Aprobado por Staff',
-                        'rejected' => 'Rechazado',
-                        'staff_rejected' => 'Rechazado por Staff',
-                        'requires_revision' => 'Requiere Revisión',
-                    ]),
+                    ->options(ApplicantStatus::class),
 
                 Tables\Filters\SelectFilter::make('current_stage_id')
                     ->label('Etapa del Bot')
@@ -582,10 +518,7 @@ class ApplicantResource extends Resource
 
                 Tables\Filters\SelectFilter::make('gender')
                     ->label('Género')
-                    ->options([
-                        'man' => 'Hombre',
-                        'woman' => 'Mujer',
-                    ]),
+                    ->options(ApplicantGender::class),
 
                 Tables\Filters\Filter::make('ai_not_responded_stale')
                     ->label('IA no ha respondido (+30 min)')
@@ -600,7 +533,7 @@ class ApplicantResource extends Resource
                 Tables\Filters\Filter::make('approved_without_group')
                     ->label('Aprobados sin grupo')
                     ->query(function (Builder $query) {
-                        return $query->whereIn('process_status', ['approved', 'staff_approved'])
+                        return $query->whereIn('process_status', [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value])
                             ->whereNull('group_id');
                     })
                     ->indicator('Aprobados sin grupo'),
@@ -635,7 +568,7 @@ class ApplicantResource extends Resource
                                         $applicant->chat_id,
                                         $applicant->applicant_name,
                                         $applicant->curp,
-                                        $applicant->process_status,
+                                        $applicant->process_status instanceof ApplicantStatus ? $applicant->process_status->value : $applicant->process_status,
                                     ]);
                                 });
 
@@ -693,35 +626,5 @@ class ApplicantResource extends Resource
             'view' => Pages\ViewApplicant::route('/{record}'),
             'edit' => Pages\EditApplicant::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('applicant.view_any');
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return auth()->user()->can('applicant.view') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('applicant.create') ?? false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->can('applicant.update') ?? false;
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->can('applicant.delete') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()->can('applicant.delete') ?? false;
     }
 }

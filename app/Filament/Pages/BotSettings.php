@@ -9,16 +9,23 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Support\Enums\MaxWidth;
-use Illuminate\Database\Eloquent\Model;
 
 class BotSettings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static string $view = 'filament.pages.bot-settings';
+
     protected static ?string $navigationLabel = 'Configuración';
+
     protected static ?string $navigationGroup = 'Configuración';
+
     protected ?string $heading = 'Configuración';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('bot_setting.view_any');
+    }
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -29,8 +36,6 @@ class BotSettings extends Page
 
     public function mount(): void
     {
-        abort_unless(self::shouldRegisterNavigation(), 403);
-
         $settings = BotSetting::whereIn('name', ['ask_name', 'ask_curp', 'ask_gender'])
             ->pluck('value', 'name')
             ->toArray();
@@ -76,14 +81,14 @@ class BotSettings extends Page
         return [
             Action::make('save')
                 ->label('Guardar Cambios')
-                ->visible(fn() => auth()->user()->can('bot_setting.update'))
+                ->visible(fn () => auth()->user()->can('bot_setting.update'))
                 ->submit('save'),
         ];
     }
 
     public function save(): void
     {
-        if (!auth()->user()->can('bot_setting.update')) {
+        if (! auth()->user()->can('bot_setting.update')) {
             Notification::make()
                 ->title('Acceso denegado')
                 ->danger()

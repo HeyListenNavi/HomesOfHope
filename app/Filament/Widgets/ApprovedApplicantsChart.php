@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Carbon\Carbon;
@@ -21,6 +22,11 @@ class ApprovedApplicantsChart extends ChartWidget
 
     protected static ?int $sort = 8;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();
@@ -32,7 +38,7 @@ class ApprovedApplicantsChart extends ChartWidget
         };
 
         $staffApproved = Trend::query(
-            Applicant::where('process_status', 'staff_approved')
+            Applicant::where('process_status', ApplicantStatus::StaffApproved->value)
         )
             ->dateColumn('created_at')
             ->between(start: $start, end: $end)
@@ -40,7 +46,7 @@ class ApprovedApplicantsChart extends ChartWidget
             ->count();
 
         $aiApproved = Trend::query(
-            Applicant::where('process_status', 'approved')
+            Applicant::where('process_status', ApplicantStatus::Approved->value)
         )
             ->dateColumn('created_at')
             ->between(start: $start, end: $end)

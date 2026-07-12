@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\MessageRole;
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use App\Models\Message;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Clase controladora para gestionar la lógica de mensajes.
@@ -17,8 +20,7 @@ class BotMessageController extends Controller
     /**
      * Guarda un mensaje en la tabla messages.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function storeMessage(Request $request)
     {
@@ -26,7 +28,7 @@ class BotMessageController extends Controller
             'conversation_id' => 'required',
             'phone' => 'string',
             'message' => 'required|string',
-            'role' => 'required|in:user,assistant',
+            'role' => ['required', Rule::enum(MessageRole::class)],
             'name' => 'nullable|string|max:255',
         ]);
 
@@ -40,16 +42,15 @@ class BotMessageController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message_id' => $message->id
+            'message_id' => $message->id,
         ], 201);
     }
 
     /**
      * Recupera el historial de mensajes para una conversation_id específica.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $conversationId El ID de la conversación.
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $conversationId  El ID de la conversación.
+     * @return JsonResponse
      */
     public function getMessages(Request $request, int $conversationId)
     {

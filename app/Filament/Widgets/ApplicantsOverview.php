@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -19,6 +20,11 @@ class ApplicantsOverview extends BaseWidget
 
     protected static string $view = 'filament.widgets.applicants-overview';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getStats(): array
     {
         [$start, $end] = $this->getPeriodDateRange();
@@ -31,10 +37,10 @@ class ApplicantsOverview extends BaseWidget
 
         $get = fn ($status) => $counts[$status] ?? 0;
 
-        $approvedIA = $get('approved');
-        $approvedStaff = $get('staff_approved');
-        $rejectedIA = $get('rejected');
-        $rejectedStaff = $get('staff_rejected');
+        $approvedIA = $get(ApplicantStatus::Approved->value);
+        $approvedStaff = $get(ApplicantStatus::StaffApproved->value);
+        $rejectedIA = $get(ApplicantStatus::Rejected->value);
+        $rejectedStaff = $get(ApplicantStatus::StaffRejected->value);
 
         $per = match ($this->filter) {
             'week' => 'perDay',
@@ -49,7 +55,7 @@ class ApplicantsOverview extends BaseWidget
             ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
-        $approvedChart = Trend::query(Applicant::whereIn('process_status', ['approved', 'staff_approved']))
+        $approvedChart = Trend::query(Applicant::whereIn('process_status', [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]))
             ->dateColumn('updated_at')
             ->between(start: $start, end: $end)
             ->{$per}()
@@ -57,7 +63,7 @@ class ApplicantsOverview extends BaseWidget
             ->map(fn (TrendValue $value) => $value->aggregate)
             ->toArray();
 
-        $rejectedChart = Trend::query(Applicant::whereIn('process_status', ['rejected', 'staff_rejected']))
+        $rejectedChart = Trend::query(Applicant::whereIn('process_status', [ApplicantStatus::Rejected->value, ApplicantStatus::StaffRejected->value]))
             ->dateColumn('updated_at')
             ->between(start: $start, end: $end)
             ->{$per}()
@@ -72,7 +78,7 @@ class ApplicantsOverview extends BaseWidget
                 ->chart($totalChart)
                 ->color('gray'),
 
-            Stat::make('Requiere Revisión', $get('requires_revision'))
+            Stat::make('Requiere Revisión', $get(ApplicantStatus::RequiresRevision->value))
                 ->description('Solicitantes esperando ayuda manual')
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color('warning'),

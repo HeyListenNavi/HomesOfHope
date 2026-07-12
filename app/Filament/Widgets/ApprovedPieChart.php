@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Filament\Widgets\ChartWidget;
@@ -20,14 +21,19 @@ class ApprovedPieChart extends ChartWidget
 
     protected static ?string $maxHeight = '300px';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();
 
-        $staffApproved = Applicant::where('process_status', 'staff_approved')
+        $staffApproved = Applicant::where('process_status', ApplicantStatus::StaffApproved->value)
             ->whereBetween('created_at', [$start, $end])
             ->count();
-        $aiApproved = Applicant::where('process_status', 'approved')
+        $aiApproved = Applicant::where('process_status', ApplicantStatus::Approved->value)
             ->whereBetween('created_at', [$start, $end])
             ->count();
 

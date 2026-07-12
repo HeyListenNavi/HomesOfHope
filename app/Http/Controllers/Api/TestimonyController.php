@@ -48,14 +48,14 @@ class TestimonyController extends Controller
 
         return response()->json([
             'message' => 'Testimony recorded successfully',
-            'data' => $testimony
+            'data' => $testimony,
         ], 201);
     }
 
     public function show(string $id)
     {
         $testimony = Testimony::with(['familyProfile', 'recorder'])->findOrFail($id);
-        
+
         // Adjuntar URL del audio
         $data = $testimony->toArray();
         $data['audio_url'] = $testimony->audio_url;
@@ -78,7 +78,7 @@ class TestimonyController extends Controller
 
         return response()->json([
             'message' => 'Testimony updated successfully',
-            'data' => $testimony
+            'data' => $testimony,
         ]);
     }
 

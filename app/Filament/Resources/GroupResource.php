@@ -2,24 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use App\Forms\Components\GroupApplicantsMap;
 use App\Filament\Resources\GroupResource\Pages;
 use App\Filament\Resources\GroupResource\RelationManagers;
+use App\Forms\Components\GroupApplicantsMap;
 use App\Models\Group;
 use App\Services\Group\GroupService;
 use Filament\Forms;
-use Filament\Forms\Components\Actions;
-use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class GroupResource extends Resource
 {
@@ -63,11 +59,13 @@ class GroupResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('location')
                                             ->label('Dirección')
+                                            ->required()
                                             ->placeholder('Av. Principal #123...')
                                             ->prefixIcon('heroicon-m-map-pin')
                                             ->columnSpan(1),
                                         Forms\Components\TextInput::make('location_link')
                                             ->label('Link de Google Maps')
+                                            ->required()
                                             ->url()
                                             ->placeholder('https://maps.google.com/...')
                                             ->prefixIcon('heroicon-m-link')
@@ -112,7 +110,7 @@ class GroupResource extends Resource
                                     ->numeric()
                                     ->required()
                                     ->prefixIcon('heroicon-m-ticket')
-                                    ->minValue(fn(Get $get) => $get('current_members_count') ?? 0),
+                                    ->minValue(fn (Get $get) => $get('current_members_count') ?? 0),
                             ]),
 
                         Forms\Components\Section::make('Datos')
@@ -120,12 +118,12 @@ class GroupResource extends Resource
                             ->schema([
                                 Forms\Components\Placeholder::make('created_at')
                                     ->label('Creado')
-                                    ->content(fn($record) => $record?->created_at?->diffForHumans() ?? '-'),
+                                    ->content(fn ($record) => $record?->created_at?->diffForHumans() ?? '-'),
 
                                 Forms\Components\Placeholder::make('attendance_closed_at')
                                     ->label('Asistencia Cerrada')
-                                    ->content(fn($record) => $record?->attendance_closed_at ? $record->attendance_closed_at->format('d/m/Y H:i') : 'No cerrada todavía')
-                                    ->visible(fn($record) => $record !== null),
+                                    ->content(fn ($record) => $record?->attendance_closed_at ? $record->attendance_closed_at->format('d/m/Y H:i') : 'No cerrada todavía')
+                                    ->visible(fn ($record) => $record !== null),
 
                                 Forms\Components\TextInput::make('current_members_count')
                                     ->label('Miembros Actuales')
@@ -134,7 +132,7 @@ class GroupResource extends Resource
                                     ->columnSpan(5)
                                     ->disabled()
                                     ->prefixIcon('heroicon-m-users'),
-                            ])->visible(fn($record) => $record !== null),
+                            ])->visible(fn ($record) => $record !== null),
                     ]),
             ]);
     }
@@ -154,21 +152,21 @@ class GroupResource extends Resource
                 TextColumn::make('current_members_count')
                     ->label('Ocupación')
                     ->sortable()
-                    ->formatStateUsing(fn($state, Group $record) => "{$state} / {$record->capacity}")
+                    ->formatStateUsing(fn ($state, Group $record) => "{$state} / {$record->capacity}")
                     ->badge()
-                    ->color(fn($state, Group $record) => match (true) {
+                    ->color(fn ($state, Group $record) => match (true) {
                         $state >= $record->capacity => 'danger',
                         $state >= ($record->capacity * 0.8) => 'warning',
                         default => 'success',
                     })
-                    ->icon(fn($state, Group $record) => $state >= $record->capacity ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
+                    ->icon(fn ($state, Group $record) => $state >= $record->capacity ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
 
                 TextColumn::make('date_time')
                     ->label('Fecha de Entrevista')
                     ->dateTime('l d M, Y - h:i A')
                     ->sortable()
                     ->icon('heroicon-m-calendar-days')
-                    ->description(fn(Group $record) => ucfirst($record->date_time->locale('es')->diffForHumans())),
+                    ->description(fn (Group $record) => ucfirst($record->date_time->locale('es')->diffForHumans())),
 
                 ToggleColumn::make('is_active')
                     ->label('Activo')
@@ -220,9 +218,9 @@ class GroupResource extends Resource
                         ->action(function (Group $record, GroupService $groupService) {
                             $groupService->reSendGroupMessage($record);
 
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Información enviada')
-                                ->body("Se ha enviado la información a los miembros del grupo.")
+                                ->body('Se ha enviado la información a los miembros del grupo.')
                                 ->success()
                                 ->send();
                         }),
@@ -241,9 +239,9 @@ class GroupResource extends Resource
                         ->action(function (Group $record, array $data, GroupService $groupService) {
                             $groupService->sendCustomMessageToGroup($record, $data['announcement']);
 
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Aviso enviado')
-                                ->body("Se ha enviado el aviso a los miembros del grupo.")
+                                ->body('Se ha enviado el aviso a los miembros del grupo.')
                                 ->success()
                                 ->send();
                         }),
@@ -270,35 +268,5 @@ class GroupResource extends Resource
             'create' => Pages\CreateGroup::route('/create'),
             'edit' => Pages\EditGroup::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('group.view_any') ?? false;
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return auth()->user()->can('group.view') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('group.create') ?? false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->can('group.update') ?? false;
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->can('group.delete') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()->can('group.delete') ?? false;
     }
 }

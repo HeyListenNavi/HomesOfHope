@@ -7,55 +7,57 @@ use App\Models\Colony;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Model;
 
 class ColonyResource extends Resource
 {
     protected static ?string $model = Colony::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+
     protected static ?string $navigationLabel = 'Colonias No Atendidas';
+
     protected static ?string $navigationGroup = 'Catálogos';
 
     protected static ?string $modelLabel = 'Colonia';
+
     protected static ?string $pluralModelLabel = 'Colonias No Atendidas';
 
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form
-	     ->schema([
+            ->schema([
                 Forms\Components\Section::make('Datos de la Colonia')
-		    ->columns(2)
-	            ->schema([
-			Forms\Components\TextInput::make('city')
-			    ->label('Ciudad')
-		            ->required(),
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('city')
+                            ->label('Ciudad')
+                            ->required(),
                         Forms\Components\TextInput::make('name')
-			    ->label('Colonia')
-			    ->required()
-			    ->unique(ignoreRecord: true)
-			    ->maxLength(255),
+                            ->label('Colonia')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255),
 
-			Forms\Components\Toggle::make('is_active')
-			    ->label('Activa')
-			    ->default(true),
-		    ])
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Activa')
+                            ->default(true),
+                    ]),
             ]);
     }
 
     public static function table(Tables\Table $table): Tables\Table
     {
-	return $table
-	    ->paginated([25, 50, 100])
+        return $table
+            ->paginated([25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->columns([
-		Tables\Columns\TextColumn::make('city')
-		     ->sortable()
-                     ->badge()
-		     ->color('gray'),
+                Tables\Columns\TextColumn::make('city')
+                    ->sortable()
+                    ->badge()
+                    ->color('gray'),
 
                 Tables\Columns\TextColumn::make('name')
-		    ->label('Colonia')
+                    ->label('Colonia')
                     ->searchable()
                     ->sortable(),
 
@@ -82,35 +84,5 @@ class ColonyResource extends Resource
             'create' => Pages\CreateColony::route('/create'),
             'edit' => Pages\EditColony::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('colony.view_any') ?? false;
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return auth()->user()->can('colony.view') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('colony.create') ?? false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->can('colony.update') ?? false;
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->can('colony.delete') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()->can('colony.delete') ?? false;
     }
 }

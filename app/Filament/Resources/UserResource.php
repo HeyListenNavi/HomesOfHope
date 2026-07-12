@@ -14,15 +14,16 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 
-
-
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $modelLabel = 'Usuario';
+
     protected static ?string $pluralModelLabel = 'Usuarios';
+
     protected static ?string $navigationIcon = 'heroicon-o-user';
+
     protected static ?string $navigationGroup = 'Usuarios';
 
     public static function form(Form $form): Form
@@ -56,7 +57,7 @@ class UserResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->columnSpanFull()
-                                    ->getOptionLabelFromRecordUsing(fn(Model $record) => match ($record->name) {
+                                    ->getOptionLabelFromRecordUsing(fn (Model $record) => match ($record->name) {
                                         'admin' => '🛡️ Administrador',
                                         'connection' => '🔌 Conexión',
                                         'selection' => '🎯 Selección',
@@ -76,9 +77,9 @@ class UserResource extends Resource
                                     ->password()
                                     ->revealable()
                                     ->rule('confirmed')
-                                    ->required(fn($context) => $context === 'create')
-                                    ->dehydrated(fn($state) => filled($state))
-                                    ->dehydrateStateUsing(fn($state) => Hash::make($state))
+                                    ->required(fn ($context) => $context === 'create')
+                                    ->dehydrated(fn ($state) => filled($state))
+                                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                                     ->helperText('Dejar en blanco para mantener la actual.')
                                     ->rule('min:8'),
 
@@ -89,7 +90,7 @@ class UserResource extends Resource
                                     ->requiredWith('password')
                                     ->dehydrated(false),
                             ]),
-                    ])
+                    ]),
             ]);
     }
 
@@ -101,13 +102,13 @@ class UserResource extends Resource
                     ->label('Nombre')
                     ->searchable()
                     ->sortable()
-                    ->description(fn(User $record) => $record->email),
+                    ->description(fn (User $record) => $record->email),
 
                 Tables\Columns\TextColumn::make('roles.name')
                     ->label('Roles asignados')
                     ->badge()
                     ->separator(',')
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
                         'connection' => 'warning',
                         'selection' => 'info',
@@ -115,7 +116,7 @@ class UserResource extends Resource
                         'visit' => 'gray',
                         default => 'primary',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'admin' => 'Administrador',
                         'connection' => 'Conexión',
                         'selection' => 'Selección',
@@ -142,7 +143,7 @@ class UserResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     // Evita que el admin se borre a sí mismo
-                    ->hidden(fn(User $record) => $record->id === auth()->id()),
+                    ->hidden(fn (User $record) => $record->id === auth()->id()),
             ]);
     }
 
@@ -160,35 +161,5 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('user.view_any') ?? false;
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return auth()->user()->can('user.view') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('user.create') ?? false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->can('user.update') ?? false;
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->can('user.delete') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()->can('user.delete') ?? false;
     }
 }

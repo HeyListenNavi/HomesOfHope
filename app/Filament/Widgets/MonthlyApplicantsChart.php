@@ -23,6 +23,11 @@ class MonthlyApplicantsChart extends ChartWidget
 
     protected static ?string $maxHeight = '300px';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();

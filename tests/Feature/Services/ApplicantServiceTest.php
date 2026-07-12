@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Services;
 
+use App\Enums\ApplicantStatus;
 use App\Models\Applicant;
 use App\Models\Group;
 use App\Models\Message;
@@ -39,7 +40,7 @@ class ApplicantServiceTest extends TestCase
         $applicant->refresh();
         $this->assertEquals($stage1->id, $applicant->current_stage_id);
         $this->assertEquals($question1->id, $applicant->current_question_id);
-        $this->assertEquals('in_progress', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::InProgress, $applicant->process_status);
         $this->assertEquals('ask_question', $applicant->current_step);
 
         $this->assertDatabaseHas('applicant_question_responses', [
@@ -89,7 +90,7 @@ class ApplicantServiceTest extends TestCase
         $applicant->refresh();
         $this->assertEquals($stage1->id, $applicant->current_stage_id);
         $this->assertEquals($question1->id, $applicant->current_question_id);
-        $this->assertEquals('in_progress', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::InProgress, $applicant->process_status);
         $this->assertNull($applicant->group_id);
     }
 
@@ -121,7 +122,7 @@ class ApplicantServiceTest extends TestCase
 
         // then status becomes staff_approved
         $applicant->refresh();
-        $this->assertEquals('staff_approved', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffApproved, $applicant->process_status);
     }
 
     public function test_reject_applicant_updates_status_and_reason()
@@ -134,7 +135,7 @@ class ApplicantServiceTest extends TestCase
 
         // then status is staff_rejected and reason is set
         $applicant->refresh();
-        $this->assertEquals('staff_rejected', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffRejected, $applicant->process_status);
         $this->assertEquals('no_children', $applicant->rejection_reason);
     }
 
@@ -151,7 +152,7 @@ class ApplicantServiceTest extends TestCase
 
         // then status is corrected to in_progress and a message is sent
         $applicant->refresh();
-        $this->assertEquals('in_progress', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::InProgress, $applicant->process_status);
         Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
 
@@ -198,7 +199,7 @@ class ApplicantServiceTest extends TestCase
 
         // then status is staff_approved, group removed, and WhatsApp message sent
         $applicant->refresh();
-        $this->assertEquals('staff_approved', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffApproved, $applicant->process_status);
         $this->assertNull($applicant->group_id);
         $this->assertEquals('pending', $applicant->confirmation_status);
         Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
@@ -217,7 +218,7 @@ class ApplicantServiceTest extends TestCase
 
         // then status is staff_approved, group removed, and selection link sent
         $applicant->refresh();
-        $this->assertEquals('staff_approved', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffApproved, $applicant->process_status);
         $this->assertNull($applicant->group_id);
         Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages');
     }
@@ -260,7 +261,7 @@ class ApplicantServiceTest extends TestCase
 
         // then nothing changes
         $applicant->refresh();
-        $this->assertEquals('in_progress', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::InProgress, $applicant->process_status);
     }
 
     public function test_reject_applicant_sends_known_rejection_reason()
@@ -274,7 +275,7 @@ class ApplicantServiceTest extends TestCase
 
         // then the rejection message is expanded and sent
         $applicant->refresh();
-        $this->assertEquals('staff_rejected', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffRejected, $applicant->process_status);
         Http::assertSent(function ($request) {
             return str_contains($request['text']['body'], 'hijos menores');
         });

@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\VisitLocationType;
+use App\Enums\VisitStatus;
+use Database\Factories\VisitFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+
+class Visit extends Model
+{
+    /** @use HasFactory<VisitFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'family_profile_id',
+        'status',
+        'scheduled_at',
+        'completed_at',
+        'location_type',
+        'outcome_summary',
+    ];
+
+    protected $casts = [
+        'status' => VisitStatus::class,
+        'location_type' => VisitLocationType::class,
+        'scheduled_at' => 'datetime',
+        'completed_at' => 'datetime',
+    ];
+
+    /**
+     * The family profile being visited.
+     */
+    public function familyProfile(): BelongsTo
+    {
+        return $this->belongsTo(FamilyProfile::class);
+    }
+
+    /**
+     * The staff users assigned to perform this visit.
+     */
+    public function attendants(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'visit_user')->withTimestamps();
+    }
+
+    /**
+     * Evidence photos/files specifically for this visit.
+     * (Model Evidence will be created in the next step)
+     */
+    public function evidences(): HasMany
+    {
+        return $this->hasMany(Evidence::class);
+    }
+
+    /**
+     * Tasks generated from this visit.
+     * (Model Task will be created in a future step)
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Notes attached to this visit (Polymorphic).
+     */
+    public function notes(): MorphMany
+    {
+        return $this->morphMany(Note::class, 'noteable');
+    }
+
+    /**
+     * Documents attached to this visit (e.g. signed forms) (Polymorphic).
+     */
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+}

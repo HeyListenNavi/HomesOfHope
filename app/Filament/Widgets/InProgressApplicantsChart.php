@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Filament\Widgets\ChartWidget;
@@ -20,12 +21,17 @@ class InProgressApplicantsChart extends ChartWidget
 
     protected static string $color = 'info';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();
 
         $applicants = Applicant::with('currentStage')
-            ->where('process_status', 'in_progress')
+            ->where('process_status', ApplicantStatus::InProgress->value)
             ->whereBetween('created_at', [$start, $end])
             ->get(['current_stage_id']);
 

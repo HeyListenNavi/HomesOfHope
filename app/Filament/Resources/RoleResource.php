@@ -3,20 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoleResource\Pages;
-use App\Filament\Resources\RoleResource\RelationManagers;
 use Filament\Forms;
-use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Spatie\Permission\Models\Role;
 
 class RoleResource extends Resource
@@ -24,8 +18,11 @@ class RoleResource extends Resource
     protected static ?string $model = Role::class;
 
     protected static ?string $modelLabel = 'Rol';
+
     protected static ?string $pluralModelLabel = 'Roles';
+
     protected static ?string $navigationIcon = 'heroicon-o-key';
+
     protected static ?string $navigationGroup = 'Usuarios';
 
     public static function form(Form $form): Form
@@ -45,7 +42,7 @@ class RoleResource extends Resource
                             ->prefixIcon('heroicon-m-key')
                             ->columnSpanFull(),
 
-                        Forms\Components\Section::make('Privilegios de Acceso')
+                        Section::make('Privilegios de Acceso')
                             ->description('Seleccione qué acciones puede realizar este rol.')
                             ->columnSpan(2)
                             ->schema([
@@ -57,12 +54,11 @@ class RoleResource extends Resource
                                     ->columns(2)
                                     ->gridDirection('row')
                                     ->getOptionLabelFromRecordUsing(
-                                        fn($record) =>
-                                        str($record->name)
+                                        fn ($record) => str($record->name)
                                             ->replace('.', ': ')
                                             ->replace('_', ' ')
                                             ->title()
-                                    )
+                                    ),
                             ]),
                     ]),
             ]);
@@ -74,7 +70,7 @@ class RoleResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label('Rol')
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
                         'connection' => 'warning',
                         'selection' => 'info',
@@ -82,7 +78,7 @@ class RoleResource extends Resource
                         'visit' => 'gray',
                         default => 'primary',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'admin' => 'Administrador',
                         'connection' => 'Conexión',
                         'selection' => 'Selección',
@@ -140,35 +136,5 @@ class RoleResource extends Resource
             'create' => Pages\CreateRole::route('/create'),
             'edit' => Pages\EditRole::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('user.view_any') ?? false;
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return auth()->user()->can('user.view') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('user.create') ?? false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->can('user.update') ?? false;
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->can('user.delete') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()->can('user.delete') ?? false;
     }
 }

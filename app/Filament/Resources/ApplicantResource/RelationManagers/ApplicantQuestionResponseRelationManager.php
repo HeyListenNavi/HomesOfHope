@@ -74,7 +74,7 @@ class ApplicantQuestionResponseRelationManager extends RelationManager
 
     public function canEdit(Model $record): bool
     {
-        return true;
+        return auth()->user()->can('applicant.update') ?? false;
     }
 
     public function canDelete(Model $record): bool

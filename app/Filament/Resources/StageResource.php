@@ -10,14 +10,16 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class StageResource extends Resource
 {
     protected static ?string $model = Stage::class;
+
     protected static ?string $modelLabel = 'Etapa';
+
     protected static ?string $pluralModelLabel = 'Etapas';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -80,7 +82,7 @@ class StageResource extends Resource
                     ]),
 
                 Forms\Components\Section::make('Cuestionario de la Etapa')
-                    ->description('Añade, elimina y reordena las preguntas que conformarán esta etapa.')                    ->icon('heroicon-m-question-mark-circle')
+                    ->description('Añade, elimina y reordena las preguntas que conformarán esta etapa.')->icon('heroicon-m-question-mark-circle')
                     ->schema([
                         Forms\Components\Repeater::make('questions')
                             ->relationship('questions')
@@ -154,35 +156,5 @@ class StageResource extends Resource
             'create' => Pages\CreateStage::route('/create'),
             'edit' => Pages\EditStage::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('stage.view_any');
-    }
-
-    public static function canView(Model $record): bool
-    {
-        return auth()->user()->can('stage.view') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('stage.create') ?? false;
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->can('stage.update') ?? false;
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->can('stage.delete') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()->can('stage.delete') ?? false;
     }
 }

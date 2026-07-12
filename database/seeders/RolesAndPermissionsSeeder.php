@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -82,12 +82,24 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $botSettingViewAny = Permission::firstOrCreate(['name' => 'bot_setting.view_any']);
         $botSettingUpdate = Permission::firstOrCreate(['name' => 'bot_setting.update']);
-        
+
         $tagViewAny = Permission::firstOrCreate(['name' => 'tag.view_any']);
         $tagView = Permission::firstOrCreate(['name' => 'tag.view']);
         $tagCreate = Permission::firstOrCreate(['name' => 'tag.create']);
         $tagUpdate = Permission::firstOrCreate(['name' => 'tag.update']);
         $tagDelete = Permission::firstOrCreate(['name' => 'tag.delete']);
+
+        $roleViewAny = Permission::firstOrCreate(['name' => 'role.view_any']);
+        $roleView = Permission::firstOrCreate(['name' => 'role.view']);
+        $roleCreate = Permission::firstOrCreate(['name' => 'role.create']);
+        $roleUpdate = Permission::firstOrCreate(['name' => 'role.update']);
+        $roleDelete = Permission::firstOrCreate(['name' => 'role.delete']);
+
+        $visitViewAny = Permission::firstOrCreate(['name' => 'visit.view_any']);
+        $visitView = Permission::firstOrCreate(['name' => 'visit.view']);
+        $visitCreate = Permission::firstOrCreate(['name' => 'visit.create']);
+        $visitUpdate = Permission::firstOrCreate(['name' => 'visit.update']);
+        $visitDelete = Permission::firstOrCreate(['name' => 'visit.delete']);
 
         $connection->givePermissionTo([
             $applicantViewAny,
@@ -138,6 +150,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
             $familyProfileViewAny,
             $familyProfileView,
+
+            $visitViewAny,
+            $visitView,
+            $visitCreate,
+            $visitUpdate,
         ]);
 
         $selection->givePermissionTo([
@@ -256,6 +273,18 @@ class RolesAndPermissionsSeeder extends Seeder
             $tagCreate,
             $tagUpdate,
             $tagDelete,
+
+            $roleViewAny,
+            $roleView,
+            $roleCreate,
+            $roleUpdate,
+            $roleDelete,
+
+            $visitViewAny,
+            $visitView,
+            $visitCreate,
+            $visitUpdate,
+            $visitDelete,
         ]);
 
         $adminEmails = [

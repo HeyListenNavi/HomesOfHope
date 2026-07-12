@@ -37,7 +37,7 @@ class EvidenceController extends Controller
 
         return response()->json([
             'message' => 'Evidence uploaded successfully',
-            'data' => $evidence
+            'data' => $evidence,
         ], 201);
     }
 
@@ -47,7 +47,7 @@ class EvidenceController extends Controller
     public function show(string $id)
     {
         $evidence = Evidence::findOrFail($id);
-        
+
         return response()->json([
             'id' => $evidence->id,
             'visit_id' => $evidence->visit_id,

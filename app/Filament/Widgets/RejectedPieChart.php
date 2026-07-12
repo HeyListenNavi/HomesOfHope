@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Filament\Widgets\ChartWidget;
@@ -20,14 +21,19 @@ class RejectedPieChart extends ChartWidget
 
     protected static ?string $maxHeight = '300px';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();
 
-        $staffRejected = Applicant::where('process_status', 'staff_rejected')
+        $staffRejected = Applicant::where('process_status', ApplicantStatus::StaffRejected->value)
             ->whereBetween('created_at', [$start, $end])
             ->count();
-        $aiRejected = Applicant::where('process_status', 'rejected')
+        $aiRejected = Applicant::where('process_status', ApplicantStatus::Rejected->value)
             ->whereBetween('created_at', [$start, $end])
             ->count();
 

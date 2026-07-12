@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\ApplicantStatus;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Carbon\Carbon;
@@ -21,6 +22,11 @@ class RejectedApplicantsChart extends ChartWidget
 
     protected static ?int $sort = 9;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('applicant.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();
@@ -32,7 +38,7 @@ class RejectedApplicantsChart extends ChartWidget
         };
 
         $staffRejected = Trend::query(
-            Applicant::where('process_status', 'staff_rejected')
+            Applicant::where('process_status', ApplicantStatus::StaffRejected->value)
         )
             ->dateColumn('created_at')
             ->between(start: $start, end: $end)
@@ -40,7 +46,7 @@ class RejectedApplicantsChart extends ChartWidget
             ->count();
 
         $aiRejected = Trend::query(
-            Applicant::where('process_status', 'rejected')
+            Applicant::where('process_status', ApplicantStatus::Rejected->value)
         )
             ->dateColumn('created_at')
             ->between(start: $start, end: $end)

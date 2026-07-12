@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\ApplicantStatus;
 use App\Models\Applicant;
 use App\Models\Group;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +39,7 @@ class BotRescheduleTest extends TestCase
         $applicant->refresh();
         $this->assertNull($applicant->group_id);
         $this->assertEquals('pending', $applicant->confirmation_status);
-        $this->assertEquals('staff_approved', $applicant->process_status);
+        $this->assertEquals(ApplicantStatus::StaffApproved, $applicant->process_status);
         Http::assertSent(fn ($request) => $request->url() == config('services.whatsapp.url').'/messages' && $request['to'] == $applicant->chat_id);
     }
 

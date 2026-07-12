@@ -25,6 +25,11 @@ class MessageVolumeChart extends ChartWidget
 
     protected static string $color = 'info';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('message.view_any');
+    }
+
     protected function getData(): array
     {
         [$start, $end] = $this->getPeriodDateRange();

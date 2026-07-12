@@ -14,16 +14,15 @@ class Group extends Model
 
     protected $fillable = [
         'name',
-        "message",
+        'message',
         'capacity',
         'date_time',
         'location',
         'location_link',
         'is_active',
         'last_reminded_at',
-        'attendance_closed_at'
+        'attendance_closed_at',
     ];
-
 
     protected function casts(): array
     {
