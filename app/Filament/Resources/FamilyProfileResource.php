@@ -493,28 +493,9 @@ class FamilyProfileResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('has_addictions')
-                    ->label('Adicc.')
-                    ->boolean()
-                    ->trueIcon('heroicon-s-exclamation-triangle')
-                    ->falseIcon('heroicon-s-check-circle')
-                    ->trueColor('danger')
-                    ->falseColor('success')
-                    ->tooltip(fn (FamilyProfile $record) => $record->has_addictions ? "Con adicciones: {$record->addictions_details}" : 'Sin adicciones reportadas')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 Tables\Columns\IconColumn::make('lives_on_land')
                     ->label('¿Vive en el terreno?')
                     ->boolean()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('home_address_link')
-                    ->label('Link Casa')
-                    ->formatStateUsing(fn () => 'Ver Mapa')
-                    ->icon('heroicon-m-map')
-                    ->color('primary')
-                    ->url(fn ($record) => $record->home_address_link)
-                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('land_address_link')
@@ -526,11 +507,6 @@ class FamilyProfileResource extends Resource
                     ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('home_colony')
-                    ->label('Colonia (Casa)')
-                    ->copyable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
                 Tables\Columns\TextColumn::make('land_colony')
                     ->label('Colonia (Terreno)')
                     ->copyable()
@@ -538,22 +514,6 @@ class FamilyProfileResource extends Resource
 
                 Tables\Columns\TextColumn::make('land_ownership_time')
                     ->label('Tiempo con Terreno')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('land_total_cost')
-                    ->label('Costo Terreno')
-                    ->money(fn ($record) => $record->land_currency->value ?? 'mxn')
-                    ->description(fn ($record) => strtoupper($record->land_currency->value ?? 'MXN'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('land_last_payment_date')
-                    ->label('Último Pago')
-                    ->date()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\IconColumn::make('land_is_up_to_date')
-                    ->label('Al Corriente')
-                    ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('land_is_flat')
@@ -578,48 +538,15 @@ class FamilyProfileResource extends Resource
                     ->badge()
                     ->color(fn ($record) => $record->building_team_color),
 
-                Tables\Columns\TextColumn::make('building_start_date')
-                    ->label('Inicio')
-                    ->date()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('construction_dates')
+                    ->label('Fechas de Construcción')
+                    ->getStateUsing(function (FamilyProfile $record): string {
+                        $start = $record->building_start_date?->format('d/m/Y') ?? 'N/A';
+                        $finish = $record->building_finish_date?->format('d/m/Y') ?? 'N/A';
 
-                Tables\Columns\TextColumn::make('building_finish_date')
-                    ->label('Fin')
-                    ->date()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('home_status')
-                    ->label('Estatus Vivienda')
-                    ->formatStateUsing(fn ($state) => $state?->getLabel())
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('home_ownership_time')
-                    ->label('Tiempo Viviendo')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('home_monthly_rent')
-                    ->label('Renta')
-                    ->money(fn ($record) => $record->home_monthly_rent_currency->value ?? 'mxn')
-                    ->description(fn ($record) => strtoupper($record->home_monthly_rent_currency->value ?? 'MXN'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('opened_at')
-                    ->label('Apertura')
-                    ->date()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('closed_at')
-                    ->label('Cierre')
-                    ->date()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('owners')
-                    ->label('Dueños Terreno')
-                    ->getStateUsing(fn ($record) => $record->members->where('is_land_owner', true)->pluck('name')->join(', '))
+                        return "{$start} - {$finish}";
+                    })
+                    ->sortable(['building_start_date', 'building_finish_date'])
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
@@ -638,6 +565,37 @@ class FamilyProfileResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Filtrar por Estado')
                     ->options(FamilyStatus::class),
+                Tables\Filters\Filter::make('opened_at')
+                    ->label('Fecha de entrevista')
+                    ->form([
+                        Forms\Components\Select::make('month')
+                            ->label('Mes')
+                            ->options([
+                                1 => 'Enero',
+                                2 => 'Febrero',
+                                3 => 'Marzo',
+                                4 => 'Abril',
+                                5 => 'Mayo',
+                                6 => 'Junio',
+                                7 => 'Julio',
+                                8 => 'Agosto',
+                                9 => 'Septiembre',
+                                10 => 'Octubre',
+                                11 => 'Noviembre',
+                                12 => 'Diciembre',
+                            ])
+                            ->native(false),
+                        Forms\Components\TextInput::make('year')
+                            ->label('Año')
+                            ->numeric()
+                            ->minValue(2000)
+                            ->maxValue(date('Y')),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['month'], fn (Builder $query, $month) => $query->whereMonth('opened_at', $month))
+                            ->when($data['year'], fn (Builder $query, $year) => $query->whereYear('opened_at', $year));
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
