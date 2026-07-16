@@ -10,12 +10,14 @@ use App\Enums\Relationship;
 use App\Enums\Religion;
 use App\Filament\Resources\FamilyMemberResource\Pages;
 use App\Models\FamilyMember;
+use App\Models\FamilyProfile;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class FamilyMemberResource extends Resource
 {
@@ -211,6 +213,7 @@ class FamilyMemberResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('family_profile_id')
                                     ->relationship('familyProfile', 'family_name')
+                                    ->getOptionLabelFromRecordUsing(fn (FamilyProfile $record) => Str::title($record->family_name))
                                     ->label('Pertenece a la Familia')
                                     ->searchable()
                                     ->preload()
@@ -294,6 +297,7 @@ class FamilyMemberResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('family_profile_id')
                     ->relationship('familyProfile', 'family_name')
+                    ->getOptionLabelFromRecordUsing(fn (FamilyProfile $record) => Str::title($record->family_name))
                     ->label('Filtrar por Familia')
                     ->searchable()
                     ->preload(),
@@ -302,6 +306,9 @@ class FamilyMemberResource extends Resource
                     ->label('Solo Responsables'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-s-eye')
+                    ->color('gray'),
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square'),
             ])
@@ -325,6 +332,7 @@ class FamilyMemberResource extends Resource
         return [
             'index' => Pages\ListFamilyMembers::route('/'),
             'create' => Pages\CreateFamilyMember::route('/create'),
+            'view' => Pages\ViewFamilyMember::route('/{record}'),
             'edit' => Pages\EditFamilyMember::route('/{record}/edit'),
         ];
     }

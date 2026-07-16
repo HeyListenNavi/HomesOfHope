@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Str;
 
 class FamilyMember extends Model
 {
@@ -83,6 +84,36 @@ class FamilyMember extends Model
     public function notes(): MorphMany
     {
         return $this->morphMany(Note::class, 'noteable');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($familyMember) {
+            if (! empty($familyMember->name)) {
+                $familyMember->name = Str::title($familyMember->name);
+            }
+            if (! empty($familyMember->paternal_surname)) {
+                $familyMember->paternal_surname = Str::title($familyMember->paternal_surname);
+            }
+            if (! empty($familyMember->maternal_surname)) {
+                $familyMember->maternal_surname = Str::title($familyMember->maternal_surname);
+            }
+        });
+    }
+
+    public function getNameAttribute($value): string
+    {
+        return Str::title($value);
+    }
+
+    public function getPaternalSurnameAttribute($value): ?string
+    {
+        return $value ? Str::title($value) : null;
+    }
+
+    public function getMaternalSurnameAttribute($value): ?string
+    {
+        return $value ? Str::title($value) : null;
     }
 
     public function getFullNameAttribute()

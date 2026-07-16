@@ -210,6 +210,14 @@ class ApplicantService
         $this->sendSelectionLink($applicant);
     }
 
+    public function setProcessStatusSilently(Applicant $applicant, string $status): void
+    {
+        $applicant->update([
+            'process_status' => $status,
+            'group_id' => null,
+        ]);
+    }
+
     public function rejectApplicant(Applicant $applicant, string $reason): void
     {
         $rejectionMessages = [

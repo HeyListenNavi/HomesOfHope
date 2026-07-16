@@ -9,11 +9,13 @@ use App\Enums\Occupation;
 use App\Enums\Relationship;
 use App\Enums\Religion;
 use App\Models\FamilyMember;
+use App\Models\FamilyProfile;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class MembersRelationManager extends RelationManager
 {
@@ -249,6 +251,7 @@ class MembersRelationManager extends RelationManager
             ->filters([
                 Tables\Filters\SelectFilter::make('family_profile_id')
                     ->relationship('familyProfile', 'family_name')
+                    ->getOptionLabelFromRecordUsing(fn (FamilyProfile $record) => Str::title($record->family_name))
                     ->label('Filtrar por Familia')
                     ->searchable()
                     ->preload(),
@@ -257,11 +260,15 @@ class MembersRelationManager extends RelationManager
                     ->label('Solo Responsables'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-s-eye'),
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')
+                    ->visible(fn (FamilyMember $record) => auth()->user()->can('update', $record))
                     ->slideOver(),
                 Tables\Actions\DeleteAction::make()
-                    ->icon('heroicon-s-trash'),
+                    ->icon('heroicon-s-trash')
+                    ->visible(fn (FamilyMember $record) => auth()->user()->can('delete', $record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -273,6 +280,7 @@ class MembersRelationManager extends RelationManager
                     ->label('Nuevo Miembro')
                     ->icon('heroicon-s-plus')
                     ->modalHeading('Registrar Miembro Familiar')
+                    ->visible(fn () => auth()->user()->can('create', FamilyMember::class))
                     ->slideOver(),
             ])
             ->defaultSort('paternal_surname', 'asc');

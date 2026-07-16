@@ -193,6 +193,7 @@ class FamilyProfileResource extends Resource
                                                                 false => 'heroicon-m-x-circle',
                                                             ])
                                                             ->live()
+                                                            ->required()
                                                             ->inline(),
                                                     ]),
                                             ]),
@@ -550,6 +551,10 @@ class FamilyProfileResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-s-eye')
+                    ->color('gray'),
+
                 Tables\Actions\Action::make('agendar_visita')
                     ->label('Agendar')
                     ->icon('heroicon-s-calendar-days')
@@ -620,6 +625,7 @@ class FamilyProfileResource extends Resource
         return [
             'index' => Pages\ListFamilyProfiles::route('/'),
             'create' => Pages\CreateFamilyProfile::route('/create'),
+            'view' => Pages\ViewFamilyProfile::route('/{record}'),
             'edit' => Pages\EditFamilyProfile::route('/{record}/edit'),
         ];
     }

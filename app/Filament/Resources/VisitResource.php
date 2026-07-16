@@ -17,6 +17,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class VisitResource extends Resource
 {
@@ -48,6 +49,7 @@ class VisitResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('family_profile_id')
                                             ->relationship('familyProfile', 'family_name')
+                                            ->getOptionLabelFromRecordUsing(fn (FamilyProfile $record) => Str::title($record->family_name))
                                             ->label('Familia a visitar')
                                             ->searchable()
                                             ->preload()
@@ -278,6 +280,9 @@ class VisitResource extends Resource
                     }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-s-eye')
+                    ->color('gray'),
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square'),
             ])
@@ -302,6 +307,7 @@ class VisitResource extends Resource
         return [
             'index' => Pages\ListVisits::route('/'),
             'create' => Pages\CreateVisit::route('/create'),
+            'view' => Pages\ViewVisit::route('/{record}'),
             'edit' => Pages\EditVisit::route('/{record}/edit'),
         ];
     }

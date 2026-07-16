@@ -382,6 +382,24 @@ class ApplicantResource extends Resource
                         ->action(function (array $data, Applicant $record, ApplicantService $applicantService) {
                             $applicantService->rejectApplicant($record, $data['predefined_reason'] === 'other' ? $data['reason'] : $data['predefined_reason']);
                         }),
+
+                    Action::make('rejectSilent')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update'))
+                        ->label('Rechazar: Staff')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Rechazar al aplicante (Staff)')
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->setProcessStatusSilently($record, 'staff_rejected')),
+
+                    Action::make('approveSilent')
+                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update'))
+                        ->label('Aprobar: Staff')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Aprobar al aplicante (Staff)')
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->setProcessStatusSilently($record, 'staff_approved')),
                 ])
                     ->fullWidth()
                     ->columnSpanFull(),

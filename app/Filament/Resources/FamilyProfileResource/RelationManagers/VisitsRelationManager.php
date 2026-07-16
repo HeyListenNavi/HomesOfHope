@@ -48,6 +48,7 @@ class VisitsRelationManager extends RelationManager
                 Tables\Actions\Action::make('create')
                     ->label('Agendar Visita')
                     ->icon('heroicon-s-plus')
+                    ->visible(fn () => auth()->user()->can('create', Visit::class))
                     ->url(fn ($livewire) => VisitResource::getUrl('create', [
                         'family_profile_id' => $livewire->getOwnerRecord()->id,
                     ])),
@@ -55,10 +56,12 @@ class VisitsRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')
+                    ->visible(fn (Visit $record) => auth()->user()->can('update', $record))
                     ->url(fn (Visit $record): string => VisitResource::getUrl('edit', ['record' => $record])),
 
                 Tables\Actions\DeleteAction::make()
-                    ->icon('heroicon-s-trash'),
+                    ->icon('heroicon-s-trash')
+                    ->visible(fn (Visit $record) => auth()->user()->can('delete', $record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

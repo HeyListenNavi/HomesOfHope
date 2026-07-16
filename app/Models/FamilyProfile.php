@@ -86,6 +86,9 @@ class FamilyProfile extends Model
     protected static function booted()
     {
         static::creating(function ($familyProfile) {
+            if (! empty($familyProfile->family_name)) {
+                $familyProfile->family_name = Str::title($familyProfile->family_name);
+            }
             if (empty($familyProfile->slug)) {
                 $familyProfile->slug = uniqid('familia-'.Str::slug($familyProfile->family_name).'-');
             }
@@ -96,6 +99,11 @@ class FamilyProfile extends Model
                 $familyProfile->slug = uniqid('familia-'.Str::slug($familyProfile->family_name).'-');
             }
         });
+    }
+
+    public function getFamilyNameAttribute($value): string
+    {
+        return Str::title($value);
     }
 
     /* -------------------------------------------------------------------------- */
