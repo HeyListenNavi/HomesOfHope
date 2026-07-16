@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class QuestionResource extends Resource
 {
@@ -114,6 +115,7 @@ class QuestionResource extends Resource
             ->paginated([25, 50, 100])
             ->defaultGroup('stage.name')
             ->defaultSort('order', 'asc')
+            ->recordUrl(fn (Model $record): string => static::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('question_text')
                     ->label('Pregunta')
@@ -133,6 +135,7 @@ class QuestionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                 ])->color('gray'),
@@ -158,6 +161,7 @@ class QuestionResource extends Resource
         return [
             'index' => Pages\ListQuestions::route('/'),
             'create' => Pages\CreateQuestion::route('/create'),
+            'view' => Pages\ViewQuestion::route('/{record}'),
             'edit' => Pages\EditQuestion::route('/{record}/edit'),
         ];
     }

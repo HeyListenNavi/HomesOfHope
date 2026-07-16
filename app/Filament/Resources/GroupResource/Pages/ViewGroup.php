@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\VisitResource\Pages;
+namespace App\Filament\Resources\GroupResource\Pages;
 
-use App\Filament\Resources\VisitResource;
+use App\Filament\Resources\GroupResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
-class ViewVisit extends ViewRecord
+class ViewGroup extends ViewRecord
 {
-    protected static string $resource = VisitResource::class;
+    protected static string $resource = GroupResource::class;
 
     protected function getHeaderActions(): array
     {

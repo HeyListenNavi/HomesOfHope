@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class StageResource extends Resource
@@ -110,6 +111,7 @@ class StageResource extends Resource
             ->paginated([25, 50, 100])
             ->defaultSort('order', 'asc')
             ->reorderable('order')
+            ->recordUrl(fn (Model $record): string => static::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('order')
                     ->label('#')
@@ -131,6 +133,7 @@ class StageResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                 ])->color('gray'),
@@ -154,6 +157,7 @@ class StageResource extends Resource
         return [
             'index' => Pages\ListStages::route('/'),
             'create' => Pages\CreateStage::route('/create'),
+            'view' => Pages\ViewStage::route('/{record}'),
             'edit' => Pages\EditStage::route('/{record}/edit'),
         ];
     }

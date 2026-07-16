@@ -16,6 +16,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class GroupResource extends Resource
 {
@@ -142,6 +143,7 @@ class GroupResource extends Resource
         return $table
             ->paginated([25, 50, 100])
             ->defaultPaginationPageOption(25)
+            ->recordUrl(fn (Model $record): string => static::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('name')
                     ->label('Nombre del Grupo')
@@ -200,6 +202,8 @@ class GroupResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+
                     Tables\Actions\EditAction::make(),
 
                     Tables\Actions\Action::make('takeAttendance')
@@ -266,6 +270,7 @@ class GroupResource extends Resource
         return [
             'index' => Pages\ListGroups::route('/'),
             'create' => Pages\CreateGroup::route('/create'),
+            'view' => Pages\ViewGroup::route('/{record}'),
             'edit' => Pages\EditGroup::route('/{record}/edit'),
         ];
     }
