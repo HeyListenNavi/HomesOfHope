@@ -10,18 +10,21 @@ use App\Enums\LandSize;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
 use App\Models\FamilyProfile;
+use Dotswan\MapPicker\Fields\Map;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use OpenLocationCode\OpenLocationCode;
 
 class FamilyProfileResource extends Resource
 {
@@ -154,7 +157,30 @@ class FamilyProfileResource extends Resource
                                                     ->label('Tiempo con el terreno')
                                                     ->hint('Ej. 2 años'),
 
-                                                Grid::make(3)
+                                                ToggleButtons::make('lives_on_land')
+                                                    ->label('¿Vive en el terreno?')
+                                                    ->options([
+                                                        true => 'Sí Vive',
+                                                        false => 'No Vive',
+                                                    ])
+                                                    ->colors([
+                                                        true => 'success',
+                                                        false => 'danger',
+                                                    ])
+                                                    ->icons([
+                                                        true => 'heroicon-m-check-circle',
+                                                        false => 'heroicon-m-x-circle',
+                                                    ])
+                                                    ->live()
+                                                    ->required()
+                                                    ->inline(),
+                                            ])->columns(4),
+
+                                        Forms\Components\Fieldset::make('Ubicación Geográfica')
+                                            ->columns(3)
+                                            ->schema([
+                                                Forms\Components\Group::make()
+                                                    ->columnSpan(1)
                                                     ->schema([
                                                         Forms\Components\TextInput::make('land_address')
                                                             ->label('Dirección exacta / Referencias')
@@ -162,11 +188,28 @@ class FamilyProfileResource extends Resource
 
                                                         Forms\Components\TextInput::make('land_address_link')
                                                             ->label('Ubicación en Google Maps')
-                                                            ->helperText('Pega un plus code para generar el enlace automáticamente')
+                                                            ->helperText('Pega un plus code para generar el enlace automáticamente y rellenar coordenadas')
                                                             ->prefixIcon('heroicon-m-map')
-                                                            ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                                                if ($state && ! str_starts_with($state, 'http') && str_contains($state, '+')) {
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function (Set $set, $state, $livewire) {
+                                                                if (! str_starts_with($state, 'http') && str_contains($state, '+')) {
+                                                                    $code = trim($state);
+
+                                                                    if (OpenLocationCode::isValid($code)) {
+                                                                        if (OpenLocationCode::isShort($code)) {
+                                                                            $fullCode = OpenLocationCode::recoverNearest($code, 32.5149, -117.0382);
+                                                                            $area = OpenLocationCode::decode($fullCode);
+                                                                        } else {
+                                                                            $area = OpenLocationCode::decode($code);
+                                                                        }
+
+                                                                        $set('land_latitude', round($area->latitudeCenter, 8));
+                                                                        $set('land_longitude', round($area->longitudeCenter, 8));
+                                                                        $set('land_map', ['lat' => $area->latitudeCenter, 'lng' => $area->longitudeCenter]);
+                                                                    }
+
                                                                     $set('land_address_link', 'https://www.google.com/maps/search/?api=1&query='.urlencode($state));
+                                                                    $livewire->dispatch('refreshMap');
                                                                 }
                                                             })
                                                             ->suffixAction(
@@ -178,23 +221,60 @@ class FamilyProfileResource extends Resource
                                                                     ->disabled(fn ($get) => ! $get('land_address_link'))
                                                             ),
 
-                                                        ToggleButtons::make('lives_on_land')
-                                                            ->label('¿Vive en el terreno?')
-                                                            ->options([
-                                                                true => 'Sí Vive',
-                                                                false => 'No Vive',
-                                                            ])
-                                                            ->colors([
-                                                                true => 'success',
-                                                                false => 'danger',
-                                                            ])
-                                                            ->icons([
-                                                                true => 'heroicon-m-check-circle',
-                                                                false => 'heroicon-m-x-circle',
-                                                            ])
-                                                            ->live()
-                                                            ->required()
-                                                            ->inline(),
+                                                        Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\TextInput::make('land_latitude')
+                                                                    ->label('Latitud')
+                                                                    ->numeric(),
+
+                                                                Forms\Components\TextInput::make('land_longitude')
+                                                                    ->label('Longitud')
+                                                                    ->numeric(),
+                                                            ]),
+                                                    ]),
+
+                                                Forms\Components\Group::make()
+                                                    ->columnSpan(2)
+                                                    ->schema([
+                                                        Map::make('land_map')
+                                                            ->hiddenLabel()
+                                                            ->extraControl(['attributionControl' => false, 'liveLocation' => false])
+                                                            ->markerHtml('<div class="marker-icon-container type-land">'.svg('heroicon-s-map')->toHtml().'</div>')
+                                                            ->markerIconClassName('custom-div-icon')
+                                                            ->markerIconSize([44, 44])
+                                                            ->markerIconAnchor([22, 22])
+                                                            ->afterStateHydrated(function (Set $set, $record) {
+                                                                $set('land_map', [
+                                                                    'lat' => $record->land_latitude ?? 32.5149,
+                                                                    'lng' => $record->land_longitude ?? -117.0382,
+                                                                ]);
+                                                            })
+                                                            ->afterStateUpdated(function (Set $set, $state, string $operation) {
+                                                                if ($operation === 'view') {
+                                                                    return;
+                                                                }
+
+                                                                $set('land_latitude', round($state['lat'], 8));
+                                                                $set('land_longitude', round($state['lng'], 8));
+
+                                                                $code = OpenLocationCode::encode($state['lat'], $state['lng']);
+                                                                $set('land_address_link', 'https://www.google.com/maps/search/?api=1&query='.urlencode($code));
+                                                            })
+                                                            ->columnSpanFull()
+                                                            ->tilesUrl('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png')
+                                                            ->markerIconSize([36, 36])
+                                                            ->showMyLocationButton(false)
+                                                            ->liveLocation(false)
+                                                            ->zoom(15)
+                                                            ->clickable($form->getOperation() !== 'view')
+                                                            ->draggable($form->getOperation() !== 'view')
+                                                            ->showMarker(function () use ($form) {
+                                                                $record = $form->getRecord();
+
+                                                                return $record && ! empty($record->land_latitude) && ! empty($record->land_longitude);
+                                                            })
+                                                            ->extraStyles(['min-height: 400px', 'z-index: 0', 'border-radius: 16px'])
+                                                            ->dehydrated(false),
                                                     ]),
                                             ]),
 
@@ -292,8 +372,14 @@ class FamilyProfileResource extends Resource
                                                 Forms\Components\TextInput::make('home_ownership_time')
                                                     ->label('Tiempo viviendo aquí')
                                                     ->hint('Ej. 2 años'),
+                                            ])->columns(3),
 
-                                                Grid::make(2)
+                                        Forms\Components\Fieldset::make('Ubicación Geográfica')
+                                            ->visible(fn (Forms\Get $get) => ! $get('lives_on_land'))
+                                            ->columns(3)
+                                            ->schema([
+                                                Forms\Components\Group::make()
+                                                    ->columnSpan(1)
                                                     ->schema([
                                                         Forms\Components\TextInput::make('home_address')
                                                             ->label('Dirección exacta / Referencias')
@@ -301,11 +387,28 @@ class FamilyProfileResource extends Resource
 
                                                         Forms\Components\TextInput::make('home_address_link')
                                                             ->label('Ubicación en Google Maps')
-                                                            ->helperText('Pega un plus code para generar el enlace automáticamente')
+                                                            ->helperText('Pega un plus code para generar el enlace automáticamente y rellenar coordenadas')
                                                             ->prefixIcon('heroicon-m-map')
-                                                            ->afterStateUpdated(function (Forms\Set $set, $state) {
-                                                                if ($state && ! str_starts_with($state, 'http') && str_contains($state, '+')) {
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function (Set $set, $state, $livewire) {
+                                                                if (! str_starts_with($state, 'http') && str_contains($state, '+')) {
+                                                                    $code = trim($state);
+
+                                                                    if (OpenLocationCode::isValid($code)) {
+                                                                        if (OpenLocationCode::isShort($code)) {
+                                                                            $fullCode = OpenLocationCode::recoverNearest($code, 32.5149, -117.0382);
+                                                                            $area = OpenLocationCode::decode($fullCode);
+                                                                        } else {
+                                                                            $area = OpenLocationCode::decode($code);
+                                                                        }
+
+                                                                        $set('home_latitude', round($area->latitudeCenter, 8));
+                                                                        $set('home_longitude', round($area->longitudeCenter, 8));
+                                                                        $set('home_map', ['lat' => $area->latitudeCenter, 'lng' => $area->longitudeCenter]);
+                                                                    }
+
                                                                     $set('home_address_link', 'https://www.google.com/maps/search/?api=1&query='.urlencode($state));
+                                                                    $livewire->dispatch('refreshMap');
                                                                 }
                                                             })
                                                             ->suffixAction(
@@ -316,6 +419,61 @@ class FamilyProfileResource extends Resource
                                                                     ->openUrlInNewTab()
                                                                     ->disabled(fn ($get) => ! $get('home_address_link'))
                                                             ),
+
+                                                        Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\TextInput::make('home_latitude')
+                                                                    ->label('Latitud')
+                                                                    ->numeric(),
+
+                                                                Forms\Components\TextInput::make('home_longitude')
+                                                                    ->label('Longitud')
+                                                                    ->numeric(),
+                                                            ]),
+                                                    ]),
+
+                                                Forms\Components\Group::make()
+                                                    ->columnSpan(2)
+                                                    ->schema([
+                                                        Map::make('home_map')
+                                                            ->hiddenLabel()
+                                                            ->extraControl(['attributionControl' => false, 'liveLocation' => false])
+                                                            ->markerHtml('<div class="marker-icon-container type-home">'.svg('heroicon-s-home')->toHtml().'</div>')
+                                                            ->markerIconClassName('custom-div-icon')
+                                                            ->markerIconSize([44, 44])
+                                                            ->markerIconAnchor([22, 22])
+                                                            ->afterStateHydrated(function (Set $set, $record) {
+                                                                $set('home_map', [
+                                                                    'lat' => $record->home_latitude ?? 32.5149,
+                                                                    'lng' => $record->home_longitude ?? -117.0382,
+                                                                ]);
+                                                            })
+                                                            ->afterStateUpdated(function (Set $set, $state, string $operation) {
+                                                                if ($operation === 'view') {
+                                                                    return;
+                                                                }
+
+                                                                $set('home_latitude', round($state['lat'], 8));
+                                                                $set('home_longitude', round($state['lng'], 8));
+
+                                                                $code = OpenLocationCode::encode($state['lat'], $state['lng']);
+                                                                $set('home_address_link', 'https://www.google.com/maps/search/?api=1&query='.urlencode($code));
+                                                            })
+                                                            ->columnSpanFull()
+                                                            ->tilesUrl('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png')
+                                                            ->markerIconSize([36, 36])
+                                                            ->showMyLocationButton(false)
+                                                            ->liveLocation(false)
+                                                            ->zoom(15)
+                                                            ->clickable($form->getOperation() !== 'view')
+                                                            ->draggable($form->getOperation() !== 'view')
+                                                            ->showMarker(function () use ($form) {
+                                                                $record = $form->getRecord();
+
+                                                                return $record && ! empty($record->home_latitude) && ! empty($record->home_longitude);
+                                                            })
+                                                            ->extraStyles(['min-height: 400px', 'z-index: 0', 'border-radius: 16px'])
+                                                            ->dehydrated(false),
                                                     ]),
                                             ]),
 

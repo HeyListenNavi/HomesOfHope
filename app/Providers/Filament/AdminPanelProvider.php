@@ -74,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->theme(asset('css/filament/admin/theme.css'))
             ->authMiddleware([
                 Authenticate::class,
             ]);

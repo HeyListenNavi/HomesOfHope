@@ -240,8 +240,7 @@ class VisitResource extends Resource
 
                 Tables\Columns\TextColumn::make('scheduled_at')
                     ->label('Fecha')
-                    ->dateTime('d M Y')
-                    ->description(fn ($record) => $record->scheduled_at->format('h:i A')) // Hora debajo
+                    ->dateTime('d \d\e F \d\e\l Y')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('location_type')

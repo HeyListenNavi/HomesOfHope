@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+@import '../../../../vendor/filament/filament/resources/css/base.css';
+
+@config 'tailwind.config.js';
+
+.marker-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    width: 44px;
+    height: 44px;
+    border: 2px solid white;
+    color: rgb(var(--primary-600));
+}
+
+.dark .marker-icon-container {
+    background-color: rgb(var(--gray-800));
+    border-color: rgb(var(--gray-700));
+    color: rgb(var(--primary-500));
+}
+
+.marker-icon-container.type-land {
+    color: rgb(var(--success-600));
+}
+
+.dark .marker-icon-container.type-land {
+    color: rgb(var(--success-500));
+}
+
+.marker-icon-container.selected {
+    background-color: rgb(var(--primary-600));
+    border-color: rgb(var(--primary-600));
+    color: white;
+    transform: scale(1.15);
+}
+
+.dark .marker-icon-container.selected {
+    background-color: rgb(var(--primary-500));
+    border-color: rgb(var(--primary-500));
+    color: white;
+}
+
+.marker-icon-container svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.custom-cluster-marker {
+    background: transparent;
+    border: none;
+}
+.custom-cluster-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: rgb(var(--primary-600));
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 15px;
+    font-family: inherit;
+    border: 3px solid rgb(var(--primary-600));
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    width: 100%;
+    height: 100%;
+    transition: transform 0.2s ease;
+}
+.custom-cluster-icon:hover {
+    transform: scale(1.05);
+}
+.dark .custom-cluster-icon {
+    border-color: rgb(var(--primary-500));
+    background-color: rgb(var(--gray-900));
+}
+
+.map-section-wrapper .fi-section-content {
+    padding: 0 !important;
+}

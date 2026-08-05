@@ -11,6 +11,7 @@
         "c3t4r4/openlocationcode": "^1.1",
         "chillerlan/php-qrcode": "^6.0",
         "doctrine/dbal": "^4.4",
+        "dotswan/filament-map-picker": "^1.8",
         "filament/filament": "3.3.x",
         "flowframe/laravel-trend": "^0.4.0",
         "laravel/framework": "^12.0",
