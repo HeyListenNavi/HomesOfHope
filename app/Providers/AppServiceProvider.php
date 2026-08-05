@@ -79,6 +79,10 @@ class AppServiceProvider extends ServiceProvider
             Css::make('boxicons-brands', 'https://cdn.boxicons.com/3.0.8/fonts/brands/boxicons-brands.min.css'),
 
             Js::make('polygon-map-picker', asset('js/group-applicant-map.js')),
+            Js::make('visit-map', asset('js/visit-map.js')),
+
+            Css::make('leaflet-cluster', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css'),
+            Css::make('leaflet-cluster-default', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css'),
         ]);
     }
 }
