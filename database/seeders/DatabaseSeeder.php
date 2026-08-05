@@ -3,18 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Group;
-use App\Models\Applicant;
-use App\Models\ApplicantQuestionResponse;
-use App\Models\Conversation;
-use App\Models\Message;
-use App\Models\PartialApplicant;
-use App\Models\Question;
-use App\Models\Stage;
-use App\Models\Visit;
-use Illuminate\Mail\Events\MessageSent;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,16 +10,24 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             HomesofHopeSeeder::class,
-            ConversationSeeder::class,
-            MessageSeeder::class,
-            QuestionSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            BotSettingSeeder::class,
+            ColonySeeder::class,
             StageSeeder::class,
+            QuestionSeeder::class,
             GroupSeeder::class,
             ApplicantSeeder::class,
             ApplicantQuestionResponseSeeder::class,
+            ConversationSeeder::class,
             MessageSeeder::class,
-            RolesAndPermissionsSeeder::class,
-            ColonySeeder::class,
+            FamilyProfileSeeder::class,
+            FamilyMemberSeeder::class,
+            VisitSeeder::class,
+            TaskSeeder::class,
+            EvidenceSeeder::class,
+            DocumentSeeder::class,
+            NoteSeeder::class,
+            TestimonySeeder::class,
         ]);
     }
 }
