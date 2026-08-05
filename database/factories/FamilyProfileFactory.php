@@ -30,11 +30,15 @@ class FamilyProfileFactory extends Factory
             'home_colony' => 'Colonia '.fake()->word(),
             'home_address' => fake()->streetAddress(),
             'home_address_link' => 'https://maps.google.com/?q='.urlencode(fake()->address()),
+            'home_latitude' => fake()->latitude(32.40, 32.55),
+            'home_longitude' => fake()->longitude(-117.12, -116.85),
 
             'land_city' => fake()->city(),
             'land_colony' => 'Lomas de '.fake()->word(),
             'land_address' => 'Lote '.fake()->randomDigit().', Manzana '.fake()->randomDigit(),
             'land_address_link' => 'https://maps.google.com/?q='.urlencode(fake()->address()),
+            'land_latitude' => fake()->latitude(32.40, 32.55),
+            'land_longitude' => fake()->longitude(-117.12, -116.85),
 
             'land_ownership_time' => fake()->numberBetween(1, 10).' años',
             'land_total_cost' => fake()->randomFloat(2, 50000, 200000),

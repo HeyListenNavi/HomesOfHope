@@ -178,23 +178,16 @@ class FamilyProfileResource extends Resource
                                                                     ->disabled(fn ($get) => ! $get('land_address_link'))
                                                             ),
 
-                                                        ToggleButtons::make('lives_on_land')
-                                                            ->label('¿Vive en el terreno?')
-                                                            ->options([
-                                                                true => 'Sí Vive',
-                                                                false => 'No Vive',
-                                                            ])
-                                                            ->colors([
-                                                                true => 'success',
-                                                                false => 'danger',
-                                                            ])
-                                                            ->icons([
-                                                                true => 'heroicon-m-check-circle',
-                                                                false => 'heroicon-m-x-circle',
-                                                            ])
-                                                            ->live()
-                                                            ->required()
-                                                            ->inline(),
+                                                        Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\TextInput::make('land_latitude')
+                                                                    ->label('Latitud')
+                                                                    ->numeric(),
+
+                                                                Forms\Components\TextInput::make('land_longitude')
+                                                                    ->label('Longitud')
+                                                                    ->numeric(),
+                                                            ]),
                                                     ]),
                                             ]),
 
@@ -316,6 +309,17 @@ class FamilyProfileResource extends Resource
                                                                     ->openUrlInNewTab()
                                                                     ->disabled(fn ($get) => ! $get('home_address_link'))
                                                             ),
+
+                                                        Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\TextInput::make('home_latitude')
+                                                                    ->label('Latitud')
+                                                                    ->numeric(),
+
+                                                                Forms\Components\TextInput::make('home_longitude')
+                                                                    ->label('Longitud')
+                                                                    ->numeric(),
+                                                            ]),
                                                     ]),
                                             ]),
 
