@@ -25,10 +25,9 @@ document.addEventListener("alpine:init", () => {
         },
 
         setupMap(center, zoom, points) {
-            this.map = L.map(this.$refs.map).setView(center, zoom);
+            this.map = L.map(this.$refs.map, { attributionControl: false }).setView(center, zoom);
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
                 subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(this.map);
