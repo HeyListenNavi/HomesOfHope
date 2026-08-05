@@ -34,7 +34,7 @@ enum VisitLocationType: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Home => 'heroicon-s-home',
-            self::Land => 'heroicon-s-building-office',
+            self::Land => 'heroicon-s-map',
             self::Virtual => 'heroicon-s-phone',
         };
     }
