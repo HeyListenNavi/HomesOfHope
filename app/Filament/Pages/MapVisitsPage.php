@@ -49,6 +49,11 @@ class MapVisitsPage extends Page implements HasActions, HasForms
 
     public ?array $formData = [];
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('visit.view_any');
+    }
+
     public function mount()
     {
         $this->form->fill();
@@ -183,6 +188,7 @@ class MapVisitsPage extends Page implements HasActions, HasForms
             ->modalHeading('Confirmar Visitas')
             ->modalDescription('¿Estás seguro de que deseas agendar estas visitas seleccionadas?')
             ->modalSubmitActionLabel('Sí, Agendar')
+            ->visible(fn () => auth()->user()->can('visit.create'))
             ->action(function () {
                 $data = $this->form->getState();
 

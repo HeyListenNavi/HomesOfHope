@@ -114,13 +114,15 @@
                                 </div>
                             @endif
 
-                            <div class="flex flex-col gap-6">
-                                {{ $this->form }}
+                            @if(auth()->user()->can('visit.create'))
+                                <div class="flex flex-col gap-6">
+                                    {{ $this->form }}
 
-                                <div>
-                                    {{ $this->finalizeAction }}
+                                    <div>
+                                        {{ $this->finalizeAction }}
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         </div>
                     </x-filament::section>
                 </div>
