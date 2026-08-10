@@ -669,6 +669,7 @@ class FamilyProfileResource extends Resource
                 Tables\Columns\TextColumn::make('land_colony')
                     ->label('Colonia (Terreno)')
                     ->copyable()
+                    ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('land_ownership_time')
