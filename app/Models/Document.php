@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,10 @@ class Document extends Model
         'mime_type',
         'size',
         'uploaded_by',
+    ];
+
+    protected $casts = [
+        'document_type' => DocumentType::class,
     ];
 
     /**

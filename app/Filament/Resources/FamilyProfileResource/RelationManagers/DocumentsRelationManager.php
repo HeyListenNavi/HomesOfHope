@@ -54,15 +54,7 @@ class DocumentsRelationManager extends RelationManager
                                     ->schema([
                                         Forms\Components\Select::make('document_type')
                                             ->label('Tipo de Documento')
-                                            ->options([
-                                                'ine' => '🆔 INE / Identificación',
-                                                'curp' => '📄 CURP',
-                                                'proof_of_address' => '🏠 Comprobante Domicilio',
-                                                'contract' => '✍️ Contrato',
-                                                'report' => '📊 Reporte / Estudio',
-                                                'photo' => '📷 Fotografía',
-                                                'other' => '📂 Otro',
-                                            ])
+                                            ->options(DocumentType::class)
                                             ->required()
                                             ->native(false)
                                             ->searchable(),
@@ -105,23 +97,8 @@ class DocumentsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('document_type')
                     ->label('Tipo')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'ine' => 'INE',
-                        'curp' => 'CURP',
-                        'proof_of_address' => 'Domicilio',
-                        'contract' => 'Contrato',
-                        'report' => 'Reporte',
-                        'photo' => 'Foto',
-                        'other' => 'Otro',
-                        default => ucfirst($state),
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'ine', 'curp', 'proof_of_address' => 'info',
-                        'contract' => 'success',
-                        'report' => 'warning',
-                        'photo' => 'primary',
-                        default => 'gray',
-                    }),
+                    ->formatStateUsing(fn (string $state): string => DocumentType::tryFrom($state)?->getLabel() ?? ucfirst($state))
+                    ->color(fn (string $state): string => DocumentType::tryFrom($state)?->getColor() ?? 'gray'),
 
                 Tables\Columns\TextColumn::make('description')
                     ->label('Descripción')
