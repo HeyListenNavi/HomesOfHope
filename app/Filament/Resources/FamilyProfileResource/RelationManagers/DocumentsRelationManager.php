@@ -24,7 +24,6 @@ class DocumentsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Grid::make(3)
                     ->schema([
-                        // COLUMNA IZQUIERDA
                         Forms\Components\Group::make()
                             ->columnSpan(['lg' => 2])
                             ->schema([
@@ -35,7 +34,7 @@ class DocumentsRelationManager extends RelationManager
                                         Forms\Components\FileUpload::make('file_path')
                                             ->label('Seleccionar Archivo')
                                             ->required()
-                                            ->disk('public')
+                                            ->disk('r2')
                                             ->directory('documents')
                                             ->storeFileNamesIn('original_name')
                                             ->preserveFilenames(false)
@@ -47,7 +46,6 @@ class DocumentsRelationManager extends RelationManager
                                     ]),
                             ]),
 
-                        // COLUMNA DERECHA
                         Forms\Components\Group::make()
                             ->columnSpan(['lg' => 1])
                             ->schema([
@@ -159,11 +157,19 @@ class DocumentsRelationManager extends RelationManager
                     }),
             ])
             ->actions([
+                Tables\Actions\Action::make('view')
+                    ->label('')
+                    ->icon('heroicon-s-eye')
+                    ->tooltip('Visualizar')
+                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\Action::make('download')
                     ->label('')
                     ->icon('heroicon-s-arrow-down-tray')
                     ->tooltip('Descargar')
-                    ->url(fn ($record) => Storage::url($record->file_path))
+                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
+                    ->extraAttributes(['download' => 'download'])
                     ->openUrlInNewTab(),
 
                 Tables\Actions\EditAction::make()
@@ -186,7 +192,7 @@ class DocumentsRelationManager extends RelationManager
 
     protected function processFileMetadata(array $data): array
     {
-        $disk = Storage::disk('public');
+        $disk = Storage::disk('r2');
         $path = $data['file_path'];
 
         if ($disk->exists($path)) {

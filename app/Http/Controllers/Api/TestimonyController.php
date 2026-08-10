@@ -33,7 +33,7 @@ class TestimonyController extends Controller
 
         $path = null;
         if ($request->hasFile('audio')) {
-            $path = $request->file('audio')->store('testimonies', 'public');
+            $path = $request->file('audio')->store('testimonies', 'r2');
         }
 
         $testimony = Testimony::create([
@@ -87,8 +87,8 @@ class TestimonyController extends Controller
         $testimony = Testimony::findOrFail($id);
 
         // Borrar audio físico si existe
-        if ($testimony->audio_path && Storage::exists($testimony->audio_path)) {
-            Storage::delete($testimony->audio_path);
+        if ($testimony->audio_path && Storage::disk('r2')->exists($testimony->audio_path)) {
+            Storage::disk('r2')->delete($testimony->audio_path);
         }
 
         $testimony->delete();

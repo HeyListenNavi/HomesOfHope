@@ -43,7 +43,7 @@ class TestimoniesRelationManager extends RelationManager
 
                                         Forms\Components\FileUpload::make('audio_path')
                                             ->label('Archivo de Audio')
-                                            ->disk('public')
+                                            ->disk('r2')
                                             ->directory('testimonies/audio')
                                             ->acceptedFileTypes(['audio/*'])
                                             ->maxSize(51200) // 50MB

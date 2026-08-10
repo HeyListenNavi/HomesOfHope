@@ -40,7 +40,7 @@ class DocumentController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store('documents', 'public');
+        $path = $file->store('documents', 'r2');
 
         // 2. Crear registro en BD
         $document = Document::create([
@@ -69,7 +69,7 @@ class DocumentController extends Controller
 
         // Agregamos la URL temporal o pública al response
         $data = $document->toArray();
-        $data['url'] = Storage::url($document->file_path);
+        $data['url'] = Storage::disk('r2')->url($document->file_path);
 
         return response()->json($data);
     }
@@ -81,11 +81,11 @@ class DocumentController extends Controller
     {
         $document = Document::findOrFail($id);
 
-        if (! Storage::exists($document->file_path)) {
+        if (! Storage::disk('r2')->exists($document->file_path)) {
             return response()->json(['message' => 'File not found on disk'], 404);
         }
 
-        return Storage::download($document->file_path, $document->original_name);
+        return Storage::disk('r2')->download($document->file_path, $document->original_name);
     }
 
     /**
@@ -96,8 +96,8 @@ class DocumentController extends Controller
         $document = Document::findOrFail($id);
 
         // 1. Borrar archivo físico
-        if (Storage::exists($document->file_path)) {
-            Storage::delete($document->file_path);
+        if (Storage::disk('r2')->exists($document->file_path)) {
+            Storage::disk('r2')->delete($document->file_path);
         }
 
         // 2. Borrar registro
