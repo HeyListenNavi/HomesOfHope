@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            $table->date('uploaded_by')->nullable()->change();
+            $table->unsignedBigInteger('uploaded_by')->nullable()->change();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            $table->date('uploaded_by')->nullable(false)->change();
+            $table->unsignedBigInteger('uploaded_by')->nullable(false)->change();
         });
     }
 };
