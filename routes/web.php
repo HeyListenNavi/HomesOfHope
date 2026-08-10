@@ -2,11 +2,16 @@
 
 use App\Http\Controllers\GroupSelectionController;
 use App\Livewire\AttendancePage;
+use App\Livewire\CreateFamilyProfileWizard;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('dates-form');
 });
+
+Route::get('/crear-perfil/{applicant:id}', CreateFamilyProfileWizard::class)
+    ->middleware('signed')
+    ->name('applicant.create-profile');
 
 Route::get('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'showSelectionForm'])
     ->middleware('signed')

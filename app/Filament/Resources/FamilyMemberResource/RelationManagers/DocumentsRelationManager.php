@@ -1,16 +1,19 @@
 <?php
 
-namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
+namespace App\Filament\Resources\FamilyMemberResource\RelationManagers;
 
 use App\Enums\DocumentType;
-use App\Models\FamilyMember;
-use App\Models\FamilyProfile;
-use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,22 +23,20 @@ class DocumentsRelationManager extends RelationManager
 
     protected static ?string $title = 'Documentos y Archivos';
 
-    protected static ?string $icon = 'heroicon-s-document-duplicate';
-
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Grid::make(3)
+                Grid::make(3)
                     ->schema([
-                        Forms\Components\Group::make()
+                        Group::make()
                             ->columnSpan(['lg' => 2])
                             ->schema([
-                                Forms\Components\Section::make('Carga de Archivo')
+                                Section::make('Carga de Archivo')
                                     ->description('Sube documentos legales, identificaciones o reportes.')
                                     ->icon('heroicon-s-arrow-up-tray')
                                     ->schema([
-                                        Forms\Components\FileUpload::make('file_path')
+                                        FileUpload::make('file_path')
                                             ->label('Seleccionar Archivo')
                                             ->required()
                                             ->disk('r2')
@@ -50,29 +51,29 @@ class DocumentsRelationManager extends RelationManager
                                     ]),
                             ]),
 
-                        Forms\Components\Group::make()
+                        Group::make()
                             ->columnSpan(['lg' => 1])
                             ->schema([
-                                Forms\Components\Section::make('Clasificación')
+                                Section::make('Clasificación')
                                     ->icon('heroicon-s-tag')
                                     ->schema([
-                                        Forms\Components\Select::make('document_type')
+                                        Select::make('document_type')
                                             ->label('Tipo de Documento')
                                             ->options(DocumentType::class)
                                             ->required()
                                             ->native(false)
                                             ->searchable(),
 
-                                        Forms\Components\Hidden::make('original_name'),
-                                        Forms\Components\Hidden::make('mime_type'),
-                                        Forms\Components\Hidden::make('size'),
+                                        Hidden::make('original_name'),
+                                        Hidden::make('mime_type'),
+                                        Hidden::make('size'),
 
-                                        Forms\Components\Hidden::make('uploaded_by')
+                                        Hidden::make('uploaded_by')
                                             ->default(Auth::id()),
                                     ]),
                             ]),
 
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label('Descripción')
                             ->rows(3)
                             ->columnSpanFull()
@@ -85,20 +86,6 @@ class DocumentsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(function (Builder $query) {
-                $familyProfileId = $this->getOwnerRecord()->id;
-
-                $query->where(function ($q) use ($familyProfileId) {
-                    $q->where('documentable_type', FamilyProfile::class)
-                        ->where('documentable_id', $familyProfileId);
-                })
-                    ->orWhere(function ($q) use ($familyProfileId) {
-                        $q->where('documentable_type', FamilyMember::class)
-                            ->whereHasMorph('documentable', [FamilyMember::class], function ($query) use ($familyProfileId) {
-                                $query->where('family_profile_id', $familyProfileId);
-                            });
-                    });
-            })
             ->columns([
                 Tables\Columns\TextColumn::make('original_name')
                     ->label('Nombre del Archivo')
@@ -110,14 +97,7 @@ class DocumentsRelationManager extends RelationManager
                         'text' => 'heroicon-s-document-text',
                         default => 'heroicon-s-paper-clip',
                     })
-                    ->color('gray')
-                    ->description(function ($record) {
-                        if ($record->documentable_type === FamilyMember::class) {
-                            return 'De: '.($record->documentable->full_name ?? 'Familiar');
-                        }
-
-                        return null;
-                    }),
+                    ->color('gray'),
 
                 Tables\Columns\TextColumn::make('document_type')
                     ->label('Tipo')

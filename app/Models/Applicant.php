@@ -30,6 +30,7 @@ class Applicant extends Model
         'reminder_level',
         'last_reminded_at',
         'current_step',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class Applicant extends Model
         'process_status' => ApplicantStatus::class,
         'is_approved' => 'boolean',
         'last_reminded_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     protected static function booted(): void

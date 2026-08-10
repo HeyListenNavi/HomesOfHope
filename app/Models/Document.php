@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,10 @@ class Document extends Model
         'mime_type',
         'size',
         'uploaded_by',
+    ];
+
+    protected $casts = [
+        'document_type' => DocumentType::class,
     ];
 
     /**
@@ -45,6 +50,6 @@ class Document extends Model
      */
     public function getUrlAttribute(): string
     {
-        return Storage::url($this->file_path);
+        return Storage::disk('r2')->url($this->file_path);
     }
 }

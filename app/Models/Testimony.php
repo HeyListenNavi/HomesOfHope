@@ -45,6 +45,6 @@ class Testimony extends Model
 
     public function getAudioUrlAttribute(): ?string
     {
-        return $this->audio_path ? Storage::url($this->audio_path) : null;
+        return $this->audio_path ? Storage::disk('r2')->url($this->audio_path) : null;
     }
 }

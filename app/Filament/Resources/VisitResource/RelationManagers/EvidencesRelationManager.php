@@ -30,7 +30,7 @@ class EvidencesRelationManager extends RelationManager
                             ->label('Archivo de Evidencia')
                             ->image() // Priorizamos imágenes
                             ->imageEditor() // Permite recortar/rotar antes de subir
-                            ->disk('public')
+                            ->disk('r2')
                             ->directory('evidence-visits')
                             ->required()
                             ->columnSpanFull()

@@ -9,6 +9,7 @@ use App\Enums\Occupation;
 use App\Enums\Relationship;
 use App\Enums\Religion;
 use App\Filament\Resources\FamilyMemberResource\Pages;
+use App\Filament\Resources\FamilyMemberResource\RelationManagers;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Filament\Forms;
@@ -323,7 +324,7 @@ class FamilyMemberResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Aquí agregaremos managers después
+            RelationManagers\DocumentsRelationManager::class,
         ];
     }
 

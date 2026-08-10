@@ -56,6 +56,7 @@ class FamilyMember extends Model
         'speaks_indigenous_language' => 'boolean',
         'indigenous_language' => IndigenousLanguage::class,
         'is_pregnant' => 'boolean',
+        'weekly_income' => 'float',
     ];
 
     protected $appends = [
@@ -99,6 +100,16 @@ class FamilyMember extends Model
                 $familyMember->maternal_surname = Str::title($familyMember->maternal_surname);
             }
         });
+    }
+
+    public function setCurpAttribute(?string $value): void
+    {
+        $this->attributes['curp'] = $value ? Str::upper(trim($value)) : null;
+    }
+
+    public function getCurpAttribute(?string $value): ?string
+    {
+        return $value ? Str::upper(trim($value)) : null;
     }
 
     public function getNameAttribute($value): string

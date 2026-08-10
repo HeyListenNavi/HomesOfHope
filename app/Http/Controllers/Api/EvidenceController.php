@@ -25,7 +25,7 @@ class EvidenceController extends Controller
         // $visit = Visit::findOrFail($validated['visit_id']);
 
         // 1. Subir imagen
-        $path = $request->file('image')->store('evidence', 'public');
+        $path = $request->file('image')->store('evidence', 'r2');
 
         // 2. Crear registro
         $evidence = Evidence::create([
@@ -68,8 +68,8 @@ class EvidenceController extends Controller
         // if ($evidence->taken_by !== $request->user()->id) abort(403);
 
         // 1. Borrar archivo físico
-        if (Storage::exists($evidence->file_path)) {
-            Storage::delete($evidence->file_path);
+        if (Storage::disk('r2')->exists($evidence->file_path)) {
+            Storage::disk('r2')->delete($evidence->file_path);
         }
 
         // 2. Borrar registro
