@@ -149,8 +149,11 @@ class DocumentsRelationManager extends RelationManager
                     ->label('')
                     ->icon('heroicon-s-arrow-down-tray')
                     ->tooltip('Descargar')
-                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
-                    ->extraAttributes(['download' => 'download'])
+                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl(
+                        $record->file_path,
+                        now()->addMinutes(5),
+                        ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
+                    ))
                     ->openUrlInNewTab(),
 
                 Tables\Actions\EditAction::make()
