@@ -56,6 +56,7 @@ class FamilyMember extends Model
         'speaks_indigenous_language' => 'boolean',
         'indigenous_language' => IndigenousLanguage::class,
         'is_pregnant' => 'boolean',
+        'weekly_income' => 'float',
     ];
 
     protected $appends = [

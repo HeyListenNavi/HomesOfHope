@@ -134,7 +134,6 @@ class FamilyProfileResource extends Resource
                                                 ->label('Fecha de entrevista')
                                                 ->native(false)
                                                 ->displayFormat('d/m/Y')
-                                                ->required()
                                                 ->prefixIcon('heroicon-s-calendar'),
                                         ]),
                                     ]),
