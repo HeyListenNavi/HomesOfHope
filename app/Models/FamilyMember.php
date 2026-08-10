@@ -102,6 +102,16 @@ class FamilyMember extends Model
         });
     }
 
+    public function setCurpAttribute(?string $value): void
+    {
+        $this->attributes['curp'] = $value ? Str::upper(trim($value)) : null;
+    }
+
+    public function getCurpAttribute(?string $value): ?string
+    {
+        return $value ? Str::upper(trim($value)) : null;
+    }
+
     public function getNameAttribute($value): string
     {
         return Str::title($value);

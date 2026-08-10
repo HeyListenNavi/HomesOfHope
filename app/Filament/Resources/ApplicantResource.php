@@ -561,6 +561,12 @@ class ApplicantResource extends Resource
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()->color('gray'),
                     Tables\Actions\EditAction::make()->color('primary'),
+                    Tables\Actions\Action::make('createFamilyProfile')
+                        ->label('Crear Perfil Familiar')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('success')
+                        ->url(fn (Applicant $record): string => URL::signedRoute('applicant.create-profile', ['applicant' => $record->id]))
+                        ->openUrlInNewTab(),
                     Tables\Actions\DeleteAction::make(),
                 ]),
             ])
