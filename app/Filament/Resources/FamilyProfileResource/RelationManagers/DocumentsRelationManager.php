@@ -121,9 +121,7 @@ class DocumentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('document_type')
                     ->label('Tipo')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => DocumentType::tryFrom($state)?->getLabel() ?? ucfirst($state))
-                    ->color(fn (string $state): string => DocumentType::tryFrom($state)?->getColor() ?? 'gray'),
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('description')
                     ->label('Descripción')
