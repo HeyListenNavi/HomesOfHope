@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EvidenceController;
 use App\Http\Controllers\Api\FamilyMemberController;
 use App\Http\Controllers\Api\FamilyProfileController;
+use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\HandleMessageController;
 use App\Http\Controllers\Api\MetaWebhookVerificationController;
 use App\Http\Controllers\Api\NoteController;
@@ -113,6 +114,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{user}', [UserController::class, 'show']);
         Route::put('/{user}', [UserController::class, 'update']);
         Route::delete('/{user}', [UserController::class, 'destroy']);
+    });
+
+    // Routes for Groups and Applicants
+    Route::prefix('groups')->group(function () {
+        Route::get('/', [GroupController::class, 'index']);
+        Route::get('/{id}/applicants', [GroupController::class, 'applicants']);
     });
 
 });
