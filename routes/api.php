@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BotApplicantController;
 use App\Http\Controllers\Api\BotApplicantManualController;
@@ -120,6 +121,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('groups')->group(function () {
         Route::get('/', [GroupController::class, 'index']);
         Route::get('/{id}/applicants', [GroupController::class, 'applicants']);
+    });
+
+    // Routes for Attendance
+    Route::prefix('attendance')->group(function () {
+        Route::post('/scan', [AttendanceController::class, 'scan']);
+        Route::put('/{id}', [AttendanceController::class, 'update']);
     });
 
 });
