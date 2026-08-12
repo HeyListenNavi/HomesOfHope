@@ -66,7 +66,7 @@ class FamilyMemberController extends Controller
 
     public function show(string $id)
     {
-        $member = FamilyMember::with('familyProfile')->findOrFail($id);
+        $member = FamilyMember::with(['familyProfile', 'documents'])->findOrFail($id);
 
         return response()->json($member);
     }
