@@ -775,6 +775,7 @@ class FamilyProfileResource extends Resource
             RelationManagers\TestimoniesRelationManager::class,
             RelationManagers\DocumentsRelationManager::class,
             RelationManagers\NotesRelationManager::class,
+            RelationManagers\EvidencesRelationManager::class,
         ];
     }
 
