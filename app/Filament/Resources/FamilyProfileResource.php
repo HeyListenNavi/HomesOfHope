@@ -122,7 +122,7 @@ class FamilyProfileResource extends Resource
                                             ->rows(3)
                                             ->autosize()
                                             ->live()
-                                            ->visible(fn (Forms\Get $get) => in_array($get('status'), [FamilyStatus::NotEligible->value, FamilyStatus::DontBuild->value, FamilyStatus::Approved->value]))
+                                            ->visible(fn (Forms\Get $get) => in_array($get('status'), [FamilyStatus::NotEligible->value, FamilyStatus::DontBuild->value, FamilyStatus::Approved->value, FamilyStatus::Programmed->value]))
                                             ->columnSpanFull(),
 
                                         Grid::make(2)->schema([

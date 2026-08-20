@@ -48,7 +48,7 @@ class FamilyProfileTest extends TestCase
         $response = $this->withHeaders($this->headers())
             ->getJson('/api/family-profiles');
 
-        // then all profiles are returned 
+        // then all profiles are returned
         $response->assertOk()
             ->assertJsonCount(3, 'data');
     }
@@ -126,5 +126,46 @@ class FamilyProfileTest extends TestCase
 
         // then validation fails
         $response->assertStatus(422);
+    }
+
+    public function test_can_create_family_profile_with_programmed_status()
+    {
+        // given family profile data with programmed status
+
+        // when creating a family profile
+        $response = $this->withHeaders($this->headers())
+            ->postJson('/api/family-profiles', [
+                'family_name' => 'García Martínez',
+                'status' => 'programmed',
+                'current_address' => 'Calle Principal 456',
+                'opened_at' => '2026-01-15',
+            ]);
+
+        // then the profile is created with programmed status
+        $response->assertCreated()
+            ->assertJsonFragment(['family_name' => 'García Martínez']);
+        $this->assertDatabaseHas('family_profiles', [
+            'family_name' => 'García Martínez',
+            'status' => 'programmed',
+        ]);
+    }
+
+    public function test_can_update_family_profile_to_programmed_status()
+    {
+        // given an existing family profile
+        $familyProfile = FamilyProfile::factory()->create(['status' => 'approved']);
+
+        // when updating the status to programmed
+        $response = $this->withHeaders($this->headers())
+            ->putJson('/api/family-profiles/'.$familyProfile->id, [
+                'status' => 'programmed',
+            ]);
+
+        // then the status is updated
+        $response->assertOk();
+        $this->assertDatabaseHas('family_profiles', [
+            'id' => $familyProfile->id,
+            'status' => 'programmed',
+        ]);
     }
 }

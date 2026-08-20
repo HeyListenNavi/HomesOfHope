@@ -109,6 +109,7 @@ class ImportFamiliesCsv extends Command
                 'calificada' => 'built',
                 'descalificada' => 'not_eligible',
                 'en proceso' => 'in_process',
+                'programado' => 'programmed',
             ];
             $profile->status = $statusMapping[$rawStatus] ?? 'in_process';
 
