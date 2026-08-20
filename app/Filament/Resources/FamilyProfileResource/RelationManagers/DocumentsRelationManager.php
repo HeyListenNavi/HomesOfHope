@@ -160,7 +160,7 @@ class DocumentsRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\Action::make('view')
                     ->label('')
-                    ->icon('heroicon-s-eye')
+                    ->icon('heroicon-s-document')
                     ->tooltip('Visualizar')
                     ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
                     ->openUrlInNewTab(),
@@ -175,6 +175,10 @@ class DocumentsRelationManager extends RelationManager
                         ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
                     ))
                     ->openUrlInNewTab(),
+
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-s-eye')
+                    ->modalWidth('4xl'),
 
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')

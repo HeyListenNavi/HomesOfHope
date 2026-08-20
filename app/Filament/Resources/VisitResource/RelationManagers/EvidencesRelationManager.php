@@ -14,7 +14,7 @@ class EvidencesRelationManager extends RelationManager
 {
     protected static string $relationship = 'evidences';
 
-    protected static ?string $title = 'Evidencia y Archivos'; // Título más completo
+    protected static ?string $title = 'Evidencias'; // Título más completo
 
     protected static ?string $icon = 'heroicon-s-camera'; // Icono sólido
 
@@ -55,11 +55,12 @@ class EvidencesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('file_path')
             ->columns([
-                // Imagen con estilo redondeado
                 Tables\Columns\ImageColumn::make('file_path')
                     ->label('Vista Previa')
+                    ->disk('r2')
+                    ->visibility('private')
                     ->square()
-                    ->size(80)
+                    ->size(240)
                     ->extraImgAttributes(['class' => 'rounded-lg object-cover shadow-sm']),
 
                 Tables\Columns\TextColumn::make('description')
@@ -86,17 +87,27 @@ class EvidencesRelationManager extends RelationManager
                     ->modalWidth('md'),
             ])
             ->actions([
-                // Acción rápida para descargar sin abrir el registro
+                Tables\Actions\Action::make('view')
+                    ->label('')
+                    ->icon('heroicon-s-document')
+                    ->tooltip('Visualizar')
+                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\Action::make('download')
                     ->label('')
                     ->icon('heroicon-s-arrow-down-tray')
                     ->tooltip('Descargar')
-                    ->url(fn ($record) => Storage::url($record->file_path))
+                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl(
+                        $record->file_path,
+                        now()->addMinutes(5),
+                        ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
+                    ))
                     ->openUrlInNewTab(),
 
                 Tables\Actions\ViewAction::make()
                     ->icon('heroicon-s-eye')
-                    ->modalWidth('xl'),
+                    ->modalWidth('4xl'),
 
                 Tables\Actions\DeleteAction::make()
                     ->icon('heroicon-s-trash'),
