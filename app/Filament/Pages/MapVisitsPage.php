@@ -86,7 +86,7 @@ class MapVisitsPage extends Page implements HasActions, HasForms
         $markers = [];
 
         foreach ($families as $family) {
-            if ($family->home_latitude && $family->home_longitude) {
+            if ($family->status === FamilyStatus::New && $family->home_latitude && $family->home_longitude) {
                 $markers[] = [
                     'id' => 'home_'.$family->id,
                     'family_id' => $family->id,
