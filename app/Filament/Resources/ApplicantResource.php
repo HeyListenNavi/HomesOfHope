@@ -454,7 +454,7 @@ class ApplicantResource extends Resource
         foreach ($dynamicQuestions->values() as $index => $question) {
             $columns[] =
             TextColumn::make('dynamic_question_'.$question->id)
-                ->label('Pregunta '.($index + 1))
+                ->label($question->title ?? 'Pregunta '.($index + 1))
                 ->size(TextColumn\TextColumnSize::ExtraSmall)
                 ->formatStateUsing(fn (string $state) => self::extractLocationUrl($state) ? '📍 Ver en Mapa' : str($state)->limit(90))
                 ->color(fn (string $state) => self::extractLocationUrl($state) ? 'primary' : null)

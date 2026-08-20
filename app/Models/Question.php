@@ -21,6 +21,7 @@ class Question extends Model implements Sortable
 
     protected $fillable = [
         'stage_id',
+        'title',
         'question_text',
         'approval_criteria',
         'order',

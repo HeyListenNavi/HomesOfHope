@@ -39,6 +39,12 @@ class QuestionResource extends Resource
                             ->prefixIcon('heroicon-m-rectangle-stack')
                             ->native(false),
 
+                        Forms\Components\TextInput::make('title')
+                            ->required()
+                            ->label('Título')
+                            ->placeholder('Ej. Datos Personales')
+                            ->maxLength(255),
+
                         Forms\Components\Textarea::make('question_text')
                             ->required()
                             ->label('Pregunta')
@@ -117,6 +123,12 @@ class QuestionResource extends Resource
             ->defaultSort('order', 'asc')
             ->recordUrl(fn (Model $record): string => static::getUrl('edit', ['record' => $record]))
             ->columns([
+                TextColumn::make('title')
+                    ->label('Título')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('question_text')
                     ->label('Pregunta')
                     ->limit(90)
