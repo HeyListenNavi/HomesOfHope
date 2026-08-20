@@ -100,9 +100,7 @@ class VisitResource extends Resource
                                         $profile->load('responsibleMember');
                                         $contact = $profile->responsibleMember;
 
-                                        $locationTypeValue = $locationType instanceof VisitLocationType ? $locationType->value : $locationType;
-
-                                        return match ($locationTypeValue) {
+                                        return match ($locationType) {
                                             VisitLocationType::Land->value => [
                                                 Forms\Components\Grid::make(3)
                                                     ->schema([
@@ -155,12 +153,6 @@ class VisitResource extends Resource
                                                             ->content($contact
                                                                 ? $contact->name.' '.$contact->paternal_surname.' '.$contact->maternal_surname
                                                                 : '-'),
-
-                                                        Forms\Components\Placeholder::make('contact_phone')
-                                                            ->label('Teléfono')
-                                                            ->content($contact
-                                                                ? new HtmlString('<a href="https://wa.me/'.preg_replace('/[^0-9]/', '', $contact->phone).'" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">'.$contact->phone.'</a>')
-                                                                : '-'),
                                                     ]),
                                             ],
                                             default => [
@@ -169,6 +161,48 @@ class VisitResource extends Resource
                                                     ->content('Familia no encontrada.'),
                                             ]
                                         };
+                                    }),
+
+                                Forms\Components\Section::make('Teléfonos de la Familia')
+                                    ->icon('heroicon-s-phone')
+                                    ->columnSpanFull()
+                                    ->columns(2)
+                                    ->schema(function (Forms\Get $get): array {
+                                        $familyProfileId = $get('family_profile_id');
+
+                                        if (! $familyProfileId) {
+                                            return [];
+                                        }
+
+                                        $profile = FamilyProfile::find($familyProfileId);
+
+                                        if (! $profile) {
+                                            return [];
+                                        }
+
+                                        $membersWithPhone = $profile->members()
+                                            ->whereNotNull('phone')
+                                            ->where('phone', '!=', '')
+                                            ->get();
+
+                                        if ($membersWithPhone->isEmpty()) {
+                                            return [
+                                                Forms\Components\Placeholder::make('no_phones')
+                                                    ->label('')
+                                                    ->content('Sin teléfonos registrados.'),
+                                            ];
+                                        }
+
+                                        return $membersWithPhone->map(function ($member) {
+                                            $cleanPhone = preg_replace('/[^0-9]/', '', $member->phone);
+                                            $relationshipLabel = $member->relationship?->getLabel() ?? '';
+                                            $whatsAppUrl = "https://wa.me/{$cleanPhone}";
+                                            $linkHtml = '<a href="'.$whatsAppUrl.'" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">'.$member->phone.'</a>';
+
+                                            return Forms\Components\Placeholder::make('phone_'.$member->id)
+                                                ->label($relationshipLabel . ': ' . $member->full_name)
+                                                ->content(new HtmlString($linkHtml));
+                                        })->toArray();
                                     }),
 
                                 Forms\Components\Section::make('Notas para quien Visita')
