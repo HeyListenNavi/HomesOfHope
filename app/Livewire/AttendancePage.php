@@ -6,20 +6,24 @@ use App\Enums\AttendanceStatus;
 use App\Models\Applicant;
 use App\Models\Attendance;
 use App\Models\Group;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
-use Illuminate\Support\Facades\Notification;
+use Livewire\Component;
 
 #[Layout('layouts.app')]
 class AttendancePage extends Component
 {
     public Group $group;
+
     public $scanCode = '';
+
     public ?Applicant $lastScannedApplicant = null;
+
     public ?AttendanceStatus $lastScanStatus = null;
+
     public $groupMembers = [];
-    
+
     public ?string $scanResult = null; // 'success', 'warning', 'danger'
+
     public ?string $scanMessage = null;
 
     public function mount(Group $group)
@@ -32,15 +36,37 @@ class AttendancePage extends Component
     {
         $this->groupMembers = Applicant::where('group_id', $this->group->id)
             ->with(['attendance', 'responses'])
-            ->get();
+            ->get()
+            ->sortByDesc(fn ($m) => $m->attendance?->scanned_at?->timestamp)
+            ->values();
+    }
+
+    public function toggleAttendance(int $memberId): void
+    {
+        $attendance = Attendance::where('applicant_id', $memberId)
+            ->where('group_id', $this->group->id)
+            ->first();
+
+        if (! $attendance) {
+            return;
+        }
+
+        $newStatus = $attendance->status === AttendanceStatus::Present
+            ? AttendanceStatus::Attended
+            : AttendanceStatus::Present;
+
+        $attendance->update(['status' => $newStatus]);
+
+        $this->loadGroupMembers();
     }
 
     public function processCode()
     {
         $code = trim($this->scanCode);
 
-        if (!$code) {
+        if (! $code) {
             $this->resetScanField();
+
             return;
         }
 
@@ -49,17 +75,19 @@ class AttendancePage extends Component
             $this->scanMessage = 'Este grupo ya fue cerrado.';
             $this->lastScannedApplicant = null;
             $this->resetScanField();
+
             return;
         }
 
         $attendance = Attendance::where('attendance_code', $code)->first();
 
-        if (!$attendance) {
+        if (! $attendance) {
             $this->lastScannedApplicant = null;
             $this->lastScanStatus = null;
             $this->scanResult = 'danger';
             $this->scanMessage = "El código '{$code}' no es válido o no existe.";
             $this->resetScanField();
+
             return;
         }
 
@@ -69,13 +97,14 @@ class AttendancePage extends Component
         if ($attendance->group_id != $this->group->id) {
             $this->lastScanStatus = null;
             $this->scanResult = 'warning';
-            $this->scanMessage = "Pertenece a otro grupo.";
+            $this->scanMessage = 'Pertenece a otro grupo.';
             $this->resetScanField();
+
             return;
         }
 
-        if ($attendance->status === AttendanceStatus::Present) {
-            $this->lastScanStatus = AttendanceStatus::Present;
+        if ($attendance->status === AttendanceStatus::Present || $attendance->status === AttendanceStatus::Attended) {
+            $this->lastScanStatus = $attendance->status;
             $this->scanResult = 'warning';
             $this->scanMessage = 'Esta persona ya había marcado asistencia.';
         } else {
@@ -95,16 +124,18 @@ class AttendancePage extends Component
 
     public function closeAttendance()
     {
-        if ($this->group->attendance_closed_at) return;
+        if ($this->group->attendance_closed_at) {
+            return;
+        }
 
         $applicants = Applicant::where('group_id', $this->group->id)->get();
-        
+
         foreach ($applicants as $applicant) {
             $attendance = Attendance::where('applicant_id', $applicant->id)
                 ->where('group_id', $this->group->id)
                 ->first();
 
-            if (!$attendance) {
+            if (! $attendance) {
                 Attendance::create([
                     'applicant_id' => $applicant->id,
                     'group_id' => $this->group->id,
