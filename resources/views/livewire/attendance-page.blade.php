@@ -1,9 +1,9 @@
 <div class="min-h-screen p-4 md:p-10 flex flex-col">
-    <div class="max-w-[1600px] w-full mx-auto mb-10 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-lg border border-zinc-200 gap-6">
-        <div class="flex items-center gap-6">
-            <img src="{{ asset('images/logo.png') }}" class="w-16 h-16 rounded-full border-2 border-highlight p-1 bg-[#f4f4f4]" alt="Logo">
+    <div class="max-w-[1600px] w-full mx-auto mb-6 md:mb-10 flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 md:p-6 rounded-2xl shadow-lg border border-zinc-200 gap-4 md:gap-6">
+        <div class="flex items-center gap-4 md:gap-6">
+            <img src="{{ asset('images/logo.png') }}" class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-highlight p-1 bg-[#f4f4f4]" alt="Logo">
             <div>
-                <h1 class="text-headline-medium font-bold text-zinc-900 leading-tight">{{ $group->name }}</h1>
+                <h1 class="text-lg md:text-headline-medium font-bold text-zinc-900 leading-tight">{{ $group->name }}</h1>
                 <div class="flex items-center gap-2 mt-1">
                     <span class="px-2 py-0.5 bg-highlight/10 text-highlight text-[10px] font-black uppercase tracking-widest rounded-md border border-highlight/20">Kiosco Oficial</span>
                     <p class="text-label-small text-zinc-500 uppercase tracking-widest">Asistencia de Grupo</p>
@@ -45,12 +45,12 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
             <div class="lg:col-span-4 flex flex-col gap-8">
                 <div class="bg-white rounded-3xl border border-zinc-200 shadow-lg overflow-hidden flex flex-col flex-1">
-                    <div class="p-8 border-b border-zinc-100 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="p-3 bg-highlight rounded-xl">
-                                <i class='bx bx-qr-scan text-2xl text-white'></i>
+                    <div class="p-5 md:p-8 border-b border-zinc-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2 md:gap-3">
+                            <div class="p-2 md:p-3 bg-highlight rounded-xl">
+                                <i class='bx bx-qr-scan text-lg md:text-2xl text-white'></i>
                             </div>
-                            <span class="text-xl font-bold tracking-tight text-zinc-900">Escaneo</span>
+                            <span class="text-base md:text-xl font-bold tracking-tight text-zinc-900">Escaneo</span>
                         </div>
                         <div class="flex items-center gap-2 px-3 py-1 bg-zinc-50 rounded-full border border-zinc-100">
                             <span class="w-2 h-2 rounded-full bg-highlight"></span>
@@ -58,7 +58,7 @@
                         </div>
                     </div>
                     
-                    <div class="p-10 flex-1 flex flex-col justify-center">
+                    <div class="p-4 md:p-10 flex-1 flex flex-col justify-center">
                         <div class="relative">
                             <input 
                                 type="text" 
@@ -69,7 +69,7 @@
                                 autocomplete="off"
                                 placeholder="{{ $group->attendance_closed_at ? 'CERRADO' : 'CÓDIGO' }}"
                                 @disabled($group->attendance_closed_at !== null)
-                                class="w-full text-center font-mono text-4xl p-8 rounded-2xl border-2 border-zinc-100 bg-zinc-50 text-highlight focus:border-highlight focus:ring-4 focus:ring-highlight/10 outline-none placeholder:text-zinc-300"
+                                class="w-full text-center font-mono text-2xl md:text-4xl p-4 md:p-8 rounded-2xl border-2 border-zinc-100 bg-zinc-50 text-highlight focus:border-highlight focus:ring-4 focus:ring-highlight/10 outline-none placeholder:text-zinc-300"
                             >
                         </div>
                         
@@ -80,7 +80,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-zinc-50 p-8 border-t border-zinc-100 flex justify-between items-center">
+                    <div class="bg-zinc-50 p-4 md:p-8 border-t border-zinc-100 flex justify-between items-center">
                         <div>
                             <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Progreso</p>
                             <div class="flex items-baseline gap-1">
@@ -106,11 +106,11 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-8 min-h-[550px] flex flex-col">
+            <div class="lg:col-span-8 min-h-[350px] md:min-h-[550px] flex flex-col">
                 @if(!$scanResult)
-                    <div class="flex-1 bg-white rounded-[2rem] border border-zinc-200 flex flex-col items-center justify-center p-12 text-center shadow-lg">
-                        <div class="w-48 h-48 bg-zinc-50 rounded-full flex items-center justify-center mb-12 border border-zinc-100 relative">
-                            <i class='bx bx-scan !text-7xl text-zinc-300'></i>
+                    <div class="flex-1 bg-white rounded-[2rem] border border-zinc-200 flex flex-col items-center justify-center p-6 md:p-12 text-center shadow-lg">
+                        <div class="w-24 h-24 md:w-48 md:h-48 bg-zinc-50 rounded-full flex items-center justify-center mb-6 md:mb-12 border border-zinc-100 relative">
+                            <i class='bx bx-scan !text-4xl md:!text-7xl text-zinc-300'></i>
                         </div>
                         <h2 class="text-display-medium text-zinc-900 tracking-tight mb-4">Listo para validar</h2>
                         <p class="text-body-medium text-zinc-500 max-w-sm">
@@ -124,25 +124,25 @@
                         @elseif($scanResult === 'danger') bg-red-600/5 border-red-600/20
                         @endif
                     ">
-                        <div class="p-12 flex flex-col items-center justify-center text-center border-b border-zinc-100 flex-1 relative bg-white">
+                        <div class="p-6 md:p-12 flex flex-col items-center justify-center text-center border-b border-zinc-100 flex-1 relative bg-white">
                             
-                            <div class="mb-12">
+                            <div class="mb-6 md:mb-12">
                                 @if($scanResult === 'success')
-                                    <div class="bg-highlight p-10 rounded-full shadow-lg">
-                                        <i class='bx bxs-check-circle !text-[48px] text-white'></i>
+                                    <div class="bg-highlight p-6 md:p-10 rounded-full shadow-lg">
+                                        <i class='bx bxs-check-circle !text-[32px] md:!text-[48px] text-white'></i>
                                     </div>
                                 @elseif($scanResult === 'warning')
-                                    <div class="bg-amber-500 p-10 rounded-full shadow-lg">
-                                        <i class='bx bxs-error-circle !text-[48px] text-white'></i>
+                                    <div class="bg-amber-500 p-6 md:p-10 rounded-full shadow-lg">
+                                        <i class='bx bxs-error-circle !text-[32px] md:!text-[48px] text-white'></i>
                                     </div>
                                 @elseif($scanResult === 'danger')
-                                    <div class="bg-red-600 p-10 rounded-full shadow-lg">
-                                        <i class='bx bxs-x-circle !text-[48px] text-white'></i>
+                                    <div class="bg-red-600 p-6 md:p-10 rounded-full shadow-lg">
+                                        <i class='bx bxs-x-circle !text-[32px] md:!text-[48px] text-white'></i>
                                     </div>
                                 @endif
                             </div>
 
-                            <h1 class="text-display-large text-zinc-900 tracking-tighter mb-6">
+                            <h1 class="text-3xl md:text-display-large text-zinc-900 tracking-tighter mb-4 md:mb-6">
                                 @if($scanResult === 'success' && $lastScannedApplicant)
                                     {{ explode(' ', $lastScannedApplicant->applicant_name)[0] }}
                                 @elseif($scanResult === 'warning')
@@ -152,7 +152,7 @@
                                 @endif
                             </h1>
                             
-                            <p class="text-headline-medium font-bold px-12
+                            <p class="text-sm md:text-headline-medium font-bold px-4 md:px-12
                                 @if($scanResult === 'success') text-highlight
                                 @elseif($scanResult === 'warning') text-amber-500
                                 @elseif($scanResult === 'danger') text-red-500
@@ -163,23 +163,23 @@
                         </div>
 
                         @if($lastScannedApplicant && $scanResult !== 'danger')
-                            <div class="bg-zinc-50 px-12 py-10 flex items-center justify-between border-t border-zinc-100">
-                                <div class="flex items-center gap-8">
-                                    <div class="px-5 py-4 rounded-2xl bg-white border border-zinc-200">
+                            <div class="bg-zinc-50 px-6 md:px-12 py-6 md:py-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-t border-zinc-100">
+                                <div class="flex items-center gap-4 md:gap-8">
+                                    <div class="px-4 py-3 rounded-2xl bg-white border border-zinc-200">
                                         @if($lastScannedApplicant->gender === 'man')
-                                            <i class='bx bxs-user-circle !text-3xl text-blue-500'></i>
+                                            <i class='bx bxs-user-circle !text-2xl md:!text-3xl text-blue-500'></i>
                                         @else
-                                            <i class='bx bxs-user-circle !text-3xl text-pink-500'></i>
+                                            <i class='bx bxs-user-circle !text-2xl md:!text-3xl text-pink-500'></i>
                                         @endif
                                     </div>
                                     <div>
-                                        <p class="text-label-small text-zinc-400 uppercase tracking-[0.2em] mb-2">aplicante Validado</p>
-                                        <p class="text-headline-medium text-zinc-900 leading-none">{{ $lastScannedApplicant->applicant_name }}</p>
+                                        <p class="text-[10px] md:text-label-small text-zinc-400 uppercase tracking-[0.2em] mb-1 md:mb-2">aplicante Validado</p>
+                                        <p class="text-lg md:text-headline-medium text-zinc-900 leading-none">{{ $lastScannedApplicant->applicant_name }}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-label-small text-zinc-400 uppercase tracking-[0.2em] mb-2">Identificador</p>
-                                    <p class="text-2xl font-mono font-bold text-highlight bg-highlight/5 px-5 py-2 rounded-xl border border-highlight/20 inline-block">
+                                <div class="md:text-right">
+                                    <p class="text-[10px] md:text-label-small text-zinc-400 uppercase tracking-[0.2em] mb-1 md:mb-2">Identificador</p>
+                                    <p class="text-sm md:text-2xl font-mono font-bold text-highlight bg-highlight/5 px-3 md:px-5 py-1.5 md:py-2 rounded-xl border border-highlight/20 inline-block">
                                         {{ strtoupper($lastScannedApplicant->curp) }}
                                     </p>
                                 </div>
@@ -191,62 +191,62 @@
         </div>
 
         <div class="bg-white rounded-[2rem] border border-zinc-200 shadow-lg overflow-hidden" x-data="{ openId: null }" wire:poll.5s="loadGroupMembers">
-            <div class="p-10 border-b border-zinc-100 flex flex-col md:flex-row items-center justify-between gap-6 bg-zinc-50/30">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-white rounded-xl border border-zinc-200">
-                        <i class='bx bx-group text-4xl text-zinc-400'></i>
+            <div class="p-5 md:p-10 border-b border-zinc-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 bg-zinc-50/30">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <div class="p-2 md:p-3 bg-white rounded-xl border border-zinc-200">
+                        <i class='bx bx-group text-2xl md:text-4xl text-zinc-400'></i>
                     </div>
                     <div>
-                        <span class="text-headline-medium font-bold text-zinc-900 tracking-tight">Registro General</span>
+                        <span class="text-base md:text-headline-medium font-bold text-zinc-900 tracking-tight">Registro General</span>
                         <p class="text-label-small text-zinc-500 uppercase tracking-widest mt-1">Miembros del Grupo</p>
                     </div>
                 </div>
                 
-                <div class="flex gap-4">
-                    <div class="flex items-center gap-3 px-6 py-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
-                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                        <span class="text-xs font-black text-blue-500 uppercase tracking-widest">Presentes</span>
+                <div class="flex flex-wrap gap-2 md:gap-4">
+                    <div class="flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
+                        <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500"></span>
+                        <span class="text-[10px] md:text-xs font-black text-blue-500 uppercase tracking-widest">Presentes</span>
                     </div>
-                    <div class="flex items-center gap-3 px-6 py-3 bg-highlight/5 rounded-xl border border-highlight/10">
-                        <span class="w-3 h-3 rounded-full bg-highlight"></span>
-                        <span class="text-xs font-black text-highlight uppercase tracking-widest">Atendidos</span>
+                    <div class="flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 bg-highlight/5 rounded-xl border border-highlight/10">
+                        <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-highlight"></span>
+                        <span class="text-[10px] md:text-xs font-black text-highlight uppercase tracking-widest">Atendidos</span>
                     </div>
-                    <div class="flex items-center gap-3 px-6 py-3 bg-zinc-100 rounded-xl border border-zinc-200">
-                        <span class="w-3 h-3 rounded-full bg-zinc-300"></span>
-                        <span class="text-xs font-black text-zinc-500 uppercase tracking-widest">Pendientes</span>
+                    <div class="flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 bg-zinc-100 rounded-xl border border-zinc-200">
+                        <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-zinc-300"></span>
+                        <span class="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Pendientes</span>
                     </div>
                 </div>
             </div>
 
             <div class="divide-y divide-zinc-100">
-                <div class="grid grid-cols-12 bg-zinc-50 p-6 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
-                    <div class="col-span-5 md:col-span-5">Aplicante</div>
-                    <div class="col-span-3 md:col-span-3 text-center">Estado</div>
-                    <div class="col-span-2 md:col-span-2 text-center">Atendido</div>
-                    <div class="col-span-2 md:col-span-2 text-right pr-10">Ficha</div>
+                <div class="hidden md:grid grid-cols-12 bg-zinc-50 p-6 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
+                    <div class="col-span-5">Aplicante</div>
+                    <div class="col-span-3 text-center">Estado</div>
+                    <div class="col-span-2 text-center">Atendido</div>
+                    <div class="col-span-2 text-right pr-10">Ficha</div>
                 </div>
 
                 @forelse($groupMembers as $member)
                     <div :class="openId === {{ $member->id }} ? 'bg-zinc-50' : ''">
-                        <div class="grid grid-cols-12 p-6 items-center hover:bg-zinc-50/50 cursor-pointer" @click="openId = (openId === {{ $member->id }} ? null : {{ $member->id }})">
-                            <div class="col-span-5 md:col-span-5 flex items-center gap-5">
-                                <div class="w-14 h-14 rounded-xl flex items-center justify-center border border-zinc-100 shadow-sm
+                        <div class="px-4 py-6 md:p-6 hover:bg-zinc-50/50 cursor-pointer" x-on:click="openId = (openId === {{ $member->id }} ? null : {{ $member->id }})">
+                            <div class="flex items-center gap-3 md:gap-5">
+                                <div class="w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center border border-zinc-100 shadow-sm shrink-0
                                     @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended) bg-highlight text-white
                                     @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Present) bg-blue-500 text-white
                                     @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Absent) bg-red-600 text-white
                                     @else bg-zinc-100 text-zinc-400 @endif
                                 ">
-                                    @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended) <i class='bx bxs-check-circle text-2xl'></i>
-                                    @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Present) <i class='bx bxs-check-circle text-2xl'></i>
-                                    @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Absent) <i class='bx bxs-x-circle text-2xl'></i>
-                                    @else <i class='bx bxs-user text-2xl'></i> @endif
+                                    @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended) <i class='bx bxs-check-circle text-lg md:text-2xl'></i>
+                                    @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Present) <i class='bx bxs-check-circle text-lg md:text-2xl'></i>
+                                    @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Absent) <i class='bx bxs-x-circle text-lg md:text-2xl'></i>
+                                    @else <i class='bx bxs-user text-lg md:text-2xl'></i> @endif
                                 </div>
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-lg font-black text-zinc-900 group-hover:text-highlight">{{ $member->applicant_name }}</p>
-                                    <div class="flex items-center gap-3">
-                                        <p class="text-sm font-mono font-bold text-zinc-500 uppercase tracking-tight">{{ strtoupper($member->curp) }}</p>
+                                <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+                                    <p class="text-sm md:text-lg font-black text-zinc-900 group-hover:text-highlight truncate">{{ $member->applicant_name }}</p>
+                                    <div class="flex items-center gap-2 md:gap-3 flex-wrap">
+                                        <p class="text-xs md:text-sm font-mono font-bold text-zinc-500 uppercase tracking-tight truncate">{{ strtoupper($member->curp) }}</p>
                                         @if($member->attendance?->attendance_code)
-                                            <p class="text-sm font-mono font-bold
+                                            <p class="text-xs md:text-sm font-mono font-bold
                                                 @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended) text-highlight
                                                 @elseif($member->attendance?->status === \App\Enums\AttendanceStatus::Present) text-blue-500
                                                 @else text-zinc-400 @endif
@@ -255,80 +255,106 @@
                                         @endif
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="col-span-3 md:col-span-3 flex justify-center">
-                                @php $s = $member->attendance?->status; @endphp
-                                <span class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] border
-                                    @if($s === \App\Enums\AttendanceStatus::Present) bg-blue-500/5 text-blue-500 border-blue-500/20
-                                    @elseif($s === \App\Enums\AttendanceStatus::Attended) bg-highlight/5 text-highlight border-highlight/20
-                                    @elseif($s === \App\Enums\AttendanceStatus::Absent) bg-red-600/5 text-red-600 border-red-600/20
-                                    @else bg-zinc-50 text-zinc-400 border-zinc-200 @endif
-                                ">
-                                    @if($s === \App\Enums\AttendanceStatus::Attended) <i class='bx bxs-check-circle text-sm'></i>
-                                    @elseif($s === \App\Enums\AttendanceStatus::Present) <i class='bx bxs-check-circle text-sm'></i>
-                                    @elseif($s === \App\Enums\AttendanceStatus::Absent) <i class='bx bxs-x-circle text-sm'></i>
+                                <div class="hidden md:flex items-center gap-3 shrink-0">
+                                    @php $s = $member->attendance?->status; @endphp
+                                    <span class="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] border
+                                        @if($s === \App\Enums\AttendanceStatus::Present) bg-blue-500/5 text-blue-500 border-blue-500/20
+                                        @elseif($s === \App\Enums\AttendanceStatus::Attended) bg-highlight/5 text-highlight border-highlight/20
+                                        @elseif($s === \App\Enums\AttendanceStatus::Absent) bg-red-600/5 text-red-600 border-red-600/20
+                                        @else bg-zinc-50 text-zinc-400 border-zinc-200 @endif
+                                    ">
+                                        @if($s === \App\Enums\AttendanceStatus::Attended) <i class='bx bxs-check-circle text-sm'></i>
+                                        @elseif($s === \App\Enums\AttendanceStatus::Present) <i class='bx bxs-check-circle text-sm'></i>
+                                        @elseif($s === \App\Enums\AttendanceStatus::Absent) <i class='bx bxs-x-circle text-sm'></i>
+                                        @endif
+                                        {{ $member->attendance?->status->getLabel() ?? 'Pendiente' }}
+                                    </span>
+
+                                    @if($member->attendance?->status === \App\Enums\AttendanceStatus::Present || $member->attendance?->status === \App\Enums\AttendanceStatus::Attended)
+                                        <button
+                                            type="button"
+                                            wire:click.stop="toggleAttendance({{ $member->id }})"
+                                            class="w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all shrink-0
+                                                @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended)
+                                                    bg-highlight border-highlight text-white shadow-md
+                                                @else
+                                                    bg-white border-zinc-200 text-zinc-300 hover:border-highlight hover:text-highlight
+                                                @endif
+                                            "
+                                        >
+                                            <i class='bx bxs-check text-xl'></i>
+                                        </button>
                                     @endif
-                                    {{ $member->attendance?->status->getLabel() ?? 'Pendiente' }}
-                                </span>
-                            </div>
 
-                            <div class="col-span-2 md:col-span-2 flex justify-center">
-                                @if($member->attendance?->status === \App\Enums\AttendanceStatus::Present || $member->attendance?->status === \App\Enums\AttendanceStatus::Attended)
-                                    <button
-                                        type="button"
-                                        wire:click.stop="toggleAttendance({{ $member->id }})"
-                                        class="w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all
-                                            @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended)
-                                                bg-highlight border-highlight text-white shadow-md
-                                            @else
-                                                bg-white border-zinc-200 text-zinc-300 hover:border-highlight hover:text-highlight
-                                            @endif
-                                        "
-                                    >
-                                        <i class='bx bx-check text-xl'></i>
-                                    </button>
-                                        <i class='bx bx-check text-xl'></i>
-                                    </button>
-                                @endif
-                            </div>
+                                    <div class="p-3 rounded-lg border border-zinc-100">
+                                        <i class='bx bx-chevron-down text-xl text-zinc-400 transition-transform' x-bind:class="openId === {{ $member->id }} ? 'rotate-180 text-highlight' : ''"></i>
+                                    </div>
+                                </div>
 
-                            <div class="col-span-2 md:col-span-2 flex justify-end pr-6">
-                                <div class="p-3 rounded-lg border border-zinc-100">
-                                    <i class='bx bx-chevron-down text-xl text-zinc-400 transition-transform' x-bind:class="openId === {{ $member->id }} ? 'rotate-180 text-highlight' : ''"></i>
+                                <div class="flex md:hidden items-center gap-2 shrink-0">
+                                    @php $s = $member->attendance?->status; @endphp
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border
+                                        @if($s === \App\Enums\AttendanceStatus::Present) bg-blue-500/5 text-blue-500 border-blue-500/20
+                                        @elseif($s === \App\Enums\AttendanceStatus::Attended) bg-highlight/5 text-highlight border-highlight/20
+                                        @elseif($s === \App\Enums\AttendanceStatus::Absent) bg-red-600/5 text-red-600 border-red-600/20
+                                        @else bg-zinc-50 text-zinc-400 border-zinc-200 @endif
+                                    ">
+                                        @if($s === \App\Enums\AttendanceStatus::Attended) <i class='bx bxs-check-circle text-[10px]'></i>
+                                        @elseif($s === \App\Enums\AttendanceStatus::Present) <i class='bx bxs-check-circle text-[10px]'></i>
+                                        @elseif($s === \App\Enums\AttendanceStatus::Absent) <i class='bx bxs-x-circle text-[10px]'></i>
+                                        @endif
+                                        {{ $member->attendance?->status->getLabel() ?? 'Pendiente' }}
+                                    </span>
+
+                                    @if($member->attendance?->status === \App\Enums\AttendanceStatus::Present || $member->attendance?->status === \App\Enums\AttendanceStatus::Attended)
+                                        <button
+                                            type="button"
+                                            wire:click.stop="toggleAttendance({{ $member->id }})"
+                                            class="w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all shrink-0
+                                                @if($member->attendance?->status === \App\Enums\AttendanceStatus::Attended)
+                                                    bg-highlight border-highlight text-white shadow-md
+                                                @else
+                                                    bg-white border-zinc-200 text-zinc-300 hover:border-highlight hover:text-highlight
+                                                @endif
+                                            "
+                                        >
+                                            <i class='bx bx-check text-base'></i>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
 
-                        <div x-show="openId === {{ $member->id }}" x-collapse x-cloak class="px-8 pb-10">
-                            <div class="bg-zinc-50 rounded-2xl border border-zinc-200 p-10 grid grid-cols-1 lg:grid-cols-2 gap-12 shadow-inner">
-                                <div class="space-y-8">
+                        <div x-show="openId === {{ $member->id }}" x-collapse x-cloak class="px-4 md:px-8 pb-6 md:pb-10">
+                            <div class="bg-zinc-50 rounded-2xl border border-zinc-200 p-5 md:p-10 grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 shadow-inner">
+                                <div class="space-y-6 md:space-y-8">
                                     <div class="flex items-center gap-3 border-b border-zinc-200 pb-4">
-                                        <i class='bx bx-id-card text-xl text-highlight'></i>
-                                        <h5 class="text-xs font-black text-zinc-900 uppercase tracking-[0.2em]">Datos de Contacto</h5>
+                                        <i class='bx bx-id-card text-lg md:text-xl text-highlight'></i>
+                                        <h5 class="text-[10px] md:text-xs font-black text-zinc-900 uppercase tracking-[0.2em]">Datos de Contacto</h5>
                                     </div>
-                                    <div class="grid grid-cols-2 gap-8">
-                                        <div class="bg-white p-5 rounded-xl border border-zinc-200">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
+                                        <div class="bg-white p-4 md:p-5 rounded-xl border border-zinc-200">
                                             <p class="text-[10px] font-bold text-zinc-400 uppercase mb-2 tracking-widest">WhatsApp</p>
-                                            <a href="https://wa.me/{{ $member->chat_id }}" target="_blank" class="text-lg font-black text-highlight flex items-center gap-2 hover:underline">
-                                                <i class='bx bxl-whatsapp text-2xl'></i>
+                                            <a href="https://wa.me/{{ $member->chat_id }}" target="_blank" class="text-base md:text-lg font-black text-highlight flex items-center gap-2 hover:underline">
+                                                <i class='bx bxl-whatsapp text-xl md:text-2xl'></i>
                                                 {{ str_starts_with($member->chat_id, '521') ? substr($member->chat_id, 3) : $member->chat_id }}
                                             </a>
                                         </div>
-                                        <div class="bg-white p-5 rounded-xl border border-zinc-200">
+                                        <div class="bg-white p-4 md:p-5 rounded-xl border border-zinc-200">
                                             <p class="text-[10px] font-bold text-zinc-400 uppercase mb-2 tracking-widest">Escaneado</p>
-                                            <p class="text-sm font-bold text-zinc-900 flex items-center gap-2">
-                                                <i class='bx bx-time text-xl text-zinc-400'></i>
+                                            <p class="text-xs md:text-sm font-bold text-zinc-900 flex items-center gap-2">
+                                                <i class='bx bx-time text-lg md:text-xl text-zinc-400'></i>
                                                 {{ $member->attendance?->scanned_at ? $member->attendance->scanned_at->format('d/m/Y - h:i A') : 'N/A' }}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="space-y-8">
+                                <div class="space-y-6 md:space-y-8">
                                     <div class="flex items-center gap-3 border-b border-zinc-200 pb-4">
-                                        <i class='bx bx-comment-detail text-xl text-highlight'></i>
-                                        <h5 class="text-xs font-black text-zinc-900 uppercase tracking-[0.2em]">Perfil de Entrevista</h5>
+                                        <i class='bx bx-comment-detail text-lg md:text-xl text-highlight'></i>
+                                        <h5 class="text-[10px] md:text-xs font-black text-zinc-900 uppercase tracking-[0.2em]">Perfil de Entrevista</h5>
                                     </div>
                                     <div class="space-y-4 max-h-72 overflow-y-auto pr-4 custom-scrollbar">
                                         @forelse($member->responses as $response)
@@ -347,9 +373,9 @@
                         </div>
                     </div>
                 @empty
-                    <div class="py-32 text-center bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
-                        <i class='bx bx-group text-6xl text-zinc-200 mb-6'></i>
-                        <p class="text-zinc-400 font-bold text-xl uppercase tracking-widest">Grupo sin aplicantes</p>
+                    <div class="py-16 md:py-32 text-center bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
+                        <i class='bx bx-group text-4xl md:text-6xl text-zinc-200 mb-4 md:mb-6'></i>
+                        <p class="text-zinc-400 font-bold text-base md:text-xl uppercase tracking-widest">Grupo sin aplicantes</p>
                     </div>
                 @endforelse
             </div>
