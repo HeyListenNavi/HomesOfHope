@@ -37,7 +37,7 @@ class AttendancePage extends Component
         $this->groupMembers = Applicant::where('group_id', $this->group->id)
             ->with(['attendance', 'responses'])
             ->get()
-            ->sortByDesc(fn ($m) => $m->attendance?->scanned_at?->timestamp)
+            ->sortBy(fn ($m) => $m->attendance?->scanned_at?->timestamp)
             ->values();
     }
 
