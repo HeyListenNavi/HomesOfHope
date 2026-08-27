@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Forms;
 
-use App\Enums\ApplicantGender;
 use App\Enums\EducationLevel;
 use App\Enums\IndigenousLanguage;
 use App\Enums\MaritalStatus;
@@ -21,8 +20,8 @@ class FamilyMembersForm extends Form
     public function prefillSelfMember(Applicant $applicant): void
     {
         $relationship = match ($applicant->gender) {
-            ApplicantGender::Man => Relationship::Father->value,
-            ApplicantGender::Woman => Relationship::Mother->value,
+            'man' => Relationship::Father->value,
+            'woman' => Relationship::Mother->value,
             default => Relationship::Other->value,
         };
 

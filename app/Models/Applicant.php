@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ApplicantGender;
 use App\Enums\ApplicantStatus;
 use App\Services\Applicant\ApplicantService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,7 +33,6 @@ class Applicant extends Model
     ];
 
     protected $casts = [
-        'gender' => ApplicantGender::class,
         'process_status' => ApplicantStatus::class,
         'is_approved' => 'boolean',
         'last_reminded_at' => 'datetime',
