@@ -23,13 +23,15 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\MaxWidth;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Js;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Support\Enums\MaxWidth;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -79,6 +81,10 @@ class AdminPanelProvider extends PanelProvider
             ->theme(asset('css/filament/admin/theme.css'))
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                PanelsRenderHook::HEAD_START,
+                fn () => '<script>window.cartoBasemapKey = '.Js::from(config('services.carto.key')).';</script>',
+            );
     }
 }

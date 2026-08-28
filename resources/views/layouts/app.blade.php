@@ -15,6 +15,8 @@
 
     <!-- Tailwind CSS (via Vite) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script>window.cartoBasemapKey = @js(config('services.carto.key'));</script>
     
     <!-- Livewire Styles -->
     @livewireStyles

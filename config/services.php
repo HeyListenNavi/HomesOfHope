@@ -41,6 +41,10 @@ return [
         'number' => env('WHATSAPP_NUMBER'),
     ],
 
+    'carto' => [
+        'key' => env('CARTO_BASEMAP_KEY'),
+    ],
+
     'n8n' => [
         'webhook_url' => env('N8N_WEBHOOK_URL'),
     ],

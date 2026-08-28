@@ -129,7 +129,7 @@ document.addEventListener("alpine:init", () => {
                 
                 map = L.map('map', { attributionControl: false }).setView([32.5149, -117.0382], 12);
 
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=' + window.cartoBasemapKey, {
                     subdomains: 'abcd',
                     maxZoom: 20
                 }).addTo(map);

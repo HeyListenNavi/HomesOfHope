@@ -106,7 +106,7 @@ document.addEventListener('alpine:init', () => {
             this.map = L.map(this.$refs.mapContainer, {
                 attributionControl: false
             }).setView(center, 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=' + window.cartoBasemapKey, {
                 subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(this.map);
