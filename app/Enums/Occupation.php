@@ -22,6 +22,18 @@ enum Occupation: string implements HasLabel
     case Retired = 'retired';
     case Housewife = 'housewife';
     case Student = 'student';
+    case Nurse = 'nurse';
+    case Carpenter = 'carpenter';
+    case Blacksmith = 'blacksmith';
+    case SupermarketWorker = 'supermarket_worker';
+    case Mechanic = 'mechanic';
+    case Stylist = 'stylist';
+    case Manicurist = 'manicurist';
+    case Nanny = 'nanny';
+    case Janitor = 'janitor';
+    case Cashier = 'cashier';
+    case Veterinarian = 'veterinarian';
+    case GovernmentWorker = 'government_worker';
     case Other = 'other';
 
     public function getLabel(): ?string
@@ -43,6 +55,18 @@ enum Occupation: string implements HasLabel
             self::Retired => 'Retirado(a)',
             self::Housewife => 'Ama de casa',
             self::Student => 'Estudiante',
+            self::Nurse => 'Enfermería',
+            self::Carpenter => 'Carpintero(a)',
+            self::Blacksmith => 'Herrero(a)',
+            self::SupermarketWorker => 'Supermercado',
+            self::Mechanic => 'Mecánico(a)',
+            self::Stylist => 'Estilista',
+            self::Manicurist => 'Manicurista',
+            self::Nanny => 'Niñera',
+            self::Janitor => 'Intendencia',
+            self::Cashier => 'Cajero(a)',
+            self::Veterinarian => 'Veterinario(a)',
+            self::GovernmentWorker => 'Empleado(a) de gobierno',
             self::Other => 'Otro',
         };
     }
