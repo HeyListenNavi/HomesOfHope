@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Str;
 
 class FamilyProfile extends Model
@@ -173,5 +174,13 @@ class FamilyProfile extends Model
     public function notes(): MorphMany
     {
         return $this->morphMany(Note::class, 'noteable');
+    }
+
+    /**
+     * @return MorphToMany<Tag, $this>
+     */
+    public function tags(): MorphToMany
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 }

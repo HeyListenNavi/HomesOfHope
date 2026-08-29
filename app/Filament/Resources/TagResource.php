@@ -2,13 +2,16 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\TagType;
 use App\Filament\Resources\TagResource\Pages;
 use App\Models\Tag;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rules\Unique;
 
 class TagResource extends Resource
 {
@@ -29,8 +32,17 @@ class TagResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre')
                     ->required()
-                    ->unique(ignoreRecord: true)
+                    ->unique(
+                        modifyRuleUsing: fn (Unique $rule, Get $get) => $rule->where('type', $get('type') instanceof TagType ? $get('type')->value : $get('type')),
+                        ignoreRecord: true
+                    )
                     ->maxLength(255),
+                Forms\Components\Select::make('type')
+                    ->label('Tipo')
+                    ->options(TagType::class)
+                    ->default(TagType::Applicant)
+                    ->required()
+                    ->native(false),
                 Forms\Components\ColorPicker::make('color')
                     ->label('Color')
                     ->default('#6366f1'),
@@ -45,6 +57,10 @@ class TagResource extends Resource
                     ->label('Nombre')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Tipo')
+                    ->badge()
+                    ->sortable(),
                 Tables\Columns\ColorColumn::make('color')
                     ->label('Color'),
                 Tables\Columns\TextColumn::make('created_at')
@@ -54,7 +70,9 @@ class TagResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('type')
+                    ->label('Tipo')
+                    ->options(TagType::class),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

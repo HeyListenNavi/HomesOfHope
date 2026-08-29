@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ApplicantGender;
 use App\Enums\ApplicantStatus;
+use App\Enums\TagType;
 use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
 use App\Models\Applicant;
@@ -152,12 +153,12 @@ class ApplicantResource extends Resource
                                     ->schema([
                                         Forms\Components\CheckboxList::make('tags')
                                             ->label('Lista de Etiquetas')
-                                            ->relationship('tags', 'name')
+                                            ->relationship('tags', 'name', modifyQueryUsing: fn (Builder $query) => $query->where('type', TagType::Applicant))
                                             ->searchable()
                                             ->bulkToggleable()
                                             ->columns(4)
                                             ->live()
-                                            ->options(fn () => Tag::pluck('name', 'id'))
+                                            ->options(fn () => Tag::applicant()->pluck('name', 'id'))
                                             ->columnSpanFull()
                                             ->visible(fn (string $operation) => $operation === 'edit' || $operation === 'create'),
 
@@ -522,7 +523,7 @@ class ApplicantResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('tags')
                     ->label('Filtrar por Etiquetas')
-                    ->relationship('tags', 'name')
+                    ->relationship('tags', 'name', modifyQueryUsing: fn (Builder $query) => $query->where('type', TagType::Applicant))
                     ->multiple()
                     ->preload(),
 

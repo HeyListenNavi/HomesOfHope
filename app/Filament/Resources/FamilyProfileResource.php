@@ -7,9 +7,11 @@ use App\Enums\FamilyStatus;
 use App\Enums\HousingStatus;
 use App\Enums\LandService;
 use App\Enums\LandSize;
+use App\Enums\TagType;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
 use App\Models\FamilyProfile;
+use App\Models\Tag;
 use Dotswan\MapPicker\Fields\Map;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
@@ -595,6 +597,40 @@ class FamilyProfileResource extends Resource
                                             ]),
                                     ]),
                             ]),
+
+                        Section::make('Etiquetas')
+                            ->icon('heroicon-m-tag')
+                            ->visible(fn (string $operation, Forms\Get $get) => $operation === 'edit' || $operation === 'create' || ! empty($get('tags')))
+                            ->schema([
+                                Forms\Components\CheckboxList::make('tags')
+                                    ->label('Lista de Etiquetas')
+                                    ->relationship('tags', 'name', modifyQueryUsing: fn (Builder $query) => $query->where('type', TagType::FamilyProfile))
+                                    ->searchable()
+                                    ->bulkToggleable()
+                                    ->columns(4)
+                                    ->live()
+                                    ->options(fn () => Tag::familyProfile()->pluck('name', 'id'))
+                                    ->columnSpanFull()
+                                    ->visible(fn (string $operation) => $operation === 'edit' || $operation === 'create'),
+
+                                Forms\Components\Placeholder::make('tags_preview')
+                                    ->label('Lista de Etiquetas')
+                                    ->visible(fn (string $operation) => $operation === 'view')
+                                    ->content(function (Forms\Get $get) {
+                                        $tagIds = $get('tags');
+                                        if (empty($tagIds)) {
+                                            return null;
+                                        }
+
+                                        $tags = Tag::findMany($tagIds);
+
+                                        return view('forms.components.tags-preview', [
+                                            'tags' => $tags,
+                                        ]);
+                                    })
+                                    ->columnSpanFull(),
+                            ])
+                            ->collapsible(),
                     ])->columnSpanFull(),
             ]);
     }
@@ -602,6 +638,7 @@ class FamilyProfileResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['tags', 'members', 'responsibleMember']))
             ->defaultPaginationPageOption(25)
             ->paginated([25, 50, 100])
             ->defaultSort('created_at', 'desc')
@@ -633,6 +670,13 @@ class FamilyProfileResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->toggleable(),
+
+                Tables\Columns\TextColumn::make('tags.name')
+                    ->label('Etiquetas')
+                    ->badge()
+                    ->color('primary')
+                    ->separator(',')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('responsibleMember.name')
                     ->label('Líder')
@@ -725,6 +769,11 @@ class FamilyProfileResource extends Resource
                     ->color('gray'),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('tags')
+                    ->label('Filtrar por Etiquetas')
+                    ->relationship('tags', 'name', modifyQueryUsing: fn (Builder $query) => $query->where('type', TagType::FamilyProfile))
+                    ->multiple()
+                    ->preload(),
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Filtrar por Estado')
                     ->options(FamilyStatus::class),
