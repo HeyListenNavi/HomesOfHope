@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Attendance;
-use App\Models\Applicant;
-use App\Models\Group;
 use App\Enums\AttendanceStatus;
+use App\Models\Applicant;
+use App\Models\Attendance;
+use App\Models\Group;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AttendanceFactory extends Factory

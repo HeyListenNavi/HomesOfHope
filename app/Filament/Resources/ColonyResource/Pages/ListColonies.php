@@ -3,11 +3,12 @@
 namespace App\Filament\Resources\ColonyResource\Pages;
 
 use App\Filament\Resources\ColonyResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 use App\Imports\ColoniesImport;
-use Maatwebsite\Excel\Facades\Excel;
+use Filament\Actions;
+use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 class ListColonies extends ListRecords
@@ -25,7 +26,7 @@ class ListColonies extends ListRecords
                 ->color('success')
                 ->modalDescription('El archivo Excel debe tener encabezados en la primera fila. Las columnas requeridas son: "ciudad" y "colonia".')
                 ->form([
-                    \Filament\Forms\Components\FileUpload::make('file')
+                    FileUpload::make('file')
                         ->label('Archivo Excel')
                         ->required()
                         ->helperText('Asegúrese de que el archivo cumpla con el formato solicitado.')

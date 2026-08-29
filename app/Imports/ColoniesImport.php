@@ -3,11 +3,11 @@
 namespace App\Imports;
 
 use App\Models\Colony;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 
-class ColoniesImport implements ToModel, WithHeadingRow, SkipsEmptyRows
+class ColoniesImport implements SkipsEmptyRows, ToModel, WithHeadingRow
 {
     public function model(array $row)
     {

@@ -22,7 +22,7 @@ class ColonySeeder extends Seeder
 
         foreach ($colonies as $colony) {
             Colony::firstOrCreate([
-                "city" => fake()->randomElement(["Tijuana", "Rosarito"]),
+                'city' => fake()->randomElement(['Tijuana', 'Rosarito']),
                 'name' => $colony,
             ]);
         }

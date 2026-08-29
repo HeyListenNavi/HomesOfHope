@@ -27,13 +27,14 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('mobile-app')->plainTextToken,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+
         return response()->json(['message' => 'Sesión terminada con éxito']);
     }
 }

@@ -19,7 +19,7 @@ class EditRole extends EditRecord
                 ->modalDescription('Esta acción no se puede deshacer. Todos los usuarios asociados a este rol perderán sus permisos de acceso inmediatamente.')
                 ->modalSubmitActionLabel('Sí, eliminar rol')
                 ->modalIcon('heroicon-o-trash')
-                ->hidden(fn($record) => $record->name === 'admin'),
+                ->hidden(fn ($record) => $record->name === 'admin'),
         ];
     }
 }

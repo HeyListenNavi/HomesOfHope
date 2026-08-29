@@ -18,36 +18,43 @@ class WhatsappService
 
     public function send(Applicant $applicant, string $text, ?string $templateName = null, array $parameters = []): bool
     {
-        if (!$applicant->conversation) {
+        if (! $applicant->conversation) {
             $applicant->conversation()->create();
             $applicant->load('conversation');
         }
 
         if ($this->hasActiveSession($applicant)) {
             $this->logMessage($applicant, $text);
+
             return $this->whatsappClient->sendText($applicant->chat_id, $text);
         }
 
         if ($templateName) {
             Log::info("Session expired for {$applicant->chat_id}. Using template: {$templateName}");
-            $this->logMessage($applicant, '[TEMPLATE] ' . $templateName);
+            $this->logMessage($applicant, '[TEMPLATE] '.$templateName);
+
             return $this->whatsappClient->sendTemplate($applicant->chat_id, $templateName, $this->templateLang, $parameters);
         }
 
         Log::warning("Session expired for {$applicant->chat_id} and no fallback template was provided. Message not sent.");
+
         return false;
     }
 
     protected function hasActiveSession(Applicant $applicant): bool
     {
-        if (!$applicant->conversation) return false;
+        if (! $applicant->conversation) {
+            return false;
+        }
 
         $lastUserMessage = $applicant->conversation->messages()
             ->where('role', 'user')
             ->latest()
             ->first();
 
-        if (!$lastUserMessage) return false;
+        if (! $lastUserMessage) {
+            return false;
+        }
 
         return Carbon::parse($lastUserMessage->created_at)->diffInHours(now()) < 23;
     }

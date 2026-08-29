@@ -4,16 +4,15 @@ namespace App\Jobs;
 
 use App\Models\Applicant;
 use App\Services\Whatsapp\WhatsappService;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class SendApplicantReminder implements ShouldQueue
 {
     use Queueable;
 
     public $tries = 3;
+
     public $backoff = 10;
 
     /**
@@ -31,7 +30,7 @@ class SendApplicantReminder implements ShouldQueue
     {
         $applicant = Applicant::where('process_status', 'in_progress')->find($this->applicantId);
 
-        if (!$this->shouldProcessReminder($applicant)) {
+        if (! $this->shouldProcessReminder($applicant)) {
             return;
         }
 
@@ -48,6 +47,7 @@ class SendApplicantReminder implements ShouldQueue
                 'primer_recontacto'
             );
             $this->updateReminder($applicant, 1);
+
             return;
         }
 
@@ -58,23 +58,27 @@ class SendApplicantReminder implements ShouldQueue
                 'recontacto_final'
             );
             $this->updateReminder($applicant, 2);
+
             return;
         }
 
         if ($hoursSinceLastReminder >= 72) {
             $applicant->update(['process_status' => 'canceled']);
+
             return;
         }
     }
 
     private function shouldProcessReminder(?Applicant $applicant): bool
     {
-        if (!$applicant) return false;
+        if (! $applicant) {
+            return false;
+        }
 
         $applicant->load('conversation.latestMessage');
         $conversation = $applicant->conversation;
 
-        if (!$conversation || !$conversation->latestMessage) {
+        if (! $conversation || ! $conversation->latestMessage) {
             return false;
         }
 

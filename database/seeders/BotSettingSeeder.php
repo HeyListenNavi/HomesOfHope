@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\BotSetting;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class BotSettingSeeder extends Seeder
@@ -24,7 +23,7 @@ class BotSettingSeeder extends Seeder
                 [
                     'name' => $setting['name'],
                     'type' => 'initial_questions',
-                    'value' => $setting['value']
+                    'value' => $setting['value'],
                 ]
             );
         }

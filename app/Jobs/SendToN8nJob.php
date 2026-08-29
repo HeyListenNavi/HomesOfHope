@@ -3,12 +3,12 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class SendToN8nJob implements ShouldQueue
 {
@@ -42,7 +42,7 @@ class SendToN8nJob implements ShouldQueue
                 $this->payload
             );
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
 
             Log::error('n8n error', [
                 'status' => $response->status(),

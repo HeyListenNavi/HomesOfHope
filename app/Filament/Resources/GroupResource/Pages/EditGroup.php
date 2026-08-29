@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\GroupResource\Pages;
 
-use App\Filament\Resources\GroupResource;
 use App\Exports\GroupApplicantsExport;
+use App\Filament\Resources\GroupResource;
 use App\Models\Group;
 use App\Services\Group\GroupService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EditGroup extends EditRecord
 {
@@ -21,13 +21,13 @@ class EditGroup extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            
+
             Actions\Action::make('takeAttendance')
                 ->label('Pasar Lista')
                 ->icon('heroicon-m-check-badge')
                 ->color('success')
-                ->url(fn(Group $record) => route('attendance.page', $record)),
-            
+                ->url(fn (Group $record) => route('attendance.page', $record)),
+
             Actions\ActionGroup::make([
                 Actions\Action::make('resendInfo')
                     ->label('Reenviar Información')
@@ -71,7 +71,7 @@ class EditGroup extends EditRecord
 
                         return response()->streamDownload(function () use ($pdf) {
                             echo $pdf->stream();
-                        }, $record->name . '.pdf');
+                        }, $record->name.'.pdf');
                     }),
 
                 Actions\Action::make('exportExcel')

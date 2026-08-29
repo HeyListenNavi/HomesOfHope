@@ -74,7 +74,7 @@ class GroupApplicantsMap extends Field
             $coords = null;
             $locationResponse = null;
 
-            $responses = $applicant->responses->sortBy(fn($r) => $r->question_id == 45 ? 0 : 1);
+            $responses = $applicant->responses->sortBy(fn ($r) => $r->question_id == 45 ? 0 : 1);
 
             foreach ($responses as $resp) {
                 if (empty($resp->user_response)) {
@@ -139,10 +139,10 @@ class GroupApplicantsMap extends Field
             $url = $matches[0];
         }
 
-        return Cache::remember('resolved_url_' . md5($url), 60 * 24 * 30, function () use ($url) {
+        return Cache::remember('resolved_url_'.md5($url), 60 * 24 * 30, function () use ($url) {
             try {
                 $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-                
+
                 $response = Http::withUserAgent($userAgent)->timeout(5)->head($url);
                 $finalUrl = (string) $response->effectiveUri();
 
@@ -154,6 +154,7 @@ class GroupApplicantsMap extends Field
                 return $finalUrl;
             } catch (Exception $e) {
                 Log::warning('Failed to resolve URL: '.$url.' - '.$e->getMessage());
+
                 return $url;
             }
         });
@@ -171,11 +172,12 @@ class GroupApplicantsMap extends Field
             if (count($nums) >= 2) {
                 for ($i = 0; $i < count($nums) - 1; $i++) {
                     $lat = (float) $nums[$i];
-                    $lng = (float) $nums[$i+1];
+                    $lng = (float) $nums[$i + 1];
                     if ($lat > 14 && $lat < 33 && $lng > -119 && $lng < -86) {
                         return ['lat' => $lat, 'lng' => $lng];
                     }
                 }
+
                 return ['lat' => (float) $nums[0], 'lng' => (float) $nums[1]];
             }
         }
@@ -183,24 +185,25 @@ class GroupApplicantsMap extends Field
         // 1. Local Plus Code support: e.g. "92X9+QCV Tijuana, Baja California"
         if (preg_match('/([23456789C][23456789CFGHJMPQRV][23456789CFGHJMPQRVWX]{6}\+[23456789CFGHJMPQRVWX]{2,7}|[23456789CFGHJMPQRVWX]{4,6}\+[23456789CFGHJMPQRVWX]{2,3})/i', $cleanState, $plusMatches)) {
             $plusCode = strtoupper($plusMatches[0]);
-            
+
             try {
-                $olc = new OpenLocationCode();
+                $olc = new OpenLocationCode;
                 $fullCode = $plusCode;
 
-                if (!$olc->isFull($plusCode)) {
+                if (! $olc->isFull($plusCode)) {
                     $fullCode = $olc->recoverNearest($plusCode, $this->center[0], $this->center[1]);
                 }
 
                 if ($olc->isFull($fullCode)) {
                     $decoded = $olc->decode($fullCode);
+
                     return [
                         'lat' => $decoded->latitudeCenter,
                         'lng' => $decoded->longitudeCenter,
                     ];
                 }
             } catch (Exception $e) {
-                Log::warning('Local plus code resolution failed: ' . $e->getMessage());
+                Log::warning('Local plus code resolution failed: '.$e->getMessage());
             }
         }
 

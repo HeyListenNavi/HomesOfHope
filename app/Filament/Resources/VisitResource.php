@@ -200,7 +200,7 @@ class VisitResource extends Resource
                                             $linkHtml = '<a href="'.$whatsAppUrl.'" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">'.$member->phone.'</a>';
 
                                             return Forms\Components\Placeholder::make('phone_'.$member->id)
-                                                ->label($relationshipLabel . ': ' . $member->full_name)
+                                                ->label($relationshipLabel.': '.$member->full_name)
                                                 ->content(new HtmlString($linkHtml));
                                         })->toArray();
                                     }),

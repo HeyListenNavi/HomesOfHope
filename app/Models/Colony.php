@@ -10,7 +10,7 @@ class Colony extends Model
     use HasFactory;
 
     protected $fillable = [
-        "city",
+        'city',
         'name',
         'is_active',
     ];
