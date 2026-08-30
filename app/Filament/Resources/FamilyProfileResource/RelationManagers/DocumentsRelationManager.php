@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
 
 use App\Enums\DocumentType;
+use App\Models\Document;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Filament\Forms;
@@ -56,6 +57,34 @@ class DocumentsRelationManager extends RelationManager
                                 Forms\Components\Section::make('Clasificación')
                                     ->icon('heroicon-s-tag')
                                     ->schema([
+                                        Forms\Components\Select::make('target')
+                                            ->label('Pertenece a')
+                                            ->options(function (): array {
+                                                $owner = $this->getOwnerRecord();
+                                                $options = [
+                                                    'profile' => 'Familia (General)',
+                                                ];
+
+                                                foreach ($owner->members as $member) {
+                                                    $relation = $member->relationship?->getLabel() ?? 'Miembro';
+                                                    $options['member_'.$member->id] = "{$relation}: {$member->full_name}";
+                                                }
+
+                                                return $options;
+                                            })
+                                            ->default('profile')
+                                            ->required()
+                                            ->native(false)
+                                            ->formatStateUsing(function (?Document $record): string {
+                                                if (! $record) {
+                                                    return 'profile';
+                                                }
+
+                                                return $record->documentable_type === FamilyMember::class
+                                                    ? 'member_'.$record->documentable_id
+                                                    : 'profile';
+                                            }),
+
                                         Forms\Components\Select::make('document_type')
                                             ->label('Tipo de Documento')
                                             ->options(DocumentType::class)
@@ -82,38 +111,37 @@ class DocumentsRelationManager extends RelationManager
             ]);
     }
 
+    protected function getTableQuery(): Builder
+    {
+        $familyProfileId = $this->getOwnerRecord()->id;
+
+        return Document::query()
+            ->where(function (Builder $query) use ($familyProfileId) {
+                $query->where(function (Builder $q) use ($familyProfileId) {
+                    $q->where('documentable_type', FamilyProfile::class)
+                        ->where('documentable_id', $familyProfileId);
+                })->orWhere(function (Builder $q) use ($familyProfileId) {
+                    $q->where('documentable_type', FamilyMember::class)
+                        ->whereIn('documentable_id', FamilyMember::where('family_profile_id', $familyProfileId)->select('id'));
+                });
+            })
+            ->with(['documentable', 'uploader']);
+    }
+
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(function (Builder $query) {
-                $familyProfileId = $this->getOwnerRecord()->id;
-
-                $query->where(function ($q) use ($familyProfileId) {
-                    $q->where('documentable_type', FamilyProfile::class)
-                        ->where('documentable_id', $familyProfileId);
-                })
-                    ->orWhere(function ($q) use ($familyProfileId) {
-                        $q->where('documentable_type', FamilyMember::class)
-                            ->whereHasMorph('documentable', [FamilyMember::class], function ($query) use ($familyProfileId) {
-                                $query->where('family_profile_id', $familyProfileId);
-                            });
-                    });
-            })
+            ->recordAction('preview')
             ->columns([
                 Tables\Columns\TextColumn::make('original_name')
                     ->label('Nombre del Archivo')
                     ->searchable()
                     ->limit(30)
-                    ->icon(fn ($record) => match (explode('/', $record->mime_type ?? '')[0] ?? '') {
-                        'image' => 'heroicon-s-photo',
-                        'application' => 'heroicon-s-document-text',
-                        'text' => 'heroicon-s-document-text',
-                        default => 'heroicon-s-paper-clip',
-                    })
+                    ->icon(fn (Document $record): ?string => $record->preview_type->getIcon())
                     ->color('gray')
-                    ->description(function ($record) {
-                        if ($record->documentable_type === FamilyMember::class) {
-                            return 'De: '.($record->documentable->full_name ?? 'Familiar');
+                    ->description(function (Document $record) {
+                        if ($record->documentable_type === FamilyMember::class && $record->documentable) {
+                            return 'Familiar: '.($record->documentable->full_name ?? 'Miembro');
                         }
 
                         return null;
@@ -130,14 +158,14 @@ class DocumentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('size')
                     ->label('Tamaño')
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state / 1024, 2).' KB' : '0 KB')
+                    ->formatStateUsing(fn ($state): string => $state ? number_format($state / 1024, 2).' KB' : '0 KB')
                     ->color('gray')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('uploaded_by.name')
+                Tables\Columns\TextColumn::make('uploader.name')
                     ->label('Subido por')
                     ->icon('heroicon-s-user')
-                    ->formatStateUsing(fn ($state) => $state ?? 'Sistema')
+                    ->formatStateUsing(fn ($state): string => $state ?? 'Sistema')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -153,42 +181,96 @@ class DocumentsRelationManager extends RelationManager
                     ->icon('heroicon-s-arrow-up-tray')
                     ->slideOver()
                     ->modalWidth('2xl')
-                    ->mutateFormDataUsing(function (array $data): array {
-                        return $this->processFileMetadata($data);
+                    ->using(function (array $data): Document {
+                        $target = $data['target'] ?? 'profile';
+                        unset($data['target']);
+
+                        $data = $this->processFileMetadata($data);
+
+                        if (str_starts_with($target, 'member_')) {
+                            $data['documentable_type'] = FamilyMember::class;
+                            $data['documentable_id'] = (int) str_replace('member_', '', $target);
+                        } else {
+                            $data['documentable_type'] = FamilyProfile::class;
+                            $data['documentable_id'] = $this->getOwnerRecord()->id;
+                        }
+
+                        return Document::create($data);
                     }),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('')
-                    ->icon('heroicon-s-document')
-                    ->tooltip('Visualizar')
-                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
-                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('preview')
+                    ->label(false)
+                    ->modalHeading('Visualizar Documento')
+                    ->modalDescription(fn (Document $record) => ($record->document_type?->getLabel() ?? 'Documento').' • '.($record->documentable_type === FamilyMember::class ? ('Familiar: '.($record->documentable?->full_name ?? 'Miembro')) : 'Familia (General)'))
+                    ->modalWidth('7xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Cerrar')
+                    ->modalContent(fn (Document $record) => view('filament.components.document-preview-modal', [
+                        'record' => $record,
+                        'url' => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(30)),
+                    ]))
+                    ->extraModalFooterActions([
+                        Tables\Actions\Action::make('openInNewTab')
+                            ->label('Abrir en pestaña')
+                            ->icon('heroicon-m-arrow-top-right-on-square')
+                            ->color('gray')
+                            ->url(fn (Document $record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(30)))
+                            ->openUrlInNewTab(),
+                        Tables\Actions\Action::make('downloadFile')
+                            ->label('Descargar')
+                            ->icon('heroicon-m-arrow-down-tray')
+                            ->color('primary')
+                            ->url(fn (Document $record) => Storage::disk('r2')->temporaryUrl(
+                                $record->file_path,
+                                now()->addMinutes(30),
+                                ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
+                            ))
+                            ->openUrlInNewTab(),
+                    ]),
 
                 Tables\Actions\Action::make('download')
                     ->label('')
                     ->icon('heroicon-s-arrow-down-tray')
-                    ->tooltip('Descargar')
-                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl(
+                    ->color('gray')
+                    ->tooltip('Descargar archivo')
+                    ->url(fn (Document $record) => Storage::disk('r2')->temporaryUrl(
                         $record->file_path,
-                        now()->addMinutes(5),
+                        now()->addMinutes(30),
                         ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
                     ))
                     ->openUrlInNewTab(),
 
-                Tables\Actions\ViewAction::make()
-                    ->icon('heroicon-s-eye')
-                    ->modalWidth('4xl'),
-
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')
                     ->slideOver()
-                    ->mutateFormDataUsing(function (array $data): array {
-                        return $this->processFileMetadata($data);
+                    ->modalWidth('2xl')
+                    ->using(function (Document $record, array $data): Document {
+                        $target = $data['target'] ?? 'profile';
+                        unset($data['target']);
+
+                        $data = $this->processFileMetadata($data);
+
+                        if (str_starts_with($target, 'member_')) {
+                            $data['documentable_type'] = FamilyMember::class;
+                            $data['documentable_id'] = (int) str_replace('member_', '', $target);
+                        } else {
+                            $data['documentable_type'] = FamilyProfile::class;
+                            $data['documentable_id'] = $this->getOwnerRecord()->id;
+                        }
+
+                        $record->update($data);
+
+                        return $record;
                     }),
 
                 Tables\Actions\DeleteAction::make()
                     ->icon('heroicon-s-trash'),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('document_type')
+                    ->label('Tipo de Documento')
+                    ->options(DocumentType::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -201,9 +283,9 @@ class DocumentsRelationManager extends RelationManager
     protected function processFileMetadata(array $data): array
     {
         $disk = Storage::disk('r2');
-        $path = $data['file_path'];
+        $path = $data['file_path'] ?? null;
 
-        if ($disk->exists($path)) {
+        if ($path && $disk->exists($path)) {
             $data['mime_type'] = $disk->mimeType($path);
             $data['size'] = $disk->size($path);
         }

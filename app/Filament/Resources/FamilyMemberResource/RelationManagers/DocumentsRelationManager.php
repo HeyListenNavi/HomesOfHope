@@ -3,13 +3,8 @@
 namespace App\Filament\Resources\FamilyMemberResource\RelationManagers;
 
 use App\Enums\DocumentType;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Group;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
+use App\Models\Document;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -23,20 +18,22 @@ class DocumentsRelationManager extends RelationManager
 
     protected static ?string $title = 'Documentos y Archivos';
 
+    protected static ?string $icon = 'heroicon-s-document-duplicate';
+
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Grid::make(3)
+                Forms\Components\Grid::make(3)
                     ->schema([
-                        Group::make()
+                        Forms\Components\Group::make()
                             ->columnSpan(['lg' => 2])
                             ->schema([
-                                Section::make('Carga de Archivo')
+                                Forms\Components\Section::make('Carga de Archivo')
                                     ->description('Sube documentos legales, identificaciones o reportes.')
                                     ->icon('heroicon-s-arrow-up-tray')
                                     ->schema([
-                                        FileUpload::make('file_path')
+                                        Forms\Components\FileUpload::make('file_path')
                                             ->label('Seleccionar Archivo')
                                             ->required()
                                             ->disk('r2')
@@ -51,29 +48,29 @@ class DocumentsRelationManager extends RelationManager
                                     ]),
                             ]),
 
-                        Group::make()
+                        Forms\Components\Group::make()
                             ->columnSpan(['lg' => 1])
                             ->schema([
-                                Section::make('Clasificación')
+                                Forms\Components\Section::make('Clasificación')
                                     ->icon('heroicon-s-tag')
                                     ->schema([
-                                        Select::make('document_type')
+                                        Forms\Components\Select::make('document_type')
                                             ->label('Tipo de Documento')
                                             ->options(DocumentType::class)
                                             ->required()
                                             ->native(false)
                                             ->searchable(),
 
-                                        Hidden::make('original_name'),
-                                        Hidden::make('mime_type'),
-                                        Hidden::make('size'),
+                                        Forms\Components\Hidden::make('original_name'),
+                                        Forms\Components\Hidden::make('mime_type'),
+                                        Forms\Components\Hidden::make('size'),
 
-                                        Hidden::make('uploaded_by')
+                                        Forms\Components\Hidden::make('uploaded_by')
                                             ->default(Auth::id()),
                                     ]),
                             ]),
 
-                        Textarea::make('description')
+                        Forms\Components\Textarea::make('description')
                             ->label('Descripción')
                             ->rows(3)
                             ->columnSpanFull()
@@ -86,17 +83,13 @@ class DocumentsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordAction('preview')
             ->columns([
                 Tables\Columns\TextColumn::make('original_name')
                     ->label('Nombre del Archivo')
                     ->searchable()
                     ->limit(30)
-                    ->icon(fn ($record) => match (explode('/', $record->mime_type ?? '')[0] ?? '') {
-                        'image' => 'heroicon-s-photo',
-                        'application' => 'heroicon-s-document-text',
-                        'text' => 'heroicon-s-document-text',
-                        default => 'heroicon-s-paper-clip',
-                    })
+                    ->icon(fn (Document $record): ?string => $record->preview_type->getIcon())
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('document_type')
@@ -110,14 +103,14 @@ class DocumentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('size')
                     ->label('Tamaño')
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state / 1024, 2).' KB' : '0 KB')
+                    ->formatStateUsing(fn ($state): string => $state ? number_format($state / 1024, 2).' KB' : '0 KB')
                     ->color('gray')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('uploaded_by.name')
+                Tables\Columns\TextColumn::make('uploader.name')
                     ->label('Subido por')
                     ->icon('heroicon-s-user')
-                    ->formatStateUsing(fn ($state) => $state ?? 'Sistema')
+                    ->formatStateUsing(fn ($state): string => $state ?? 'Sistema')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -138,20 +131,44 @@ class DocumentsRelationManager extends RelationManager
                     }),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('')
-                    ->icon('heroicon-s-eye')
-                    ->tooltip('Visualizar')
-                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(5)))
-                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('preview')
+                    ->label(false)
+                    ->modalHeading(fn (Document $record) => $record->original_name ?? 'Visualizar Documento')
+                    ->modalDescription(fn (Document $record) => ($record->document_type?->getLabel() ?? 'Documento').' • '.($record->documentable?->full_name ?? 'Familiar'))
+                    ->modalWidth('7xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Cerrar')
+                    ->modalContent(fn (Document $record) => view('filament.components.document-preview-modal', [
+                        'record' => $record,
+                        'url' => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(30)),
+                    ]))
+                    ->extraModalFooterActions([
+                        Tables\Actions\Action::make('openInNewTab')
+                            ->label('Abrir en pestaña')
+                            ->icon('heroicon-m-arrow-top-right-on-square')
+                            ->color('gray')
+                            ->url(fn (Document $record) => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(30)))
+                            ->openUrlInNewTab(),
+                        Tables\Actions\Action::make('downloadFile')
+                            ->label('Descargar')
+                            ->icon('heroicon-m-arrow-down-tray')
+                            ->color('primary')
+                            ->url(fn (Document $record) => Storage::disk('r2')->temporaryUrl(
+                                $record->file_path,
+                                now()->addMinutes(30),
+                                ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
+                            ))
+                            ->openUrlInNewTab(),
+                    ]),
 
                 Tables\Actions\Action::make('download')
                     ->label('')
                     ->icon('heroicon-s-arrow-down-tray')
-                    ->tooltip('Descargar')
-                    ->url(fn ($record) => Storage::disk('r2')->temporaryUrl(
+                    ->color('gray')
+                    ->tooltip('Descargar archivo')
+                    ->url(fn (Document $record) => Storage::disk('r2')->temporaryUrl(
                         $record->file_path,
-                        now()->addMinutes(5),
+                        now()->addMinutes(30),
                         ['ResponseContentDisposition' => 'attachment; filename="'.($record->original_name ?? 'documento').'"']
                     ))
                     ->openUrlInNewTab(),
@@ -159,12 +176,18 @@ class DocumentsRelationManager extends RelationManager
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')
                     ->slideOver()
+                    ->modalWidth('2xl')
                     ->mutateFormDataUsing(function (array $data): array {
                         return $this->processFileMetadata($data);
                     }),
 
                 Tables\Actions\DeleteAction::make()
                     ->icon('heroicon-s-trash'),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('document_type')
+                    ->label('Tipo de Documento')
+                    ->options(DocumentType::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -177,9 +200,9 @@ class DocumentsRelationManager extends RelationManager
     protected function processFileMetadata(array $data): array
     {
         $disk = Storage::disk('r2');
-        $path = $data['file_path'];
+        $path = $data['file_path'] ?? null;
 
-        if ($disk->exists($path)) {
+        if ($path && $disk->exists($path)) {
             $data['mime_type'] = $disk->mimeType($path);
             $data['size'] = $disk->size($path);
         }

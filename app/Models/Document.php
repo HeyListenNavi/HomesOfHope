@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DocumentType;
+use App\Enums\FilePreviewType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,5 +52,13 @@ class Document extends Model
     public function getUrlAttribute(): string
     {
         return Storage::disk('r2')->url($this->file_path);
+    }
+
+    /**
+     * Get the file preview classification.
+     */
+    public function getPreviewTypeAttribute(): FilePreviewType
+    {
+        return FilePreviewType::fromMimeType($this->mime_type);
     }
 }
