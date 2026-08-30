@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\VisitLocationType;
 use App\Enums\VisitStatus;
+use App\Filament\Forms\Components\DropdownDatePicker;
 use App\Filament\Resources\VisitResource\Pages;
 use App\Filament\Resources\VisitResource\RelationManagers;
 use App\Models\FamilyProfile;
@@ -226,12 +227,12 @@ class VisitResource extends Resource
                                 Forms\Components\Section::make('Agenda')
                                     ->icon('heroicon-s-calendar')
                                     ->schema([
-                                        Forms\Components\DatePicker::make('scheduled_at')
+                                        DropdownDatePicker::make('scheduled_at')
                                             ->label('Fecha Programada')
                                             ->required()
-                                            ->native(false)
-                                            ->format('Y-m-d')
-                                            ->prefixIcon('heroicon-s-clock'),
+                                            ->minYear(date('Y') - 1)
+                                            ->maxYear(date('Y') + 5)
+                                            ->default(now()->format('Y-m-d')),
 
                                         Forms\Components\Select::make('attendants')
                                             ->relationship('attendants', 'name')

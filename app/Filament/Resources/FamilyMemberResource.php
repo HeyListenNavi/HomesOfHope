@@ -8,6 +8,7 @@ use App\Enums\MaritalStatus;
 use App\Enums\Occupation;
 use App\Enums\Relationship;
 use App\Enums\Religion;
+use App\Filament\Forms\Components\DropdownDatePicker;
 use App\Filament\Resources\FamilyMemberResource\Pages;
 use App\Filament\Resources\FamilyMemberResource\RelationManagers;
 use App\Models\FamilyMember;
@@ -93,12 +94,11 @@ class FamilyMemberResource extends Resource
                                 // Fila de Detalles
                                 Forms\Components\Grid::make(2)
                                     ->schema([
-                                        Forms\Components\DatePicker::make('birth_date')
+                                        DropdownDatePicker::make('birth_date')
                                             ->label('Fecha de Nacimiento')
-                                            ->required()
-                                            ->native(false)
-                                            ->maxDate(now())
-                                            ->prefixIcon('heroicon-s-cake'),
+                                            ->yearsBack(140)
+                                            ->showAge()
+                                            ->required(),
 
                                         Forms\Components\TextInput::make('curp')
                                             ->label('CURP')

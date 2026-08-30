@@ -8,6 +8,7 @@ use App\Enums\HousingStatus;
 use App\Enums\LandService;
 use App\Enums\LandSize;
 use App\Enums\TagType;
+use App\Filament\Forms\Components\DropdownDatePicker;
 use App\Filament\Resources\FamilyProfileResource\Pages;
 use App\Filament\Resources\FamilyProfileResource\RelationManagers;
 use App\Models\FamilyProfile;
@@ -132,11 +133,9 @@ class FamilyProfileResource extends Resource
                                                 ->label('Entrevistador')
                                                 ->prefixIcon('heroicon-s-user-circle'),
 
-                                            Forms\Components\DatePicker::make('opened_at')
-                                                ->label('Fecha de entrevista')
-                                                ->native(false)
-                                                ->displayFormat('d/m/Y')
-                                                ->prefixIcon('heroicon-s-calendar'),
+                                            DropdownDatePicker::make('opened_at')
+                                                ->label('Fecha de Entrevista')
+                                                ->minYear(2015),
                                         ]),
                                     ]),
 
@@ -305,9 +304,9 @@ class FamilyProfileResource extends Resource
                                                     ->numeric()
                                                     ->prefix('$'),
 
-                                                Forms\Components\DatePicker::make('land_last_payment_date')
+                                                DropdownDatePicker::make('land_last_payment_date')
                                                     ->label('Fecha Último Pago')
-                                                    ->native(false),
+                                                    ->minYear(2010),
 
                                                 ToggleButtons::make('land_is_up_to_date')
                                                     ->label('¿Estatus de Pago?')
@@ -541,16 +540,12 @@ class FamilyProfileResource extends Resource
                                             ->columns(2)
                                             ->columnSpanFull()
                                             ->schema([
-                                                Forms\Components\DatePicker::make('building_start_date')
+                                                DropdownDatePicker::make('building_start_date')
                                                     ->label('Fecha de Inicio')
-                                                    ->native(false)
-                                                    ->displayFormat('d/m/Y'),
-
-                                                Forms\Components\DatePicker::make('building_finish_date')
+                                                    ->minYear(2020),
+                                                DropdownDatePicker::make('building_finish_date')
                                                     ->label('Fecha de Finalización')
-                                                    ->native(false)
-                                                    ->displayFormat('d/m/Y')
-                                                    ->afterOrEqual('building_start_date'),
+                                                    ->minYear(2020),
                                             ]),
 
                                         Forms\Components\Fieldset::make('Equipo de Construcción')

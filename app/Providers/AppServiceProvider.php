@@ -76,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
 
             Js::make('polygon-map-picker', asset('js/group-applicant-map.js')),
             Js::make('visit-map', asset('js/visit-map.js')),
+            Js::make('dropdown-date-picker', asset('js/dropdown-date-picker.js')),
 
             Css::make('leaflet-cluster', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css'),
             Css::make('leaflet-cluster-default', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css'),
