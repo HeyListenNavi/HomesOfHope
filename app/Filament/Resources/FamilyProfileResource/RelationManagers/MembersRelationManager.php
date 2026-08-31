@@ -9,6 +9,8 @@ use App\Enums\Occupation;
 use App\Enums\Relationship;
 use App\Enums\Religion;
 use App\Filament\Forms\Components\DropdownDatePicker;
+use App\Filament\Resources\FamilyMemberResource;
+use App\Filament\Resources\FamilyProfileResource;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Filament\Forms;
@@ -16,6 +18,8 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 class MembersRelationManager extends RelationManager
@@ -71,7 +75,46 @@ class MembersRelationManager extends RelationManager
                                             ->maxLength(18)
                                             ->prefixIcon('heroicon-s-finger-print')
                                             ->placeholder('CURP')
-                                            ->formatStateUsing(fn (?string $state) => strtoupper($state)),
+                                            ->formatStateUsing(fn (?string $state) => strtoupper($state))
+                                            ->dehydrateStateUsing(fn (?string $state) => $state ? strtoupper(trim($state)) : null)
+                                            ->unique(ignoreRecord: true)
+                                            ->live(onBlur: true)
+                                            ->validationMessages([
+                                                'unique' => 'Este CURP ya está registrado.',
+                                            ])
+                                            ->extraInputAttributes(['onInput' => 'this.value = this.value.toUpperCase()'])
+                                            ->helperText(function (Forms\Components\TextInput $component, $livewire, Forms\Get $get, ?Model $record): ?HtmlString {
+                                                if (! $livewire->getErrorBag()->has($component->getStatePath())) {
+                                                    return null;
+                                                }
+
+                                                $curp = $get('curp');
+                                                if (blank($curp)) {
+                                                    return null;
+                                                }
+
+                                                $curp = strtoupper(trim($curp));
+                                                $query = FamilyMember::where('curp', $curp);
+
+                                                if ($record && $record->exists) {
+                                                    $query->where('id', '!=', $record->id);
+                                                }
+
+                                                $existing = $query->first();
+
+                                                if (! $existing) {
+                                                    return null;
+                                                }
+
+                                                $url = FamilyMemberResource::getUrl('edit', ['record' => $existing]);
+                                                $label = e($existing->full_name ?: $existing->name).' ↗';
+
+                                                return new HtmlString(
+                                                    '<a href="'.$url.'" target="_blank" class="underline font-bold text-primary-600 hover:text-primary-500 dark:text-primary-400 inline-flex items-center gap-0.5 text-xs">'
+                                                    .$label
+                                                    .'</a>'
+                                                );
+                                            }),
 
                                         Forms\Components\Select::make('occupation')
                                             ->label('Ocupación')
