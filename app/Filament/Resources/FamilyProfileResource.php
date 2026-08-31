@@ -135,7 +135,8 @@ class FamilyProfileResource extends Resource
 
                                             DropdownDatePicker::make('opened_at')
                                                 ->label('Fecha de Entrevista')
-                                                ->minYear(2015),
+                                                ->minYear(2000)
+                                                ->maxYear(now()->year),
                                         ]),
                                     ]),
 
@@ -306,7 +307,8 @@ class FamilyProfileResource extends Resource
 
                                                 DropdownDatePicker::make('land_last_payment_date')
                                                     ->label('Fecha Último Pago')
-                                                    ->minYear(2010),
+                                                    ->minYear(2000)
+                                                    ->maxYear(now()->year),
 
                                                 ToggleButtons::make('land_is_up_to_date')
                                                     ->label('¿Estatus de Pago?')
@@ -536,17 +538,8 @@ class FamilyProfileResource extends Resource
                                 Tabs\Tab::make('Construcción')
                                     ->icon('heroicon-m-wrench-screwdriver')
                                     ->schema([
-                                        Forms\Components\Fieldset::make('Fechas de Construcción')
-                                            ->columns(2)
-                                            ->columnSpanFull()
-                                            ->schema([
-                                                DropdownDatePicker::make('building_start_date')
-                                                    ->label('Fecha de Inicio')
-                                                    ->minYear(2020),
-                                                DropdownDatePicker::make('building_finish_date')
-                                                    ->label('Fecha de Finalización')
-                                                    ->minYear(2020),
-                                            ]),
+                                        DropdownDatePicker::make('building_start_date')
+                                            ->label('Fecha de Construcción'),
 
                                         Forms\Components\Fieldset::make('Equipo de Construcción')
                                             ->columns(2)

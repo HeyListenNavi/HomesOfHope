@@ -97,7 +97,7 @@ class FamilyMemberResource extends Resource
                                     ->schema([
                                         DropdownDatePicker::make('birth_date')
                                             ->label('Fecha de Nacimiento')
-                                            ->yearsBack(140)
+                                            ->maxYear(now()->year)
                                             ->showAge()
                                             ->required(),
 
