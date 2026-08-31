@@ -468,6 +468,13 @@ class ApplicantResource extends Resource
                 })
                 ->placeholder('No respondida')
                 ->limit(30)
+                ->searchable(query: function (Builder $query, string $search) use ($question): Builder {
+                    return $query->whereHas('responses', function (Builder $responseQuery) use ($question, $search) {
+                        $responseQuery
+                            ->where('question_id', $question->id)
+                            ->where('user_response', 'like', "%{$search}%");
+                    });
+                })
                 ->toggleable(isToggledHiddenByDefault: true);
         }
 
