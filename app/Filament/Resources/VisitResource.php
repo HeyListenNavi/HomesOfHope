@@ -61,7 +61,7 @@ class VisitResource extends Resource
                                             ->suffixAction(
                                                 Action::make('open_family_profile')
                                                     ->icon('heroicon-m-arrow-top-right-on-square')
-                                                    ->url(fn ($state): string => $state ? route('filament.admin.resources.family-profiles.edit', $state) : '#')
+                                                    ->url(fn ($state): string => $state ? route('filament.admin.resources.family-profiles.view', $state) : '#')
                                                     ->openUrlInNewTab()
                                                     ->hidden(fn ($state): bool => blank($state)),
                                             ),

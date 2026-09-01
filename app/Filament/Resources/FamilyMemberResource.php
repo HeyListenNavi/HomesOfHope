@@ -14,6 +14,7 @@ use App\Filament\Resources\FamilyMemberResource\RelationManagers;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -258,8 +259,17 @@ class FamilyMemberResource extends Resource
                                     ->label('Pertenece a la Familia')
                                     ->searchable()
                                     ->preload()
+                                    ->live()
+                                    ->default(fn () => request('family_profile_id'))
                                     ->required()
-                                    ->prefixIcon('heroicon-s-home'),
+                                    ->prefixIcon('heroicon-s-home')
+                                    ->suffixAction(
+                                        Action::make('open_family_profile')
+                                            ->icon('heroicon-m-arrow-top-right-on-square')
+                                            ->url(fn ($state): string => $state ? route('filament.admin.resources.family-profiles.view', $state) : '#')
+                                            ->openUrlInNewTab()
+                                            ->hidden(fn ($state): bool => blank($state)),
+                                    ),
 
                                 Forms\Components\Select::make('relationship')
                                     ->label('Rol Familiar')
