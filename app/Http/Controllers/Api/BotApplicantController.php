@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ApplicantStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use App\Models\ApplicantQuestionResponse;
@@ -115,7 +116,7 @@ class BotApplicantController extends Controller
                 break;
             case 'ask_curp':
                 $applicant->update([
-                    'curp' => $validated['user_response'],
+                    'curp' => strtoupper(trim($validated['user_response'])),
                     'current_step' => 'ask_gender',
                 ]);
                 break;
@@ -127,11 +128,17 @@ class BotApplicantController extends Controller
                     return response()->json(['error' => 'No hay etapas o preguntas configuradas.'], 404);
                 }
 
+                $isDuplicate = $applicant->curp && Applicant::where('curp', $applicant->curp)
+                    ->where('id', '!=', $applicant->id)
+                    ->exists();
+
                 $applicant->update([
                     'gender' => $validated['user_response'],
                     'current_step' => 'ask_question',
                     'current_stage_id' => $firstStage->id,
                     'current_question_id' => $firstQuestion->id,
+                    'process_status' => $isDuplicate ? 'requires_revision' : 'in_progress',
+                    'rejection_reason' => $isDuplicate ? 'CURP duplicado' : null,
                 ]);
                 break;
             case 'ask_question':
@@ -171,11 +178,23 @@ class BotApplicantController extends Controller
     public function getNextQuestion(string $chatId)
     {
         $applicant = Applicant::where('chat_id', $chatId)
-            ->where('process_status', 'in_progress')
             ->first();
 
         if (! $applicant) {
-            return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'], 404);
+            return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'],
+                404);
+        }
+
+        if ($applicant->process_status === ApplicantStatus::RequiresRevision) {
+            return response()->json([
+                'status' => 'requires_supervision',
+                'message' => 'Para poder continuar, la información proporcionada será revisada por nuestro Staff. Una vez concluida la revisión, te compartiremos los siguientes pasos.',
+            ]);
+        }
+
+        if ($applicant->process_status !== ApplicantStatus::InProgress) {
+            return response()->json(['error' => 'No se encontró un solicitante en proceso o el proceso ha terminado.'],
+                404);
         }
 
         $current_step = $applicant->current_step;
@@ -436,15 +455,30 @@ class BotApplicantController extends Controller
             return response()->json(['error' => 'Solicitante no encontrado.'], 404);
         }
 
+        $curp = strtoupper(trim($validated['curp']));
+        $isDuplicate = Applicant::where('curp', $curp)
+            ->where('id', '!=', $applicant->id)
+            ->exists();
+
         $applicant->update([
-            'curp' => $validated['curp'],
-            'applicant_name' => $validated['applicant_name'], // Corregido
+            'curp' => $curp,
+            'applicant_name' => $validated['applicant_name'],
             'gender' => $validated['gender'],
+            'process_status' => $isDuplicate ? 'requires_revision' : $applicant->process_status,
+            'rejection_reason' => $isDuplicate ? 'CURP duplicado' : $applicant->rejection_reason,
         ]);
 
-        $applicant->conversation->update([
+        $applicant->conversation?->update([
             'user_name' => $validated['applicant_name'],
         ]);
+
+        if ($isDuplicate) {
+            return response()->json([
+                'status' => 'requires_supervision',
+                'message' => 'Tu CURP ya se encuentra registrada en el sistema. Tu solicitud requiere revisión por parte de nuestro equipo.',
+                'applicant_id' => $applicant->id,
+            ], 200);
+        }
 
         return response()->json(['message' => 'Datos iniciales actualizados correctamente.'], 200);
     }
