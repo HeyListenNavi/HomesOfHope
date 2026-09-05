@@ -262,6 +262,7 @@ class GroupResource extends Resource
     {
         return [
             RelationManagers\ApplicantsRelationManager::class,
+            RelationManagers\AttendancesRelationManager::class,
         ];
     }
 

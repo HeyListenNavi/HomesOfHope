@@ -44,4 +44,9 @@ class Group extends Model
     {
         return $this->hasMany(Applicant::class);
     }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }
