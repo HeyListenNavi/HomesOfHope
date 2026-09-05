@@ -116,4 +116,23 @@ class GroupService
             'detalles_extra' => $invitation,
         ]);
     }
+
+    public function sendRescheduleLink(Applicant $applicant): void
+    {
+        $selectionUrl = URL::temporarySignedRoute(
+            'group.selection.form',
+            now()->addDays(3),
+            ['applicant' => $applicant->id]
+        );
+
+        $message = "Si necesitas cambiar tu cita o no pudiste asistir a tu entrevista para Casas de Esperanza, puedes seleccionar una nueva fecha disponible.\n\n"
+            ."⚠️ Importante: Si ya asististe a una entrevista o nuestro equipo ya visitó a tu familia, no necesitas volver a agendar.\n\n"
+            ."Este enlace es únicamente para familias que todavía no han tenido su entrevista.\n\n"
+            ."{$selectionUrl}\n\n"
+            .'Si este es tu caso, presiona el link de arriba para escoger una nueva cita. 👆';
+
+        $this->whatsappService->send($applicant, $message, 'reagenda_grupo', [
+            'link' => $selectionUrl,
+        ]);
+    }
 }

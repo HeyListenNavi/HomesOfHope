@@ -6,6 +6,7 @@ use App\Enums\AttendanceStatus;
 use App\Models\Applicant;
 use App\Models\Attendance;
 use App\Models\Group;
+use App\Services\Group\GroupService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -35,6 +36,7 @@ class AttendancePage extends Component
     public function loadGroupMembers()
     {
         $this->groupMembers = Applicant::where('group_id', $this->group->id)
+            ->orWhereHas('attendance', fn ($query) => $query->where('group_id', $this->group->id))
             ->with(['attendance', 'responses'])
             ->get()
             ->sortBy(fn ($m) => $m->attendance?->scanned_at?->timestamp)
@@ -122,7 +124,7 @@ class AttendancePage extends Component
         $this->resetScanField();
     }
 
-    public function closeAttendance()
+    public function closeAttendance(GroupService $groupService)
     {
         if ($this->group->attendance_closed_at) {
             return;
@@ -135,14 +137,18 @@ class AttendancePage extends Component
                 ->where('group_id', $this->group->id)
                 ->first();
 
-            if (! $attendance) {
-                Attendance::create([
-                    'applicant_id' => $applicant->id,
-                    'group_id' => $this->group->id,
-                    'status' => AttendanceStatus::Absent,
+            if (! $attendance || $attendance->status === AttendanceStatus::Pending) {
+                $applicant->attendance()->updateOrCreate(
+                    ['group_id' => $this->group->id],
+                    ['status' => AttendanceStatus::Absent]
+                );
+
+                $applicant->update([
+                    'group_id' => null,
+                    'confirmation_status' => 'pending',
                 ]);
-            } elseif ($attendance->status === AttendanceStatus::Pending) {
-                $attendance->update(['status' => AttendanceStatus::Absent]);
+
+                $groupService->sendRescheduleLink($applicant);
             }
         }
 
