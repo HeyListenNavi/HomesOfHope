@@ -63,106 +63,358 @@ window.addEventListener('scroll-to-top', () => {
 });
 
 document.addEventListener('alpine:init', () => {
-    Alpine.data('locationPicker', (latModel, lngModel) => ({
+    Alpine.data('locationPicker', (latModel, lngModel, cityModel = null, colonyModel = null, addressModel = null) => ({
         map: null,
-        marker: null,
-        loading: false,
+        loadingGps: false,
+        searching: false,
+        savingAddress: false,
+        confirmedSuccess: false,
+        successTimer: null,
+        searchMessage: '',
+        isDragging: false,
         lat: null,
         lng: null,
+        searchQuery: '',
+        suggestions: [],
+        defaultCenter: { lat: 32.4000, lng: -117.0500 }, // Baja California (Tijuana / Rosarito / Ensenada)
 
-        init() {
-            this.lat = this.$wire.get(latModel);
-            this.lng = this.$wire.get(lngModel);
+        async init() {
+            const rawLat = this.$wire.get(latModel);
+            const rawLng = this.$wire.get(lngModel);
+            this.lat = rawLat ? parseFloat(rawLat) : null;
+            this.lng = rawLng ? parseFloat(rawLng) : null;
 
-            this.$watch('$wire.' + latModel, val => {
-                this.lat = val;
-                if (this.map && this.lat && this.lng) {
-                    this.updateMarker(this.lat, this.lng);
-                    this.map.flyTo([this.lat, this.lng], 15);
+            this.$watch('$wire.' + latModel, (val) => {
+                if (val && parseFloat(val) !== this.lat) {
+                    this.lat = parseFloat(val);
+                    if (this.map && this.lng) {
+                        this.map.panTo({ lat: this.lat, lng: this.lng });
+                    }
                 }
             });
 
-            this.loadDependencies().then(() => {
-                this.initMap();
-            });
+            await this.initGoogleMap();
         },
 
-        loadDependencies() {
-            return new Promise((resolve) => {
-                if (window.L) return resolve();
-                const css = document.createElement('link');
-                css.rel = 'stylesheet';
-                css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                document.head.appendChild(css);
-                const script = document.createElement('script');
-                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-                script.onload = resolve;
-                document.head.appendChild(script);
-            });
-        },
+        extractDetailsFromComponents(components, formattedAddress, fallbackTitle) {
+            let city = '';
+            let colony = '';
+            let street = '';
+            let streetNumber = '';
 
-        initMap() {
-            const center = (this.lat && this.lng) ? [this.lat, this.lng] : [32.5149, -117.0382];
-            this.map = L.map(this.$refs.mapContainer, {
-                attributionControl: false
-            }).setView(center, 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=' + window.cartoBasemapKey, {
-                subdomains: 'abcd',
-                maxZoom: 20
-            }).addTo(this.map);
+            if (Array.isArray(components)) {
+                for (const comp of components) {
+                    const types = comp.types || [];
+                    const name = comp.longText || comp.long_name || comp.name || '';
 
-            if (this.lat && this.lng) {
-                this.updateMarker(this.lat, this.lng);
+                    if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+                        if (name.toLowerCase().includes('rosarito')) {
+                            city = 'Rosarito';
+                        } else if (name.toLowerCase().includes('tijuana')) {
+                            city = 'Tijuana';
+                        }
+                    }
+
+                    if (types.includes('sublocality_level_1') || types.includes('sublocality') || types.includes('neighborhood') || types.includes('administrative_area_level_3')) {
+                        if (!colony) {
+                            colony = name;
+                        }
+                    }
+
+                    if (types.includes('route')) {
+                        street = name;
+                    }
+                    if (types.includes('street_number')) {
+                        streetNumber = name;
+                    }
+                }
             }
 
-            this.map.on('click', (e) => {
-                const {
-                    lat,
-                    lng
-                } = e.latlng;
-                this.updateMarker(lat, lng);
-                this.$wire.set(latModel, lat);
-                this.$wire.set(lngModel, lng);
-            });
+            if (!city) {
+                if (formattedAddress && formattedAddress.toLowerCase().includes('rosarito')) {
+                    city = 'Rosarito';
+                } else {
+                    city = 'Tijuana';
+                }
+            }
+
+            if (!colony && fallbackTitle) {
+                colony = fallbackTitle;
+            }
+
+            const fullAddress = formattedAddress || (street ? `${street} ${streetNumber}`.trim() : (colony ? `${colony}, ${city}` : ''));
+
+            return {
+                city,
+                colony,
+                address: fullAddress
+            };
         },
 
-        updateMarker(lat, lng) {
-            if (!this.marker) {
-                const color = latModel === 'land.lat' ? '#61b346' : '#fbbf24';
-                const icon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style="display:flex; align-items:center; justify-content:center; background-color:white; border-radius:9999px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); width:44px; height:44px; border:2px solid white; color: ${color};"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>`,
-                    iconSize: [44, 44],
-                    iconAnchor: [22, 44],
+        applyLocationDetails(details) {
+            if (!details) return;
+            if (cityModel && details.city) {
+                this.$wire.set(cityModel, details.city);
+            }
+            if (colonyModel && details.colony) {
+                this.$wire.set(colonyModel, details.colony);
+            }
+            if (addressModel && details.address) {
+                this.$wire.set(addressModel, details.address);
+            }
+        },
+
+        async confirmAndFillAddress() {
+            if (!this.lat || !this.lng) {
+                this.searchMessage = 'Por favor selecciona un punto en el mapa primero.';
+                setTimeout(() => { this.searchMessage = ''; }, 4000);
+                return;
+            }
+
+            this.savingAddress = true;
+            this.searchMessage = '';
+
+            try {
+                if (!window.google || !window.google.maps) {
+                    this.savingAddress = false;
+                    return;
+                }
+
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({
+                    location: { lat: this.lat, lng: this.lng }
+                }, (results, status) => {
+                    this.savingAddress = false;
+                    if (status === 'OK' && results && results[0]) {
+                        const res = results[0];
+                        const details = this.extractDetailsFromComponents(
+                            res.address_components,
+                            res.formatted_address,
+                            ''
+                        );
+                        this.applyLocationDetails(details);
+
+                        this.confirmedSuccess = true;
+                        if (this.successTimer) clearTimeout(this.successTimer);
+                        this.successTimer = setTimeout(() => {
+                            this.confirmedSuccess = false;
+                        }, 3500);
+                    } else {
+                        this.searchMessage = 'No se pudo obtener la dirección exacta automáticamente. Puedes escribirla abajo.';
+                        setTimeout(() => { this.searchMessage = ''; }, 5000);
+                    }
                 });
-                this.marker = L.marker([lat, lng], {
-                    icon
-                }).addTo(this.map);
-            } else {
-                this.marker.setLatLng([lat, lng]);
+            } catch (err) {
+                this.savingAddress = false;
+                console.error('Error al confirmar dirección:', err);
+            }
+        },
+
+        async initGoogleMap() {
+            try {
+                if (!window.google || !window.google.maps) {
+                    console.error('Google Maps API Loader no está disponible.');
+                    return;
+                }
+
+                const { Map } = await google.maps.importLibrary("maps");
+                await google.maps.importLibrary("places");
+
+                const hasInitialCoords = this.lat && this.lng;
+                const center = hasInitialCoords
+                    ? { lat: this.lat, lng: this.lng }
+                    : this.defaultCenter;
+
+                this.map = new Map(this.$refs.mapContainer, {
+                    center: center,
+                    zoom: hasInitialCoords ? 17 : 14,
+                    mapTypeId: 'hybrid',
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                    zoomControl: true,
+                    zoomControlOptions: {
+                        position: google.maps.ControlPosition.RIGHT_CENTER,
+                    },
+                    gestureHandling: 'greedy',
+                });
+
+                if (!hasInitialCoords) {
+                    this.updateCoordinates(center.lat, center.lng, false);
+                }
+
+                this.map.addListener('dragstart', () => {
+                    this.isDragging = true;
+                });
+
+                this.map.addListener('dragend', () => {
+                    this.isDragging = false;
+                });
+
+                this.map.addListener('idle', () => {
+                    this.isDragging = false;
+                    const newCenter = this.map.getCenter();
+                    if (newCenter) {
+                        const lat = parseFloat(newCenter.lat().toFixed(7));
+                        const lng = parseFloat(newCenter.lng().toFixed(7));
+                        this.updateCoordinates(lat, lng, false);
+                    }
+                });
+            } catch (err) {
+                console.error('Error inicializando Google Maps:', err);
+            }
+        },
+
+        updateCoordinates(lat, lng, triggerGeocode = false) {
+            this.lat = lat;
+            this.lng = lng;
+            this.$wire.set(latModel, lat);
+            this.$wire.set(lngModel, lng);
+        },
+
+        async fetchSuggestions() {
+            const query = (this.searchQuery || '').trim();
+            if (query.length < 2) {
+                this.suggestions = [];
+                return;
+            }
+
+            try {
+                const { AutocompleteSuggestion } = await google.maps.importLibrary("places");
+                const tijuanaCenter = new google.maps.LatLng(32.5149, -117.0382);
+
+                const request = {
+                    input: query,
+                    includedRegionCodes: ['mx'],
+                    locationBias: {
+                        center: tijuanaCenter,
+                        radius: 45000,
+                    },
+                };
+
+                const response = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+                if (response && response.suggestions && response.suggestions.length > 0) {
+                    this.suggestions = response.suggestions.slice(0, 8).map(s => {
+                        const pred = s.placePrediction;
+                        return {
+                            title: pred.mainText?.text || pred.text?.text || '',
+                            subtitle: pred.secondaryText?.text || '',
+                            placePrediction: pred,
+                        };
+                    });
+                } else {
+                    this.suggestions = [];
+                }
+            } catch (err) {
+                console.error('Error al obtener sugerencias de Google Places:', err);
+                this.suggestions = [];
+            }
+        },
+
+        async selectSuggestion(item) {
+            this.suggestions = [];
+            this.searchQuery = item.title + (item.subtitle ? ', ' + item.subtitle : '');
+
+            if (item.placePrediction) {
+                try {
+                    const place = item.placePrediction.toPlace();
+                    await place.fetchFields({
+                        fields: ['location', 'displayName', 'formattedAddress', 'addressComponents']
+                    });
+                    if (place.location && this.map) {
+                        this.map.panTo(place.location);
+                        this.map.setZoom(17);
+                        const lat = parseFloat(place.location.lat().toFixed(7));
+                        const lng = parseFloat(place.location.lng().toFixed(7));
+                        this.updateCoordinates(lat, lng, false);
+
+                        const details = this.extractDetailsFromComponents(
+                            place.addressComponents,
+                            place.formattedAddress,
+                            item.title
+                        );
+                        this.applyLocationDetails(details);
+                    }
+                } catch (err) {
+                    console.error('Error al obtener detalles del lugar:', err);
+                }
+            }
+        },
+
+        async performSearch() {
+            const query = (this.searchQuery || '').trim();
+            if (!query) return;
+
+            if (this.suggestions.length > 0) {
+                this.selectSuggestion(this.suggestions[0]);
+                return;
+            }
+
+            this.searching = true;
+            this.searchMessage = '';
+
+            try {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({
+                    address: query + ', Tijuana, Baja California',
+                    componentRestrictions: { country: 'MX' },
+                }, (results, status) => {
+                    this.searching = false;
+                    if (status === 'OK' && results && results[0]) {
+                        const res = results[0];
+                        const loc = res.geometry.location;
+                        if (this.map) {
+                            this.map.panTo(loc);
+                            this.map.setZoom(17);
+                        }
+                        const lat = parseFloat(loc.lat().toFixed(7));
+                        const lng = parseFloat(loc.lng().toFixed(7));
+                        this.updateCoordinates(lat, lng, false);
+                        this.suggestions = [];
+
+                        const details = this.extractDetailsFromComponents(
+                            res.address_components,
+                            res.formatted_address,
+                            query
+                        );
+                        this.applyLocationDetails(details);
+                    } else {
+                        this.searchMessage = 'No encontramos esa dirección. Intenta con una referencia cercana o mueve el mapa.';
+                        setTimeout(() => { this.searchMessage = ''; }, 6000);
+                    }
+                });
+            } catch (err) {
+                this.searching = false;
+                console.error('Error en geocodificación:', err);
             }
         },
 
         getLocation() {
-            this.loading = true;
+            if (!navigator.geolocation) {
+                alert('Tu navegador no soporta geolocalización GPS.');
+                return;
+            }
+
+            this.loadingGps = true;
+            this.searchMessage = '';
+
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    this.$wire.set(latModel, lat);
-                    this.$wire.set(lngModel, lng);
-                    this.updateMarker(lat, lng);
-                    this.map.flyTo([lat, lng], 16);
-                    this.loading = false;
+                    const lat = parseFloat(pos.coords.latitude.toFixed(7));
+                    const lng = parseFloat(pos.coords.longitude.toFixed(7));
+                    if (this.map) {
+                        this.map.panTo({ lat, lng });
+                        this.map.setZoom(18);
+                    }
+                    this.updateCoordinates(lat, lng, false);
+                    this.loadingGps = false;
                 },
                 (err) => {
-                    alert(
-                        'No se pudo obtener la ubicación automáticamente. Toca el mapa para colocar el pin manualmente.'
-                    );
-                    this.loading = false;
-                }, {
-                enableHighAccuracy: true
-            }
+                    this.loadingGps = false;
+                    this.searchMessage = 'No pudimos obtener tu ubicación por GPS. Puedes escribir tu colonia arriba o mover el mapa.';
+                    setTimeout(() => { this.searchMessage = ''; }, 6000);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
     }));

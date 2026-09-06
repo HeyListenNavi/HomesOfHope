@@ -143,35 +143,151 @@
                         />
 
                         <div
-                            class="border-highlight/40 flex flex-col gap-4 rounded-2xl border bg-white/10 p-6"
-                            x-data="locationPicker('land.lat', 'land.lng')"
+                            class="border-highlight/40 flex flex-col gap-6 rounded-3xl border bg-white/10 p-6 md:p-8 shadow-2xl backdrop-blur-md"
+                            x-data="locationPicker('land.lat', 'land.lng', 'land.city', 'land.colony', 'land.address')"
                         >
-                            <h3 class="text-center text-2xl font-bold text-white md:text-3xl">Ubicación GPS</h3>
+                            <div class="flex flex-col gap-1 text-center md:text-left">
+                                <h3 class="text-2xl font-black text-white md:text-3xl flex items-center justify-center md:justify-start gap-3">
+                                    <i class='bx bxs-map text-highlight text-3xl md:text-4xl'></i>
+                                    Ubica tu Terreno en el Mapa
+                                </h3>
+                                <p class="text-lg md:text-xl text-white/80">
+                                    Escribe tu colonia o calle en Tijuana, o arrastra el mapa hasta colocar el pin verde sobre tu terreno.
+                                </p>
+                            </div>
+
+                            <div
+                                class="relative z-[2000] w-full"
+                                x-on:click.outside="suggestions = []"
+                            >
+                                <form
+                                    class="relative flex items-stretch gap-2"
+                                    x-on:submit.prevent="performSearch"
+                                >
+                                    <div class="relative flex-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-white/60">
+                                            <i class='bx bx-search text-2xl'></i>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            x-model="searchQuery"
+                                            x-on:input.debounce.250ms="fetchSuggestions"
+                                            placeholder="Buscar colonia, calle o referencia en Tijuana..."
+                                            class="w-full rounded-2xl border-2 border-white/20 bg-black/50 pl-12 pr-4 py-4 text-xl md:text-2xl font-medium text-white placeholder-white/50 shadow-inner focus:border-highlight focus:bg-black/70 focus:outline-none focus:ring-4 focus:ring-highlight/20"
+                                            autocomplete="off"
+                                        >
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        class="bg-highlight hover:opacity-90 text-white rounded-2xl px-6 py-4 text-lg md:text-xl font-bold transition-all active:scale-95 shrink-0 flex items-center gap-2 shadow-lg"
+                                    >
+                                        <i class='bx bx-search text-2xl' x-show="!searching"></i>
+                                        <i class='bx bx-loader-alt bx-spin text-2xl' x-show="searching" x-cloak></i>
+                                        <span class="hidden sm:inline">Buscar</span>
+                                    </button>
+                                </form>
+
+                                <div
+                                    x-show="suggestions.length > 0"
+                                    x-cloak
+                                    class="absolute top-full left-0 right-0 z-[2050] mt-2 max-h-64 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl divide-y divide-slate-100"
+                                >
+                                    <template x-for="(item, idx) in suggestions" :key="idx">
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center gap-3 rounded-xl p-3 text-left transition hover:bg-slate-100 active:bg-slate-200 cursor-pointer"
+                                            x-on:click="selectSuggestion(item)"
+                                        >
+                                            <i class='bx bxs-map-pin text-2xl text-highlight shrink-0'></i>
+                                            <div class="flex flex-col overflow-hidden">
+                                                <span class="truncate text-base md:text-lg font-bold text-slate-900" x-text="item.title"></span>
+                                                <span class="truncate text-xs md:text-sm font-medium text-slate-500" x-text="item.subtitle" x-show="item.subtitle"></span>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div
+                                x-show="searchMessage"
+                                x-cloak
+                                class="rounded-2xl bg-amber-500/20 border border-amber-400/40 p-3 text-white text-base md:text-lg font-medium flex items-center gap-2"
+                            >
+                                <i class='bx bx-info-circle text-amber-300 text-2xl shrink-0'></i>
+                                <span x-text="searchMessage"></span>
+                            </div>
+
+                            <div class="relative h-[440px] md:h-[500px] w-full overflow-hidden rounded-2xl border-2 border-white/30 shadow-2xl">
+                                <div
+                                    class="h-full w-full"
+                                    x-ref="mapContainer"
+                                    wire:ignore
+                                ></div>
+
+                                <div class="pointer-events-none absolute inset-0 flex items-center justify-center z-[1000]">
+                                    <div class="relative flex flex-col items-center">
+                                        <div
+                                            class="transition-transform duration-150 ease-out"
+                                            x-bind:class="isDragging ? '-translate-y-5 scale-110' : 'translate-y-0 scale-100'"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-14 h-14 md:w-16 md:h-16 filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.7)]" style="fill: #61b346; stroke: #FFFFFF; stroke-width: 1.5px;">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                            </svg>
+                                        </div>
+                                        <div
+                                            class="w-5 h-2.5 rounded-full bg-black/70 blur-[1px] -mt-1 transition-all duration-150"
+                                            x-bind:class="isDragging ? 'scale-75 opacity-40' : 'scale-100 opacity-90'"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
-                                class="bg-highlight hover:bg-highlight/80 flex w-full items-center justify-center gap-3 rounded-full px-8 py-4 text-2xl font-bold text-white shadow-lg transition-transform active:scale-95"
+                                class="w-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center gap-2 rounded-2xl py-3 px-5 text-base md:text-lg font-bold text-white/90 shadow-md transition-all active:scale-[0.99]"
                                 type="button"
                                 x-on:click="getLocation"
                             >
-                                <i
-                                    class='bx bxs-location-plus text-4xl'
-                                    x-show="!loading"
-                                ></i>
-                                <i
-                                    class='bx bx-loader-alt bx-spin text-4xl'
-                                    x-show="loading"
-                                    x-cloak
-                                ></i>
-                                <span x-show="!loading">Usar mi ubicación actual</span>
-                                <span
-                                    x-show="loading"
-                                    x-cloak
-                                >Buscando...</span>
+                                <i class='bx bxs-navigation text-xl' x-show="!loadingGps"></i>
+                                <i class='bx bx-loader-alt bx-spin text-xl' x-show="loadingGps" x-cloak></i>
+                                <span x-show="!loadingGps">Usar mi ubicación actual (GPS)</span>
+                                <span x-show="loadingGps" x-cloak>Obteniendo ubicación GPS...</span>
                             </button>
-                            <div
-                                class="h-80 w-full overflow-hidden rounded-xl border-2 border-white/25"
-                                x-ref="mapContainer"
-                                wire:ignore
-                            ></div>
+
+                            <button
+                                class="w-full bg-highlight hover:opacity-90 flex items-center justify-center gap-3 rounded-2xl py-4.5 px-6 text-xl md:text-2xl font-black text-white shadow-2xl transition-all active:scale-[0.98]"
+                                x-bind:class="confirmedSuccess ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-highlight'"
+                                type="button"
+                                x-on:click="confirmAndFillAddress"
+                                x-bind:disabled="savingAddress"
+                            >
+                                <template x-if="savingAddress">
+                                    <span class="flex items-center gap-2">
+                                        <i class='bx bx-loader-alt bx-spin text-2xl md:text-3xl'></i>
+                                        <span>Obteniendo datos de la dirección...</span>
+                                    </span>
+                                </template>
+                                <template x-if="!savingAddress && confirmedSuccess">
+                                    <span class="flex items-center gap-2">
+                                        <i class='bx bx-check-circle text-2xl md:text-3xl'></i>
+                                        <span>¡Ubicación confirmada!</span>
+                                    </span>
+                                </template>
+                                <template x-if="!savingAddress && !confirmedSuccess">
+                                    <span class="flex items-center gap-2">
+                                        <i class='bx bxs-map-pin text-2xl md:text-3xl'></i>
+                                        <span>Confirmar ubicación y llenar dirección</span>
+                                    </span>
+                                </template>
+                            </button>
+
+                            <div class="flex items-center justify-between rounded-2xl bg-black/40 px-5 py-3.5 border border-white/10">
+                                <div class="flex items-center gap-2 text-white/95">
+                                    <i class='bx bx-check-circle text-highlight text-2xl md:text-3xl'></i>
+                                    <span class="text-base md:text-lg font-bold">Ubicación seleccionada en el marcador verde</span>
+                                </div>
+                                <span class="text-sm md:text-base text-white/60 hidden sm:inline">Arrastra el mapa si deseas ajustarla</span>
+                            </div>
+
                             @error('land.lat')
                                 <span class="block text-center text-xl font-bold text-red-300">⚠
                                     {{ $message }}</span>
@@ -316,26 +432,152 @@
                         />
 
                         <div
-                            class="flex flex-col gap-4 rounded-2xl border border-amber-400/40 bg-white/10 p-6"
-                            x-data="locationPicker('home.lat', 'home.lng')"
+                            class="border-amber-400/40 flex flex-col gap-6 rounded-3xl border bg-white/10 p-6 md:p-8 shadow-2xl backdrop-blur-md"
+                            x-data="locationPicker('home.lat', 'home.lng', 'home.city', 'home.colony', 'home.address')"
                         >
-                            <h3 class="text-center text-2xl font-bold text-white md:text-3xl">Ubicación GPS</h3>
+                            <div class="flex flex-col gap-1 text-center md:text-left">
+                                <h3 class="text-2xl font-black text-white md:text-3xl flex items-center justify-center md:justify-start gap-3">
+                                    <i class='bx bxs-buildings text-amber-400 text-3xl md:text-4xl'></i>
+                                    Ubica la Casa Donde Vives Actualmente
+                                </h3>
+                                <p class="text-lg md:text-xl text-white/80">
+                                    Escribe tu colonia o calle en Tijuana, o arrastra el mapa hasta colocar el pin amarillo sobre la vivienda.
+                                </p>
+                            </div>
+
+                            <div
+                                class="relative z-[2000] w-full"
+                                x-on:click.outside="suggestions = []"
+                            >
+                                <form
+                                    class="relative flex items-stretch gap-2"
+                                    x-on:submit.prevent="performSearch"
+                                >
+                                    <div class="relative flex-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-white/60">
+                                            <i class='bx bx-search text-2xl'></i>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            x-model="searchQuery"
+                                            x-on:input.debounce.250ms="fetchSuggestions"
+                                            placeholder="Buscar colonia, calle o referencia en Tijuana..."
+                                            class="w-full rounded-2xl border-2 border-white/20 bg-black/50 pl-12 pr-4 py-4 text-xl md:text-2xl font-medium text-white placeholder-white/50 shadow-inner focus:border-amber-400 focus:bg-black/70 focus:outline-none focus:ring-4 focus:ring-amber-400/20"
+                                            autocomplete="off"
+                                        >
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        class="bg-amber-500 hover:bg-amber-600 text-white rounded-2xl px-6 py-4 text-lg md:text-xl font-bold transition-all active:scale-95 shrink-0 flex items-center gap-2 shadow-lg"
+                                    >
+                                        <i class='bx bx-search text-2xl' x-show="!searching"></i>
+                                        <i class='bx bx-loader-alt bx-spin text-2xl' x-show="searching" x-cloak></i>
+                                        <span class="hidden sm:inline">Buscar</span>
+                                    </button>
+                                </form>
+
+                                <div
+                                    x-show="suggestions.length > 0"
+                                    x-cloak
+                                    class="absolute top-full left-0 right-0 z-[2050] mt-2 max-h-64 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl divide-y divide-slate-100"
+                                >
+                                    <template x-for="(item, idx) in suggestions" :key="idx">
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center gap-3 rounded-xl p-3 text-left transition hover:bg-slate-100 active:bg-slate-200 cursor-pointer"
+                                            x-on:click="selectSuggestion(item)"
+                                        >
+                                            <i class='bx bxs-map-pin text-2xl text-amber-500 shrink-0'></i>
+                                            <div class="flex flex-col overflow-hidden">
+                                                <span class="truncate text-base md:text-lg font-bold text-slate-900" x-text="item.title"></span>
+                                                <span class="truncate text-xs md:text-sm font-medium text-slate-500" x-text="item.subtitle" x-show="item.subtitle"></span>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div
+                                x-show="searchMessage"
+                                x-cloak
+                                class="rounded-2xl bg-amber-500/20 border border-amber-400/40 p-3 text-white text-base md:text-lg font-medium flex items-center gap-2"
+                            >
+                                <i class='bx bx-info-circle text-amber-300 text-2xl shrink-0'></i>
+                                <span x-text="searchMessage"></span>
+                            </div>
+
+                            <div class="relative h-[440px] md:h-[500px] w-full overflow-hidden rounded-2xl border-2 border-white/30 shadow-2xl">
+                                <div
+                                    class="h-full w-full"
+                                    x-ref="mapContainer"
+                                    wire:ignore
+                                ></div>
+
+                                <div class="pointer-events-none absolute inset-0 flex items-center justify-center z-[1000]">
+                                    <div class="relative flex flex-col items-center">
+                                        <div
+                                            class="transition-transform duration-150 ease-out"
+                                            x-bind:class="isDragging ? '-translate-y-5 scale-110' : 'translate-y-0 scale-100'"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-14 h-14 md:w-16 md:h-16 filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.7)]" style="fill: #F59E0B; stroke: #FFFFFF; stroke-width: 1.5px;">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                            </svg>
+                                        </div>
+                                        <div
+                                            class="w-5 h-2.5 rounded-full bg-black/70 blur-[1px] -mt-1 transition-all duration-150"
+                                            x-bind:class="isDragging ? 'scale-75 opacity-40' : 'scale-100 opacity-90'"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
-                                class="flex w-full items-center justify-center gap-3 rounded-full bg-amber-500 px-8 py-4 text-2xl font-bold text-white shadow-lg hover:bg-amber-600"
+                                class="w-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center gap-2 rounded-2xl py-3 px-5 text-base md:text-lg font-bold text-white/90 shadow-md transition-all active:scale-[0.99]"
                                 type="button"
                                 x-on:click="getLocation"
                             >
-                                <i
-                                    class='bx bxs-location-plus text-4xl'
-                                    x-show="!loading"
-                                ></i>
-                                <span x-show="!loading">Usar mi ubicación actual</span>
+                                <i class='bx bxs-navigation text-xl' x-show="!loadingGps"></i>
+                                <i class='bx bx-loader-alt bx-spin text-xl' x-show="loadingGps" x-cloak></i>
+                                <span x-show="!loadingGps">Usar mi ubicación actual (GPS)</span>
+                                <span x-show="loadingGps" x-cloak>Obteniendo ubicación GPS...</span>
                             </button>
-                            <div
-                                class="h-80 w-full overflow-hidden rounded-xl border-2 border-white/25"
-                                x-ref="mapContainer"
-                                wire:ignore
-                            ></div>
+
+                            <!-- Botón Principal Prominente para Confirmar y Llenar Dirección -->
+                            <button
+                                class="w-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-3 rounded-2xl py-4.5 px-6 text-xl md:text-2xl font-black text-white shadow-2xl transition-all active:scale-[0.98]"
+                                x-bind:class="confirmedSuccess ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-amber-500'"
+                                type="button"
+                                x-on:click="confirmAndFillAddress"
+                                x-bind:disabled="savingAddress"
+                            >
+                                <template x-if="savingAddress">
+                                    <span class="flex items-center gap-2">
+                                        <i class='bx bx-loader-alt bx-spin text-2xl md:text-3xl'></i>
+                                        <span>Obteniendo datos de la dirección...</span>
+                                    </span>
+                                </template>
+                                <template x-if="!savingAddress && confirmedSuccess">
+                                    <span class="flex items-center gap-2">
+                                        <i class='bx bx-check-circle text-2xl md:text-3xl'></i>
+                                        <span>¡Ubicación confirmada!</span>
+                                    </span>
+                                </template>
+                                <template x-if="!savingAddress && !confirmedSuccess">
+                                    <span class="flex items-center gap-2">
+                                        <i class='bx bxs-buildings text-2xl md:text-3xl'></i>
+                                        <span>Confirmar ubicación y llenar dirección</span>
+                                    </span>
+                                </template>
+                            </button>
+
+                            <div class="flex items-center justify-between rounded-2xl bg-black/40 px-5 py-3.5 border border-white/10">
+                                <div class="flex items-center gap-2 text-white/95">
+                                    <i class='bx bx-check-circle text-amber-400 text-2xl md:text-3xl'></i>
+                                    <span class="text-base md:text-lg font-bold">Ubicación seleccionada en el marcador amarillo</span>
+                                </div>
+                                <span class="text-sm md:text-base text-white/60 hidden sm:inline">Arrastra el mapa si deseas ajustarla</span>
+                            </div>
+
                             @error('home.lat')
                                 <span class="block text-center text-xl font-bold text-red-300">⚠
                                     {{ $message }}</span>

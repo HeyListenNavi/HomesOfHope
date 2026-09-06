@@ -45,6 +45,10 @@ return [
         'key' => env('CARTO_BASEMAP_KEY'),
     ],
 
+    'google' => [
+        'maps_key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
     'n8n' => [
         'webhook_url' => env('N8N_WEBHOOK_URL'),
     ],
