@@ -34,50 +34,49 @@
     @else
         @if ($step <= $this->totalSteps)
             <div class="flex flex-col gap-8">
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-center justify-end">
-                        <span class="text-lg font-bold uppercase tracking-widest text-white/80">
-                            Paso
-                            {{ $step }}
-                            de {{ $this->totalSteps }}</span>
+                <div class="flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between text-white px-1">
+                        <span class="text-xl md:text-2xl font-bold tracking-wide">
+                            Paso {{ $step }} de {{ $this->totalSteps }}
+                        </span>
+                        <span class="text-lg md:text-xl font-bold text-white/70">
+                            {{ round((min($step, $this->totalSteps) / $this->totalSteps) * 100) }}%
+                        </span>
                     </div>
-                    <div class="h-4 w-full rounded-full bg-white/15">
+                    <div class="h-3.5 w-full rounded-full bg-white/15 overflow-hidden">
                         <div
-                            class="bg-highlight h-4 rounded-full transition-all duration-500"
+                            class="bg-highlight h-3.5 rounded-full transition-all duration-500 shadow-md"
                             style="width: {{ (min($step, $this->totalSteps) / $this->totalSteps) * 100 }}%"
                         ></div>
                     </div>
                 </div>
 
                 @if ($errors->any())
-                    <div class="flex items-center gap-4 rounded-2xl border-2 border-red-400 bg-red-500/20 p-4">
+                    <div class="flex items-center gap-4 rounded-2xl border-2 border-red-400 bg-red-500/20 p-5 shadow-lg animate-in fade-in duration-300">
                         <i class='bx bxs-error-circle bx-md shrink-0 text-red-400'></i>
-                        <p class="text-xl font-bold text-red-200">Revisa los campos marcados en rojo abajo. Hay algunos
-                            datos incompletos o incorrectos.</p>
+                        <p class="text-xl font-bold text-red-200">Revisa los campos marcados en rojo abajo. Hay algunos datos incompletos o que necesitan corrección.</p>
                     </div>
                 @endif
 
                 @if ($this->currentStep && $this->currentStep['type'] === 'family')
                     <div class="animate-in fade-in slide-in-from-bottom-4 flex flex-col gap-8 duration-500">
                         <x-form-section
-                            title="👨‍👩‍👧‍👦 Tu Familia"
+                            title="👨‍👩‍👧‍👦 Datos de tu Familia"
                             icon="bxs-home-heart"
-                            subtitle="Por favor, responde estas preguntas básicas sobre tu familia."
                         />
 
                         <x-form-text
                             wire:model="family.name"
-                            label="¿Cómo se llama tu familia?"
-                            description="Solo los apellidos. Ejemplo: Pérez López"
-                            icon="bxs-group"
-                            placeholder="Escribe aquí..."
+                            label="¿Cuáles son los apellidos de tu hijo menor?"
+                            description="Escribe solo los dos apellidos (Ejemplo: Pérez López). Si no tienen hijos, escribe los apellidos de la pareja."
+                            placeholder="Ej. Pérez López"
                             error="family.name"
                         />
 
                         <x-form-toggle
                             label="¿Viven actualmente en el terreno donde se va a construir la casa?"
-                            yes-label="Sí, aquí vivimos"
-                            no-label="No, rentamos o nos prestan"
+                            yes-label="Sí, ya vivimos aquí en el terreno"
+                            no-label="No, rentamos o nos prestan otra casa"
                             yes-active="{{ $family->lives_on_land === true }}"
                             no-active="{{ $family->lives_on_land === false }}"
                             wire-click-yes="$set('family.lives_on_land', true)"
@@ -87,16 +86,16 @@
 
                         <x-form-counter
                             value="{{ $family->member_count }}"
-                            label="¿Cuántas personas van a vivir en la casa?"
-                            description="Incluyéndote a ti."
+                            label="¿Cuántas personas van a vivir en la casa en total?"
+                            description="Incluyéndote a ti y a todos tus familiares que vivirán juntos."
                             field="family.member_count"
                             error="family.member_count"
                         />
 
                         <x-form-toggle
                             label="¿Los papás están casados por el civil?"
-                            yes-label="Sí, están casados"
-                            no-label="No (unión libre / no casados)"
+                            yes-label="Sí, casados por el civil"
+                            no-label="No (unión libre o solteros)"
                             yes-active="{{ $family->parents_married === true }}"
                             no-active="{{ $family->parents_married === false }}"
                             yes-color="highlight"
@@ -107,9 +106,9 @@
                         />
 
                         <x-form-toggle
-                            label="¿Alguien de la familia tiene adicciones?"
+                            label="¿Alguien de la familia tiene problemas de adicciones?"
                             yes-label="Sí"
-                            no-label="No, ninguna"
+                            no-label="No, nadie"
                             yes-active="{{ $family->has_addictions === true }}"
                             no-active="{{ $family->has_addictions === false }}"
                             yes-color="amber-400"
@@ -124,8 +123,8 @@
                             <div class="animate-in fade-in slide-in-from-top-2 duration-300">
                                 <x-form-textarea
                                     wire:model="family.addictions_details"
-                                    label="Detalles de las adicciones"
-                                    placeholder="Por favor proporciona más detalles de forma confidencial..."
+                                    label="Detalles de las adicciones (Confidencial)"
+                                    placeholder="Por favor proporciona más detalles de forma completamente confidencial..."
                                     rows="3"
                                     error="family.addictions_details"
                                 />
@@ -148,7 +147,6 @@
                         >
                             <div class="flex flex-col gap-1 text-center md:text-left">
                                 <h3 class="text-2xl font-black text-white md:text-3xl flex items-center justify-center md:justify-start gap-3">
-                                    <i class='bx bxs-map text-highlight text-3xl md:text-4xl'></i>
                                     Ubica tu Terreno en el Mapa
                                 </h3>
                                 <p class="text-lg md:text-xl text-white/80">
@@ -279,14 +277,6 @@
                                     </span>
                                 </template>
                             </button>
-
-                            <div class="flex items-center justify-between rounded-2xl bg-black/40 px-5 py-3.5 border border-white/10">
-                                <div class="flex items-center gap-2 text-white/95">
-                                    <i class='bx bx-check-circle text-highlight text-2xl md:text-3xl'></i>
-                                    <span class="text-base md:text-lg font-bold">Ubicación seleccionada en el marcador verde</span>
-                                </div>
-                                <span class="text-sm md:text-base text-white/60 hidden sm:inline">Arrastra el mapa si deseas ajustarla</span>
-                            </div>
 
                             @error('land.lat')
                                 <span class="block text-center text-xl font-bold text-red-300">⚠
@@ -437,7 +427,6 @@
                         >
                             <div class="flex flex-col gap-1 text-center md:text-left">
                                 <h3 class="text-2xl font-black text-white md:text-3xl flex items-center justify-center md:justify-start gap-3">
-                                    <i class='bx bxs-buildings text-amber-400 text-3xl md:text-4xl'></i>
                                     Ubica la Casa Donde Vives Actualmente
                                 </h3>
                                 <p class="text-lg md:text-xl text-white/80">
@@ -705,25 +694,25 @@
                     @php
                         $memberIndex = $this->currentStep['index'];
                         $member = $familyMembers->list[$memberIndex];
-                        $title = $memberIndex === 0 ? 'Titular de la familia' : 'Familiar ' . ($memberIndex + 1);
+                        $title = $memberIndex === 0 ? 'Titular de la familia (Tú)' : 'Familiar ' . ($memberIndex + 1);
                     @endphp
                     <div
                         class="animate-in fade-in slide-in-from-right-8 flex flex-col gap-8 duration-500"
                         wire:key="member-upload-{{ $memberIndex }}"
                     >
                         <x-form-section
-                            title="👤 {{ $title }}"
-                            icon="bxs-user-badge"
-                            subtitle="Primero, sube la foto de su documento de identificación."
+                            title="👤 Fotos de Documentos: {{ $title }}"
+                            icon="bxs-camera"
+                            subtitle="Toma una foto clara o sube el documento. El sistema lo escaneará y enderezará automáticamente."
                         />
 
                         <x-form-upload-card
-                            title="Identificación Oficial (INE)"
+                            title="1. Identificación Oficial (INE o Acta de Nacimiento)"
                             badge="optional"
-                            description="Solo mayores de 18 años. Si es menor, sube su Acta de Nacimiento."
+                            description="Para mayores de 18 años sube su credencial de elector (INE). Si es menor de edad, sube su Acta de Nacimiento."
                             :success="!empty($member['identification']) || !empty($member['birth_certificate'])"
-                            success-text="Documento cargado con éxito."
-                            remove-label="Quitar y cambiar"
+                            success-text="¡Documento recibido con éxito!"
+                            remove-label="Quitar y cambiar documento"
                             remove-action="$set('familyMembers.list.{{ $memberIndex }}.identification', null); $set('familyMembers.list.{{ $memberIndex }}.birth_certificate', null)"
                             :error="[
                                 'familyMembers.list.{{ $memberIndex }}.identification',
@@ -731,54 +720,186 @@
                             ]"
                         >
                             <div class="grid grid-cols-1 gap-6">
-                                <x-form-upload-label
-                                    icon="bxs-id-card"
-                                    text="Subir INE (Adulto)"
-                                    wire:model="familyMembers.list.{{ $memberIndex }}.identification"
-                                    accept="image/*,.pdf"
-                                />
+                                <div x-data="documentScanner('familyMembers.list.{{ $memberIndex }}.identification')" class="flex flex-col gap-2">
+                                    <x-form-upload-label
+                                        icon="bxs-id-card"
+                                        text="Tomar foto de INE (Adulto)"
+                                        x-on:change="handleFileInput($event)"
+                                        accept="image/*,.pdf"
+                                        capture="environment"
+                                    />
+                                    <template x-if="scanning">
+                                        <div class="flex items-center justify-center gap-2 text-xl font-bold text-amber-300 py-2">
+                                            <i class='bx bx-loader-alt bx-spin text-2xl'></i>
+                                            <span x-text="statusMessage"></span>
+                                        </div>
+                                    </template>
+                                </div>
 
-                                <div class="text-center text-xl font-bold text-white/50">— O —</div>
+                                <div class="text-center text-xl font-bold text-white/50">— O SI ES MENOR DE EDAD —</div>
 
-                                <x-form-upload-label
-                                    icon="bxs-file"
-                                    icon-class="text-amber-300 text-7xl"
-                                    bg-class="bg-amber-400/10 hover:bg-amber-400/20"
-                                    border-class="border-amber-300/50"
-                                    text="Subir Acta (Menor)"
-                                    wire:model="familyMembers.list.{{ $memberIndex }}.birth_certificate"
-                                    accept="image/*,.pdf"
-                                />
+                                <div x-data="documentScanner('familyMembers.list.{{ $memberIndex }}.birth_certificate')" class="flex flex-col gap-2">
+                                    <x-form-upload-label
+                                        icon="bxs-file"
+                                        icon-class="text-amber-300 text-7xl"
+                                        bg-class="bg-amber-400/10 hover:bg-amber-400/20"
+                                        border-class="border-amber-300/50"
+                                        text="Tomar foto de Acta (Menor)"
+                                        x-on:change="handleFileInput($event)"
+                                        accept="image/*,.pdf"
+                                        capture="environment"
+                                    />
+                                    <template x-if="scanning">
+                                        <div class="flex items-center justify-center gap-2 text-xl font-bold text-amber-300 py-2">
+                                            <i class='bx bx-loader-alt bx-spin text-2xl'></i>
+                                            <span x-text="statusMessage"></span>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                             <x-form-upload-loading
-                                text="Cargando..."
+                                text="Subiendo y procesando..."
                                 wire:target="familyMembers.list.{{ $memberIndex }}.identification, familyMembers.list.{{ $memberIndex }}.birth_certificate"
                             />
                         </x-form-upload-card>
 
                         <x-form-upload-card
-                            title="Comprobante de Salario"
-                            description="Sube una foto de su recibo si esta persona aporta dinero a la casa."
+                            title="2. Comprobante de Ingresos / Salario"
+                            badge="optional"
+                            description="Si esta persona trabaja y aporta dinero al hogar, sube una foto de su recibo o comprobante de sueldo."
                             :success="!empty($member['income_proof'])"
-                            success-text="Recibo cargado."
-                            remove-label="Quitar y cambiar"
+                            success-text="¡Comprobante recibido con éxito!"
+                            remove-label="Quitar y cambiar comprobante"
                             remove-action="$set('familyMembers.list.{{ $memberIndex }}.income_proof', null)"
                             error="familyMembers.list.{{ $memberIndex }}.income_proof"
                         >
-                            <x-form-upload-label
-                                icon="bxs-wallet"
-                                icon-class="text-emerald-300 text-6xl"
-                                bg-class="bg-emerald-400/10 hover:bg-emerald-400/20"
-                                border-class="border-emerald-300/50"
-                                text="Subir comprobante de ingresos"
-                                text-class="text-2xl font-bold text-white"
-                                padding-class="px-6 py-10"
-                                wire:model="familyMembers.list.{{ $memberIndex }}.income_proof"
-                                accept="image/*,.pdf"
-                            />
+                            <div x-data="documentScanner('familyMembers.list.{{ $memberIndex }}.income_proof')" class="flex flex-col gap-2">
+                                <x-form-upload-label
+                                    icon="bxs-wallet"
+                                    icon-class="text-emerald-300 text-6xl"
+                                    bg-class="bg-emerald-400/10 hover:bg-emerald-400/20"
+                                    border-class="border-emerald-300/50"
+                                    text="Tomar foto de comprobante de ingresos"
+                                    text-class="text-2xl font-bold text-white"
+                                    padding-class="px-6 py-10"
+                                    x-on:change="handleFileInput($event)"
+                                    accept="image/*,.pdf"
+                                    capture="environment"
+                                />
+                                <template x-if="scanning">
+                                    <div class="flex items-center justify-center gap-2 text-xl font-bold text-amber-300 py-2">
+                                        <i class='bx bx-loader-alt bx-spin text-2xl'></i>
+                                        <span x-text="statusMessage"></span>
+                                    </div>
+                                </template>
+                            </div>
                             <x-form-upload-loading
-                                wire:target="familyMembers.list.{{ $memberIndex }}.income_proof" />
+                                text="Subiendo comprobante..."
+                                wire:target="familyMembers.list.{{ $memberIndex }}.income_proof"
+                            />
                         </x-form-upload-card>
+                    </div>
+                @endif
+
+                @if ($this->currentStep && $this->currentStep['type'] === 'general_docs')
+                    <div class="animate-in fade-in slide-in-from-right-8 flex flex-col gap-8 duration-500">
+                        <x-form-section
+                            title="📸 Fotos Finales del Terreno y Familia"
+                            icon="bxs-folder-open"
+                            subtitle="Ya casi terminamos. Sube estas últimas fotos para completar tu expediente."
+                        />
+
+                        <x-form-upload-card
+                            title="1. Foto Familiar Completa"
+                            badge="optional"
+                            description="Una foto donde aparezcan juntas TODAS las personas que vivirán en la casa."
+                            :success="(bool) $docs->family_photo"
+                            success-text="¡Foto familiar recibida con éxito!"
+                            remove-label="Quitar y tomar otra foto"
+                            remove-action="$set('docs.family_photo', null)"
+                            error="docs.family_photo"
+                        >
+                            <x-form-upload-label
+                                icon="bxs-camera"
+                                text="Tomar foto familiar o elegir del celular"
+                                wire:model="docs.family_photo"
+                                accept="image/*"
+                                capture="environment"
+                            />
+                            <x-form-upload-loading wire:target="docs.family_photo" text="Subiendo foto familiar..." />
+                        </x-form-upload-card>
+
+                        <x-form-upload-card
+                            title="2. Título de Propiedad o Contrato del Terreno"
+                            badge="optional"
+                            description="Sube una foto clara del título, cesión de derechos o contrato de compraventa del terreno."
+                            :success="(bool) $docs->land_ownership"
+                            success-text="¡Documento del terreno recibido con éxito!"
+                            remove-label="Quitar y subir otro documento"
+                            remove-action="$set('docs.land_ownership', null)"
+                            error="docs.land_ownership"
+                        >
+                            <div x-data="documentScanner('docs.land_ownership')" class="flex flex-col gap-2">
+                                <x-form-upload-label
+                                    icon="bxs-file"
+                                    icon-class="text-amber-300 text-7xl"
+                                    bg-class="bg-amber-400/10 hover:bg-amber-400/20"
+                                    border-class="border-amber-300/50"
+                                    text="Tomar foto del título o contrato"
+                                    x-on:change="handleFileInput($event)"
+                                    accept="image/*,.pdf"
+                                    capture="environment"
+                                />
+                                <template x-if="scanning">
+                                    <div class="flex items-center justify-center gap-2 text-xl font-bold text-amber-300 py-2">
+                                        <i class='bx bx-loader-alt bx-spin text-2xl'></i>
+                                        <span x-text="statusMessage"></span>
+                                    </div>
+                                </template>
+                            </div>
+                            <x-form-upload-loading wire:target="docs.land_ownership" text="Subiendo documento..." />
+                        </x-form-upload-card>
+
+                        @if ($family->parents_married === true)
+                            <x-form-upload-card
+                                title="3. Acta de Matrimonio Civil"
+                                badge="optional"
+                                description="Sube una foto clara del acta de matrimonio civil de los papás."
+                                :success="(bool) $docs->marriage_certificate"
+                                success-text="¡Acta de matrimonio recibida con éxito!"
+                                remove-label="Quitar y subir otra acta"
+                                remove-action="$set('docs.marriage_certificate', null)"
+                                error="docs.marriage_certificate"
+                            >
+                                <div x-data="documentScanner('docs.marriage_certificate')" class="flex flex-col gap-2">
+                                    <x-form-upload-label
+                                        icon="bxs-heart"
+                                        icon-class="text-pink-300 text-7xl"
+                                        bg-class="bg-pink-400/10 hover:bg-pink-400/20"
+                                        border-class="border-pink-300/50"
+                                        text="Tomar foto del acta de matrimonio"
+                                        x-on:change="handleFileInput($event)"
+                                        accept="image/*,.pdf"
+                                        capture="environment"
+                                    />
+                                    <template x-if="scanning">
+                                        <div class="flex items-center justify-center gap-2 text-xl font-bold text-amber-300 py-2">
+                                            <i class='bx bx-loader-alt bx-spin text-2xl'></i>
+                                            <span x-text="statusMessage"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                                <x-form-upload-loading wire:target="docs.marriage_certificate" text="Subiendo acta..." />
+                            </x-form-upload-card>
+                        @endif
+
+                        <x-form-receipts-upload
+                            label="4. Últimos Recibos de Pago del Terreno (Hasta 5 recibos)"
+                            description="Sube las fotos de tus recibos más recientes para comprobar tus pagos."
+                            :receipts="$docs->land_receipts"
+                            model="docs.new_land_receipts"
+                            :error="['docs.land_receipts', 'docs.land_receipts.*']"
+                        />
                     </div>
                 @endif
 
@@ -786,44 +907,48 @@
                     @php
                         $memberIndex = $this->currentStep['index'];
                         $member = $familyMembers->list[$memberIndex];
-                        $title = $memberIndex === 0 ? 'Titular de la familia' : 'Familiar ' . ($memberIndex + 1);
+                        $title = $memberIndex === 0 ? 'Titular de la familia (Tú)' : 'Familiar ' . ($memberIndex + 1);
                     @endphp
                     <div
                         class="animate-in fade-in slide-in-from-right-8 flex flex-col gap-8 duration-500"
                         wire:key="member-review-{{ $memberIndex }}"
                     >
                         <x-form-section
-                            title="📝 Datos de {{ $title }}"
-                            subtitle="Completa los datos del familiar."
+                            title="📝 Datos Personales: {{ $title }}"
+                            icon="bxs-user-detail"
+                            subtitle="Verifica y completa la información personal de esta persona."
                         />
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.name"
                             label="Nombre(s)"
                             required="true"
+                            placeholder="Ej. María Guadalupe"
                             error="familyMembers.list.{{ $memberIndex }}.name"
                         />
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.paternal_surname"
-                            label="Apellido Paterno"
+                            label="Primer Apellido (Paterno)"
                             required="true"
+                            placeholder="Ej. Pérez"
                             error="familyMembers.list.{{ $memberIndex }}.paternal_surname"
                         />
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.maternal_surname"
-                            label="Apellido Materno"
+                            label="Segundo Apellido (Materno)"
                             required="true"
+                            placeholder="Ej. López"
                             error="familyMembers.list.{{ $memberIndex }}.maternal_surname"
                         />
                         <x-form-select
                             wire:model.live="familyMembers.list.{{ $memberIndex }}.relationship"
-                            label="Parentesco"
+                            label="¿Qué es de ti esta persona? (Relación familiar)"
                             required="true"
                             error="familyMembers.list.{{ $memberIndex }}.relationship"
                         >
                             <option
                                 class="font-bold text-black"
                                 value=""
-                            >Selecciona...</option>
+                            >Selecciona una opción...</option>
                             @foreach (\App\Enums\Relationship::cases() as $rel)
                                 <option
                                     class="text-slate-800"
@@ -834,13 +959,13 @@
 
                         <x-form-select
                             wire:model="familyMembers.list.{{ $memberIndex }}.marital_status"
-                            label="Estado Civil"
+                            label="¿Cuál es su estado civil?"
                             error="familyMembers.list.{{ $memberIndex }}.marital_status"
                         >
                             <option
                                 class="font-bold text-black"
                                 value=""
-                            >Selecciona...</option>
+                            >Selecciona una opción...</option>
                             @foreach (\App\Enums\MaritalStatus::cases() as $maritalStatus)
                                 <option
                                     class="text-slate-800"
@@ -858,26 +983,28 @@
                         <x-form-text
                             class="uppercase"
                             wire:model="familyMembers.list.{{ $memberIndex }}.curp"
-                            label="CURP"
+                            label="CURP (Opcional)"
+                            description="Son 18 letras y números. Si no te lo sabes, puedes dejarlo en blanco."
                             optional="true"
-                            placeholder="18 letras y números"
+                            placeholder="Ej. ABCD900101HBCXXX01"
                             error="familyMembers.list.{{ $memberIndex }}.curp"
                         />
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.phone"
-                            label="Teléfono / Celular"
+                            label="Número de Teléfono o Celular"
+                            placeholder="Ej. 664 123 4567"
                             icon="bxs-phone"
                             error="familyMembers.list.{{ $memberIndex }}.phone"
                         />
                         <x-form-select
                             wire:model="familyMembers.list.{{ $memberIndex }}.occupation"
-                            label="Ocupación"
+                            label="¿En qué trabaja o a qué se dedica?"
                             error="familyMembers.list.{{ $memberIndex }}.occupation"
                         >
                             <option
                                 class="font-bold text-black"
                                 value=""
-                            >Selecciona...</option>
+                            >Selecciona una opción...</option>
                             @foreach (\App\Enums\Occupation::cases() as $occ)
                                 <option
                                     class="text-slate-800"
@@ -887,7 +1014,8 @@
                         </x-form-select>
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.weekly_income"
-                            label="Ingreso semanal (aprox.)"
+                            label="¿Cuánto dinero gana por semana en su trabajo aproximadamente?"
+                            description="Si no trabaja o es menor de edad, puedes dejarlo en $0."
                             inputmode="decimal"
                             placeholder="$ 0"
                             error="familyMembers.list.{{ $memberIndex }}.weekly_income"
@@ -895,13 +1023,13 @@
 
                         <x-form-select
                             wire:model="familyMembers.list.{{ $memberIndex }}.education_level"
-                            label="Nivel de Estudios"
+                            label="¿Hasta qué nivel escolar estudió?"
                             error="familyMembers.list.{{ $memberIndex }}.education_level"
                         >
                             <option
                                 class="font-bold text-black"
                                 value=""
-                            >Selecciona...</option>
+                            >Selecciona una opción...</option>
                             @foreach (\App\Enums\EducationLevel::cases() as $level)
                                 <option
                                     class="text-slate-800"
@@ -912,7 +1040,8 @@
 
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.education_grade"
-                            label="Grado Cursado"
+                            label="¿Qué año o grado escolar cursó?"
+                            description="Ejemplo: Si terminó 3ro de primaria o secundaria, escribe 3."
                             placeholder="Ej. 3"
                             inputmode="numeric"
                             error="familyMembers.list.{{ $memberIndex }}.education_grade"
@@ -920,13 +1049,13 @@
 
                         <x-form-select
                             wire:model="familyMembers.list.{{ $memberIndex }}.religion"
-                            label="Religión"
+                            label="¿Cuál es su religión o creencia?"
                             error="familyMembers.list.{{ $memberIndex }}.religion"
                         >
                             <option
                                 class="font-bold text-black"
                                 value=""
-                            >Selecciona...</option>
+                            >Selecciona una opción...</option>
                             @foreach (\App\Enums\Religion::cases() as $religion)
                                 <option
                                     class="text-slate-800"
@@ -938,22 +1067,22 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <x-form-text
                                 wire:model="familyMembers.list.{{ $memberIndex }}.origin_country"
-                                label="País de Origen"
+                                label="País de Nacimiento"
                                 placeholder="Ej. México"
                                 error="familyMembers.list.{{ $memberIndex }}.origin_country"
                             />
                             
                             <x-form-text
                                 wire:model="familyMembers.list.{{ $memberIndex }}.origin_state"
-                                label="Estado de Origen"
-                                placeholder="Ej. Baja California"
+                                label="Estado o Entidad de Nacimiento"
+                                placeholder="Ej. Baja California, Sinaloa, Puebla..."
                                 error="familyMembers.list.{{ $memberIndex }}.origin_state"
                             />
                         </div>
 
                         <x-form-select
                             wire:model.live="familyMembers.list.{{ $memberIndex }}.speaks_indigenous_language"
-                            label="¿Habla alguna lengua indígena?"
+                            label="¿Habla alguna lengua indígena o dialecto originario?"
                             error="familyMembers.list.{{ $memberIndex }}.speaks_indigenous_language"
                         >
                             <option
@@ -972,7 +1101,7 @@
                         @if (!empty($member['speaks_indigenous_language']))
                             <x-form-select
                                 wire:model="familyMembers.list.{{ $memberIndex }}.indigenous_language"
-                                label="¿Cuál lengua?"
+                                label="¿Cuál lengua o dialecto habla?"
                                 error="familyMembers.list.{{ $memberIndex }}.indigenous_language"
                             >
                                 <option
@@ -992,7 +1121,7 @@
                             <div class="animate-in fade-in slide-in-from-top-2 flex flex-col gap-8 duration-300">
                                 <x-form-select
                                     wire:model.live="familyMembers.list.{{ $memberIndex }}.is_pregnant"
-                                    label="¿Está embarazada?"
+                                    label="¿Esta persona está embarazada actualmente?"
                                     error="familyMembers.list.{{ $memberIndex }}.is_pregnant"
                                 >
                                     <option
@@ -1002,7 +1131,7 @@
                                     <option
                                         class="text-slate-800"
                                         value="1"
-                                    >Sí</option>
+                                    >Sí, está embarazada</option>
                                     <option
                                         class="text-slate-800"
                                         value="0"
@@ -1011,7 +1140,8 @@
                                 @if (!empty($familyMembers->list[$memberIndex]['is_pregnant']))
                                     <x-form-text
                                         wire:model="familyMembers.list.{{ $memberIndex }}.pregnancy_months"
-                                        label="¿Cuántos meses tiene?"
+                                        label="¿Cuántos meses de embarazo tiene?"
+                                        placeholder="Ej. 5"
                                         inputmode="numeric"
                                         error="familyMembers.list.{{ $memberIndex }}.pregnancy_months"
                                     />
@@ -1021,15 +1151,16 @@
 
                         <x-form-text
                             wire:model="familyMembers.list.{{ $memberIndex }}.medical_notes"
-                            label="¿Necesita atención médica especial?"
-                            placeholder="Ej. diabetes, silla de ruedas..."
+                            label="¿Tiene alguna enfermedad, discapacidad o atención médica especial?"
+                            description="Ejemplo: Diabetes, presión alta, utiliza silla de ruedas, etc."
+                            placeholder="Describe aquí..."
                             error="familyMembers.list.{{ $memberIndex }}.medical_notes"
                         />
                         <x-form-select
                             class="border-highlight/50"
                             wire:model="familyMembers.list.{{ $memberIndex }}.is_land_owner"
-                            label="¿Es dueño(a) del terreno?"
-                            description="Marca sí si esta persona es la dueña del terreno."
+                            label="¿Esta persona es dueña o copropietaria del terreno?"
+                            description="Marca sí si el nombre de esta persona aparece en el contrato o título del terreno."
                             error="familyMembers.list.{{ $memberIndex }}.is_land_owner"
                         >
                             <option
@@ -1039,7 +1170,7 @@
                             <option
                                 class="text-slate-800"
                                 value="1"
-                            >Sí, es dueño(a)</option>
+                            >Sí, es dueño(a) del terreno</option>
                             <option
                                 class="text-slate-800"
                                 value="0"
@@ -1048,93 +1179,11 @@
                     </div>
                 @endif
 
-                @if ($this->currentStep && $this->currentStep['type'] === 'general_docs')
-                    <div class="animate-in fade-in slide-in-from-right-8 flex flex-col gap-8 duration-500">
-                        <x-form-section
-                            title="📸 Fotos Finales"
-                            icon="bxs-folder-open"
-                            subtitle="Casi terminamos. Sube estos últimos documentos."
-                        />
-
-                        <x-form-upload-card
-                            title="1. Foto Familiar"
-                            badge="optional"
-                            description="Deben aparecer TODAS las personas que vivirán en la casa."
-                            :success="(bool) $docs->family_photo"
-                            success-text="Foto recibida."
-                            remove-label="Quitar y tomar otra"
-                            remove-action="$set('docs.family_photo', null)"
-                            error="docs.family_photo"
-                        >
-                            <x-form-upload-label
-                                icon="bxs-camera"
-                                text="Toca para tomar foto"
-                                wire:model="docs.family_photo"
-                                accept="image/*"
-                            />
-                            <x-form-upload-loading wire:target="docs.family_photo" />
-                        </x-form-upload-card>
-
-                        <x-form-upload-card
-                            title="2. Contrato o Título del Terreno"
-                            badge="optional"
-                            description="Sube una foto clara del documento."
-                            :success="(bool) $docs->land_ownership"
-                            success-text="Documento recibido."
-                            remove-label="Quitar y subir otro"
-                            remove-action="$set('docs.land_ownership', null)"
-                            error="docs.land_ownership"
-                        >
-                            <x-form-upload-label
-                                icon="bxs-file"
-                                icon-class="text-amber-300 text-7xl"
-                                bg-class="bg-amber-400/10 hover:bg-amber-400/20"
-                                border-class="border-amber-300/50"
-                                text="Toca para subir título"
-                                wire:model="docs.land_ownership"
-                                accept="image/*,.pdf"
-                            />
-                            <x-form-upload-loading wire:target="docs.land_ownership" />
-                        </x-form-upload-card>
-
-                        @if ($family->parents_married === true)
-                            <x-form-upload-card
-                                title="Acta de Matrimonio"
-                                badge="optional"
-                                description="Sube una foto clara del acta de matrimonio civil."
-                                :success="(bool) $docs->marriage_certificate"
-                                success-text="Acta recibida."
-                                remove-label="Quitar y subir otra"
-                                remove-action="$set('docs.marriage_certificate', null)"
-                                error="docs.marriage_certificate"
-                            >
-                                <x-form-upload-label
-                                    icon="bxs-heart"
-                                    icon-class="text-pink-300 text-7xl"
-                                    bg-class="bg-pink-400/10 hover:bg-pink-400/20"
-                                    border-class="border-pink-300/50"
-                                    text="Toca para subir acta"
-                                    wire:model="docs.marriage_certificate"
-                                    accept="image/*,.pdf"
-                                />
-                                <x-form-upload-loading wire:target="docs.marriage_certificate" />
-                            </x-form-upload-card>
-                        @endif
-
-                        <x-form-receipts-upload
-                            label="3. Últimos Recibos (Hasta 5)"
-                            :receipts="$docs->land_receipts"
-                            model="docs.new_land_receipts"
-                            :error="['docs.land_receipts', 'docs.land_receipts.*']"
-                        />
-                    </div>
-                @endif
-
                 <div
                     class="{{ $step > 1 ? 'justify-between' : 'justify-end' }} flex flex-col items-center gap-6 border-t border-white/15 pt-10 md:flex-row">
                     @if ($step > 1)
                         <button
-                            class="flex w-full items-center justify-center gap-3 rounded-2xl bg-white/10 px-10 py-6 text-2xl font-bold text-white transition-colors hover:bg-white/20 md:w-auto"
+                            class="flex w-full items-center justify-center gap-3 rounded-2xl bg-white/10 hover:bg-white/20 border-2 border-white/25 px-10 py-5 text-2xl font-bold text-white transition-all active:scale-95 cursor-pointer md:w-auto shadow-lg"
                             type="button"
                             wire:click="previousStep"
                         >
@@ -1144,15 +1193,16 @@
 
                     @if ($step < $this->totalSteps)
                         <button
-                            class="bg-highlight hover:bg-highlight/90 flex w-full items-center justify-center gap-3 rounded-full px-14 py-6 text-2xl font-bold text-white shadow-xl transition-all hover:scale-105 md:w-auto"
+                            class="bg-highlight hover:bg-highlight/90 flex w-full items-center justify-center gap-4 rounded-2xl px-12 py-5 text-2xl md:text-3xl font-black text-white shadow-2xl transition-all active:scale-[0.98] cursor-pointer md:w-auto"
                             type="button"
                             wire:click="nextStep"
                         >
-                            Siguiente <i class='bx bxs-chevron-right text-4xl'></i>
+                            <span>Continuar al siguiente paso</span>
+                            <i class='bx bxs-chevron-right text-4xl'></i>
                         </button>
                     @else
                         <button
-                            class="bg-highlight hover:bg-highlight/90 flex w-full items-center justify-center gap-3 rounded-full px-14 py-6 text-3xl font-black text-white shadow-xl transition-all hover:scale-105 md:w-auto"
+                            class="bg-highlight hover:bg-highlight/90 flex w-full items-center justify-center gap-4 rounded-2xl px-14 py-6 text-2xl md:text-3xl font-black text-white shadow-2xl transition-all active:scale-[0.98] cursor-pointer md:w-auto"
                             type="button"
                             wire:click="submit"
                             wire:loading.attr="disabled"
@@ -1160,14 +1210,19 @@
                             <span
                                 wire:loading.remove
                                 wire:target="submit"
-                            >¡Terminar!</span>
+                            >✨ ¡Terminar y Enviar Solicitud!</span>
                             <span
                                 wire:loading
                                 wire:target="submit"
-                            >Enviando...</span>
+                            >Enviando solicitud...</span>
                             <i
                                 class='bx bxs-badge-check text-4xl'
                                 wire:loading.remove
+                                wire:target="submit"
+                            ></i>
+                            <i
+                                class='bx bx-loader-alt bx-spin text-4xl'
+                                wire:loading
                                 wire:target="submit"
                             ></i>
                         </button>

@@ -85,10 +85,13 @@ class CreateFamilyProfileWizard extends Component
 
         for ($i = 0; $i < $this->family->member_count; $i++) {
             $steps[] = ['type' => 'member_upload', 'index' => $i];
-            $steps[] = ['type' => 'member_review', 'index' => $i];
         }
 
         $steps[] = ['type' => 'general_docs'];
+
+        for ($i = 0; $i < $this->family->member_count; $i++) {
+            $steps[] = ['type' => 'member_review', 'index' => $i];
+        }
 
         return $steps;
     }

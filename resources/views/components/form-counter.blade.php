@@ -20,9 +20,22 @@
     :error="$error"
     class="space-y-6 pt-8 border-t border-white/15"
 >
-    <div class="flex items-center gap-6 max-w-sm">
-        <button type="button" wire:click="$set('{{ $field }}', {{ max($min, $value - 1) }})" class="w-16 h-16 rounded-2xl bg-white/10 border-2 border-white/25 text-white text-3xl font-bold hover:bg-white/20 flex items-center justify-center">-</button>
-        <input type="text" inputmode="numeric" readonly value="{{ $value }}" class="w-24 bg-white/10 border-2 border-white/25 rounded-2xl p-4 text-3xl text-center font-bold text-white">
-        <button type="button" wire:click="$set('{{ $field }}', {{ min($max, $value + 1) }})" class="w-16 h-16 rounded-2xl bg-white/10 border-2 border-white/25 text-white text-3xl font-bold hover:bg-white/20 flex items-center justify-center">+</button>
+    <div class="flex items-center gap-4 sm:gap-6 max-w-md">
+        <button
+            type="button"
+            wire:click="$set('{{ $field }}', {{ max($min, $value - 1) }})"
+            class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-white/15 border-2 border-white/30 text-white text-4xl font-black hover:bg-white/25 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-lg select-none"
+            aria-label="Restar una persona"
+        >−</button>
+        <div class="flex-1 flex flex-col items-center justify-center bg-white/10 border-2 border-white/30 rounded-2xl py-3 px-4 shadow-inner">
+            <span class="text-4xl sm:text-5xl font-black text-white leading-none">{{ $value }}</span>
+            <span class="text-base sm:text-lg font-bold text-white/80 mt-1">{{ $value == 1 ? 'persona' : 'personas' }}</span>
+        </div>
+        <button
+            type="button"
+            wire:click="$set('{{ $field }}', {{ min($max, $value + 1) }})"
+            class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-highlight/80 hover:bg-highlight border-2 border-highlight text-white text-4xl font-black active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-lg select-none"
+            aria-label="Sumar una persona"
+        >+</button>
     </div>
 </x-form-field>
