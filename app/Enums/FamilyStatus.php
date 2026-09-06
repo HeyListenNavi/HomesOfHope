@@ -8,6 +8,7 @@ use Filament\Support\Contracts\HasLabel;
 
 enum FamilyStatus: string implements HasColor, HasIcon, HasLabel
 {
+    case PreProfile = 'pre_profile';
     case New = 'new';
     case InProcess = 'in_process';
     case OnHold = 'on_hold';
@@ -21,6 +22,7 @@ enum FamilyStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
+            self::PreProfile => 'Pre-Perfil',
             self::New => 'Nuevo',
             self::InProcess => 'En Proceso',
             self::OnHold => 'En Espera',
@@ -36,7 +38,7 @@ enum FamilyStatus: string implements HasColor, HasIcon, HasLabel
     public function getColor(): string|array|null
     {
         return match ($this) {
-            self::New => 'gray',
+            self::PreProfile, self::New => 'gray',
             self::Potential => 'info',
             self::InProcess, self::OnHold => 'warning',
             self::Approved => 'success',
@@ -49,6 +51,7 @@ enum FamilyStatus: string implements HasColor, HasIcon, HasLabel
     public function getIcon(): ?string
     {
         return match ($this) {
+            self::PreProfile => 'heroicon-s-document-text',
             self::New => 'heroicon-s-plus-circle',
             self::Potential => 'heroicon-s-eye',
             self::InProcess => 'heroicon-s-arrow-path',

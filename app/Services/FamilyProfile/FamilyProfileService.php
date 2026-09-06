@@ -36,7 +36,7 @@ class FamilyProfileService
             $profile = FamilyProfile::create([
                 'family_name' => $family->name,
                 'slug' => Str::slug($family->name.'-'.uniqid()),
-                'status' => FamilyStatus::New,
+                'status' => FamilyStatus::PreProfile,
                 'lives_on_land' => $family->lives_on_land,
                 'family_photo_path' => $familyPhotoPath,
                 'opened_at' => null,
