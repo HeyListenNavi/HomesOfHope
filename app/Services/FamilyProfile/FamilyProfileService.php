@@ -13,6 +13,7 @@ use App\Models\Applicant;
 use App\Models\Document;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -125,13 +126,23 @@ class FamilyProfileService
                 $this->createDocument($profile, DocumentType::MarriageCertificate, $docs->marriage_certificate);
             }
             if ($docs->family_photo) {
-                $this->createDocument($profile, DocumentType::FamilyPhoto, $docs->family_photo);
+                Document::create([
+                    'documentable_type' => FamilyProfile::class,
+                    'documentable_id' => $profile->id,
+                    'document_type' => DocumentType::FamilyPhoto->value,
+                    'original_name' => $docs->family_photo->getClientOriginalName(),
+                    'file_path' => $familyPhotoPath,
+                    'mime_type' => $docs->family_photo->getMimeType(),
+                    'size' => $docs->family_photo->getSize(),
+                ]);
             }
             if ($docs->land_ownership) {
                 $this->createDocument($profile, DocumentType::LandOwnership, $docs->land_ownership);
             }
             foreach ($docs->land_receipts as $receipt) {
-                $this->createDocument($profile, DocumentType::LandReceipt, $receipt);
+                if ($receipt) {
+                    $this->createDocument($profile, DocumentType::LandReceipt, $receipt);
+                }
             }
 
             $applicant->update([
@@ -140,8 +151,12 @@ class FamilyProfileService
         });
     }
 
-    private function createDocument($model, DocumentType $type, TemporaryUploadedFile $file): void
+    private function createDocument(Model $model, DocumentType $type, ?TemporaryUploadedFile $file): void
     {
+        if (! $file) {
+            return;
+        }
+
         $path = $file->store('documents', 'r2');
 
         Document::create([
