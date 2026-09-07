@@ -771,9 +771,37 @@ class FamilyProfileResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Filtrar por Estado')
                     ->options(FamilyStatus::class),
-                Tables\Filters\Filter::make('opened_at')
-                    ->label('Fecha de entrevista')
+                Tables\Filters\Filter::make('month_year')
+                    ->label('Mes y Año')
                     ->form([
+                        Forms\Components\Placeholder::make('details')
+                            ->label(function ($livewire) {
+                                $statusValue = $livewire->tableFilters['status']['value'] ?? null;
+
+                                if ($statusValue) {
+                                    $status = FamilyStatus::tryFrom($statusValue);
+                                    $label = $status?->getLabel() ?? $statusValue;
+
+                                    if (in_array($statusValue, [
+                                        FamilyStatus::Programmed->value,
+                                        FamilyStatus::Built->value,
+                                    ], true)) {
+                                        return 'Filtrando por Fecha de Construcción ('.$label.')';
+                                    }
+
+                                    if (in_array($statusValue, [
+                                        FamilyStatus::NotEligible->value,
+                                        FamilyStatus::DontBuild->value,
+                                    ], true)) {
+                                        return 'Filtrando por Fecha de Asignación de Estado ('.$label.')';
+                                    }
+
+                                    return 'Filtrando por Fecha de Entrevista ('.$label.')';
+                                }
+
+                                return 'Filtrar por Fecha';
+                            }),
+
                         Forms\Components\Select::make('month')
                             ->label('Mes')
                             ->options([
@@ -797,10 +825,18 @@ class FamilyProfileResource extends Resource
                             ->minValue(2000)
                             ->maxValue(date('Y')),
                     ])
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->query(function (Builder $query, array $data, $livewire): Builder {
+                        $status = FamilyStatus::tryFrom($livewire->tableFilters['status']['value'] ?? '');
+
+                        $dateColumn = match ($status) {
+                            FamilyStatus::Programmed, FamilyStatus::Built => 'building_start_date',
+                            FamilyStatus::NotEligible, FamilyStatus::DontBuild => 'closed_at',
+                            default => 'opened_at',
+                        };
+
                         return $query
-                            ->when($data['month'], fn (Builder $query, $month) => $query->whereMonth('opened_at', $month))
-                            ->when($data['year'], fn (Builder $query, $year) => $query->whereYear('opened_at', $year));
+                            ->when($data['month'] ?? null, fn (Builder $q, $month) => $q->whereMonth($dateColumn, $month))
+                            ->when($data['year'] ?? null, fn (Builder $q, $year) => $q->whereYear($dateColumn, $year));
                     }),
             ])
             ->bulkActions([
