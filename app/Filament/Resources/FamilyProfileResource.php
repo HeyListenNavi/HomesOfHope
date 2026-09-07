@@ -137,6 +137,12 @@ class FamilyProfileResource extends Resource
                                                 ->label('Fecha de Entrevista')
                                                 ->minYear(2000)
                                                 ->maxYear(now()->year),
+
+                                            Forms\Components\Placeholder::make('closed_at')
+                                                ->label('Fecha de Descalificado')
+                                                ->content(fn ($record) => $record?->closed_at?->diffForHumans() ?? 'N/A')
+                                                ->visible(fn (Forms\Get $get, $record) => $record !== null && in_array($get('status'), [FamilyStatus::NotEligible->value, FamilyStatus::DontBuild->value], true))
+                                                ->columnSpan(2),
                                         ]),
                                     ]),
 

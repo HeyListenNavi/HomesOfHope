@@ -71,7 +71,7 @@ class FamilyProfile extends Model
 
     protected $casts = [
         'opened_at' => 'date',
-        'closed_at' => 'date',
+        'closed_at' => 'datetime',
         'land_last_payment_date' => 'date',
         'land_is_up_to_date' => 'boolean',
         'land_is_flat' => 'boolean',
@@ -107,6 +107,18 @@ class FamilyProfile extends Model
         static::updating(function ($familyProfile) {
             if ($familyProfile->isDirty('family_name')) {
                 $familyProfile->slug = uniqid('familia-'.Str::slug($familyProfile->family_name).'-');
+            }
+        });
+
+        static::saving(function ($familyProfile) {
+            $statusValue = $familyProfile->status?->value ?? $familyProfile->status;
+
+            if (in_array($statusValue, [FamilyStatus::NotEligible->value, FamilyStatus::DontBuild->value], true)) {
+                if (empty($familyProfile->closed_at)) {
+                    $familyProfile->closed_at = now();
+                }
+            } else {
+                $familyProfile->closed_at = null;
             }
         });
     }
