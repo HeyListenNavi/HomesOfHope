@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\GroupSelectionController;
 use App\Livewire\AttendancePage;
+use App\Livewire\CompleteFamilyProfileWizard;
 use App\Livewire\CreateFamilyProfileWizard;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,10 @@ Route::get('/', function () {
 Route::get('/crear-perfil/{applicant:id}', CreateFamilyProfileWizard::class)
     ->middleware('signed')
     ->name('applicant.create-profile');
+
+Route::get('/completar-perfil/{familyProfile:id}', CompleteFamilyProfileWizard::class)
+    ->middleware('signed')
+    ->name('applicant.complete-profile');
 
 Route::get('/seleccionar-grupo/{applicant:id}', [GroupSelectionController::class, 'showSelectionForm'])
     ->middleware('signed')

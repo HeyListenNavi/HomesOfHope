@@ -699,47 +699,47 @@
                         <x-form-section
                             title="Fotos de Documentos: {{ $title }}"
                             icon="bxs-camera"
-                            subtitle="Toma una foto clara o sube el documento. El sistema lo escaneará y enderezará automáticamente."
+                            subtitle="Toma una foto clara o sube el documento. El sistema lo escaneará automáticamente."
                         />
 
                         <x-form-upload-card
-                            title="1. Identificación Oficial (INE o Acta de Nacimiento)"
+                            title="1. Documento de Identificación"
                             badge="optional"
-                            description="Para mayores de 18 años sube su credencial de elector (INE). Si es menor de edad, sube su Acta de Nacimiento."
-                            :success="!empty($member['identification']) || !empty($member['birth_certificate'])"
+                            description="Sube cualquier documento oficial: INE, CURP, Acta de Nacimiento, Pasaporte, etc."
+                            :success="!empty($member['identification_doc'])"
                             success-text="¡Documento recibido con éxito!"
                             remove-label="Quitar y cambiar documento"
-                            remove-action="$set('familyMembers.list.{{ $memberIndex }}.identification', null); $set('familyMembers.list.{{ $memberIndex }}.birth_certificate', null)"
+                            remove-action="$set('familyMembers.list.{{ $memberIndex }}.identification_doc', null); $set('familyMembers.list.{{ $memberIndex }}.identification_doc_type', null)"
                             :error="[
-                                'familyMembers.list.{{ $memberIndex }}.identification',
-                                'familyMembers.list.{{ $memberIndex }}.birth_certificate',
+                                'familyMembers.list.{{ $memberIndex }}.identification_doc',
+                                'familyMembers.list.{{ $memberIndex }}.identification_doc_type',
                             ]"
                         >
                             <div class="grid grid-cols-1 gap-6">
+                                <x-form-select
+                                    wire:model="familyMembers.list.{{ $memberIndex }}.identification_doc_type"
+                                    label="¿Qué documento vas a subir?"
+                                    error="familyMembers.list.{{ $memberIndex }}.identification_doc_type"
+                                >
+                                    <option class="font-bold text-black" value="">Selecciona una opción...</option>
+                                    <option class="text-slate-800" value="ine">🆔 INE (Credencial de elector)</option>
+                                    <option class="text-slate-800" value="curp">📄 CURP</option>
+                                    <option class="text-slate-800" value="acta_de_nacimiento">👶 Acta de Nacimiento</option>
+                                    <option class="text-slate-800" value="pasaporte">📘 Pasaporte</option>
+                                    <option class="text-slate-800" value="otro">📂 Otro documento oficial</option>
+                                </x-form-select>
+
                                 <x-form-upload-label
                                     icon="bxs-id-card"
-                                    text="Tomar foto de INE (Adulto)"
-                                    wire:model="familyMembers.list.{{ $memberIndex }}.identification"
-                                    accept="image/*,.pdf"
-                                    capture="environment"
-                                />
-
-                                <div class="text-center text-xl font-bold text-white/50">— O SI ES MENOR DE EDAD —</div>
-
-                                <x-form-upload-label
-                                    icon="bxs-file"
-                                    icon-class="text-amber-300 text-7xl"
-                                    bg-class="bg-amber-400/10 hover:bg-amber-400/20"
-                                    border-class="border-amber-300/50"
-                                    text="Tomar foto de Acta (Menor)"
-                                    wire:model="familyMembers.list.{{ $memberIndex }}.birth_certificate"
+                                    text="Tomar foto o subir documento"
+                                    wire:model="familyMembers.list.{{ $memberIndex }}.identification_doc"
                                     accept="image/*,.pdf"
                                     capture="environment"
                                 />
                             </div>
                             <x-form-upload-loading
-                                text="Subiendo y procesando..."
-                                wire:target="familyMembers.list.{{ $memberIndex }}.identification, familyMembers.list.{{ $memberIndex }}.birth_certificate"
+                                text="Subiendo documento..."
+                                wire:target="familyMembers.list.{{ $memberIndex }}.identification_doc"
                             />
                         </x-form-upload-card>
 
@@ -859,282 +859,6 @@
                     </div>
                 @endif
 
-                @if ($this->currentStep && $this->currentStep['type'] === 'member_review')
-                    @php
-                        $memberIndex = $this->currentStep['index'];
-                        $member = $familyMembers->list[$memberIndex];
-                        $title = $memberIndex === 0 ? 'Titular de la familia (Tú)' : 'Familiar ' . ($memberIndex + 1);
-                    @endphp
-                    <div
-                        class="animate-in fade-in slide-in-from-right-8 flex flex-col gap-8 duration-500"
-                        wire:key="member-review-{{ $memberIndex }}"
-                    >
-                        <x-form-section
-                            title="Datos Personales: {{ $title }}"
-                            icon="bxs-user-detail"
-                            subtitle="Verifica y completa la información personal de esta persona."
-                        />
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.name"
-                            label="Nombre(s)"
-                            required="true"
-                            placeholder="Ej. María Guadalupe"
-                            error="familyMembers.list.{{ $memberIndex }}.name"
-                        />
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.paternal_surname"
-                            label="Primer Apellido (Paterno)"
-                            required="true"
-                            placeholder="Ej. Pérez"
-                            error="familyMembers.list.{{ $memberIndex }}.paternal_surname"
-                        />
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.maternal_surname"
-                            label="Segundo Apellido (Materno)"
-                            required="true"
-                            placeholder="Ej. López"
-                            error="familyMembers.list.{{ $memberIndex }}.maternal_surname"
-                        />
-                        <x-form-select
-                            wire:model.live="familyMembers.list.{{ $memberIndex }}.relationship"
-                            label="¿Qué es de ti esta persona? (Relación familiar)"
-                            required="true"
-                            error="familyMembers.list.{{ $memberIndex }}.relationship"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona una opción...</option>
-                            @foreach (\App\Enums\Relationship::cases() as $rel)
-                                <option
-                                    class="text-slate-800"
-                                    value="{{ $rel->value }}"
-                                >{{ $rel->getLabel() }}</option>
-                            @endforeach
-                        </x-form-select>
-
-                        <x-form-select
-                            wire:model="familyMembers.list.{{ $memberIndex }}.marital_status"
-                            label="¿Cuál es su estado civil?"
-                            error="familyMembers.list.{{ $memberIndex }}.marital_status"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona una opción...</option>
-                            @foreach (\App\Enums\MaritalStatus::cases() as $maritalStatus)
-                                <option
-                                    class="text-slate-800"
-                                    value="{{ $maritalStatus->value }}"
-                                >{{ $maritalStatus->getLabel() }}</option>
-                            @endforeach
-                        </x-form-select>
-
-                        <x-date-picker
-                            wire:model="familyMembers.list.{{ $memberIndex }}.birth_date"
-                            label="Fecha de Nacimiento"
-                            required
-                            error="familyMembers.list.{{ $memberIndex }}.birth_date"
-                        />
-                        <x-form-text
-                            class="uppercase"
-                            wire:model="familyMembers.list.{{ $memberIndex }}.curp"
-                            label="CURP (Opcional)"
-                            description="Son 18 letras y números. Si no te lo sabes, puedes dejarlo en blanco."
-                            optional="true"
-                            placeholder="Ej. ABCD900101HBCXXX01"
-                            error="familyMembers.list.{{ $memberIndex }}.curp"
-                        />
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.phone"
-                            label="Número de Teléfono o Celular"
-                            placeholder="Ej. 664 123 4567"
-                            icon="bxs-phone"
-                            error="familyMembers.list.{{ $memberIndex }}.phone"
-                        />
-                        <x-form-select
-                            wire:model="familyMembers.list.{{ $memberIndex }}.occupation"
-                            label="¿En qué trabaja o a qué se dedica?"
-                            error="familyMembers.list.{{ $memberIndex }}.occupation"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona una opción...</option>
-                            @foreach (\App\Enums\Occupation::cases() as $occ)
-                                <option
-                                    class="text-slate-800"
-                                    value="{{ $occ->value }}"
-                                >{{ $occ->getLabel() }}</option>
-                            @endforeach
-                        </x-form-select>
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.weekly_income"
-                            label="¿Cuánto dinero gana por semana en su trabajo aproximadamente?"
-                            description="Si no trabaja o es menor de edad, puedes dejarlo en $0."
-                            inputmode="decimal"
-                            placeholder="$ 0"
-                            error="familyMembers.list.{{ $memberIndex }}.weekly_income"
-                        />
-
-                        <x-form-select
-                            wire:model="familyMembers.list.{{ $memberIndex }}.education_level"
-                            label="¿Hasta qué nivel escolar estudió?"
-                            error="familyMembers.list.{{ $memberIndex }}.education_level"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona una opción...</option>
-                            @foreach (\App\Enums\EducationLevel::cases() as $level)
-                                <option
-                                    class="text-slate-800"
-                                    value="{{ $level->value }}"
-                                >{{ $level->getLabel() }}</option>
-                            @endforeach
-                        </x-form-select>
-
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.education_grade"
-                            label="¿Qué año o grado escolar cursó?"
-                            description="Ejemplo: Si terminó 3ro de primaria o secundaria, escribe 3."
-                            placeholder="Ej. 3"
-                            inputmode="numeric"
-                            error="familyMembers.list.{{ $memberIndex }}.education_grade"
-                        />
-
-                        <x-form-select
-                            wire:model="familyMembers.list.{{ $memberIndex }}.religion"
-                            label="¿Cuál es su religión o creencia?"
-                            error="familyMembers.list.{{ $memberIndex }}.religion"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona una opción...</option>
-                            @foreach (\App\Enums\Religion::cases() as $religion)
-                                <option
-                                    class="text-slate-800"
-                                    value="{{ $religion->value }}"
-                                >{{ $religion->getLabel() }}</option>
-                            @endforeach
-                        </x-form-select>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <x-form-text
-                                wire:model="familyMembers.list.{{ $memberIndex }}.origin_country"
-                                label="País de Nacimiento"
-                                placeholder="Ej. México"
-                                error="familyMembers.list.{{ $memberIndex }}.origin_country"
-                            />
-                            
-                            <x-form-text
-                                wire:model="familyMembers.list.{{ $memberIndex }}.origin_state"
-                                label="Estado o Entidad de Nacimiento"
-                                placeholder="Ej. Baja California, Sinaloa, Puebla..."
-                                error="familyMembers.list.{{ $memberIndex }}.origin_state"
-                            />
-                        </div>
-
-                        <x-form-select
-                            wire:model.live="familyMembers.list.{{ $memberIndex }}.speaks_indigenous_language"
-                            label="¿Habla alguna lengua indígena o dialecto originario?"
-                            error="familyMembers.list.{{ $memberIndex }}.speaks_indigenous_language"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona...</option>
-                            <option
-                                class="text-slate-800"
-                                value="1"
-                            >Sí</option>
-                            <option
-                                class="text-slate-800"
-                                value="0"
-                            >No</option>
-                        </x-form-select>
-                        @if (!empty($member['speaks_indigenous_language']))
-                            <x-form-select
-                                wire:model="familyMembers.list.{{ $memberIndex }}.indigenous_language"
-                                label="¿Cuál lengua o dialecto habla?"
-                                error="familyMembers.list.{{ $memberIndex }}.indigenous_language"
-                            >
-                                <option
-                                    class="font-bold text-black"
-                                    value=""
-                                >Selecciona...</option>
-                                @foreach (\App\Enums\IndigenousLanguage::cases() as $language)
-                                    <option
-                                        class="text-slate-800"
-                                        value="{{ $language->value }}"
-                                    >{{ $language->getLabel() }}</option>
-                                @endforeach
-                            </x-form-select>
-                        @endif
-                        
-                        @if (($familyMembers->list[$memberIndex]['relationship'] ?? '') !== \App\Enums\Relationship::Father->value)
-                            <div class="animate-in fade-in slide-in-from-top-2 flex flex-col gap-8 duration-300">
-                                <x-form-select
-                                    wire:model.live="familyMembers.list.{{ $memberIndex }}.is_pregnant"
-                                    label="¿Esta persona está embarazada actualmente?"
-                                    error="familyMembers.list.{{ $memberIndex }}.is_pregnant"
-                                >
-                                    <option
-                                        class="font-bold text-black"
-                                        value=""
-                                    >Selecciona...</option>
-                                    <option
-                                        class="text-slate-800"
-                                        value="1"
-                                    >Sí, está embarazada</option>
-                                    <option
-                                        class="text-slate-800"
-                                        value="0"
-                                    >No</option>
-                                </x-form-select>
-                                @if (!empty($familyMembers->list[$memberIndex]['is_pregnant']))
-                                    <x-form-text
-                                        wire:model="familyMembers.list.{{ $memberIndex }}.pregnancy_months"
-                                        label="¿Cuántos meses de embarazo tiene?"
-                                        placeholder="Ej. 5"
-                                        inputmode="numeric"
-                                        error="familyMembers.list.{{ $memberIndex }}.pregnancy_months"
-                                    />
-                                @endif
-                            </div>
-                        @endif
-
-                        <x-form-text
-                            wire:model="familyMembers.list.{{ $memberIndex }}.medical_notes"
-                            label="¿Tiene alguna enfermedad, discapacidad o atención médica especial?"
-                            description="Ejemplo: Diabetes, presión alta, utiliza silla de ruedas, etc."
-                            placeholder="Describe aquí..."
-                            error="familyMembers.list.{{ $memberIndex }}.medical_notes"
-                        />
-                        <x-form-select
-                            class="border-highlight/50"
-                            wire:model="familyMembers.list.{{ $memberIndex }}.is_land_owner"
-                            label="¿Esta persona es dueña o copropietaria del terreno?"
-                            description="Marca sí si el nombre de esta persona aparece en el contrato o título del terreno."
-                            error="familyMembers.list.{{ $memberIndex }}.is_land_owner"
-                        >
-                            <option
-                                class="font-bold text-black"
-                                value=""
-                            >Selecciona...</option>
-                            <option
-                                class="text-slate-800"
-                                value="1"
-                            >Sí, es dueño(a) del terreno</option>
-                            <option
-                                class="text-slate-800"
-                                value="0"
-                            >No</option>
-                        </x-form-select>
-                    </div>
-                @endif
-
                 <div
                     class="{{ $step > 1 ? 'justify-between' : 'justify-end' }} flex flex-col items-center gap-6 border-t border-white/15 pt-10 md:flex-row">
                     @if ($step > 1)
@@ -1191,9 +915,9 @@
                     class="bg-highlight/20 border-highlight flex h-28 w-28 items-center justify-center rounded-full border-2">
                     <i class='bx bxs-check-circle text-highlight bx-lg'></i>
                 </div>
-                <h1 class="text-4xl font-bold text-white md:text-5xl">¡Solicitud Enviada!</h1>
-                <p class="text-2xl text-white/80">Tu solicitud ha sido recibida correctamente. Nuestro equipo la
-                    revisará pronto.</p>
+                <h1 class="text-4xl font-bold text-white md:text-5xl">¡Documentos Enviados!</h1>
+                <p class="text-2xl text-white/80">Estamos escaneando los documentos de tu familia. Te enviaremos un
+                    mensaje de WhatsApp cuando puedas revisar y confirmar los datos.</p>
             </div>
         @endif
 

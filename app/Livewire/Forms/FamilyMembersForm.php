@@ -22,7 +22,7 @@ class FamilyMembersForm extends Form
         $relationship = match ($applicant->gender) {
             'man' => Relationship::Father->value,
             'woman' => Relationship::Mother->value,
-            default => Relationship::Other->value,
+            default => Relationship::Tutor->value,
         };
 
         $this->list[] = $this->memberRow([
@@ -79,8 +79,8 @@ class FamilyMembersForm extends Form
             'medical_notes' => '',
             'is_land_owner' => false,
             'is_responsible' => false,
-            'identification' => null,
-            'birth_certificate' => null,
+            'identification_doc' => null,
+            'identification_doc_type' => '',
             'income_proof' => null,
         ];
     }
@@ -93,8 +93,8 @@ class FamilyMembersForm extends Form
         }
 
         return [
-            "familyMembers.list.$index.identification" => 'nullable|mimes:jpg,jpeg,png,webp,heic,pdf|max:10240',
-            "familyMembers.list.$index.birth_certificate" => 'nullable|mimes:jpg,jpeg,png,webp,heic,pdf|max:10240',
+            "familyMembers.list.$index.identification_doc" => 'nullable|mimes:jpg,jpeg,png,webp,heic,pdf|max:10240',
+            "familyMembers.list.$index.identification_doc_type" => 'nullable|string|max:255',
             "familyMembers.list.$index.income_proof" => 'nullable|mimes:jpg,jpeg,png,webp,heic,pdf|max:10240',
         ];
     }
@@ -102,8 +102,7 @@ class FamilyMembersForm extends Form
     public function getUploadMessages(int $index): array
     {
         return [
-            "familyMembers.list.$index.identification.mimes" => 'El archivo debe ser imagen o PDF.',
-            "familyMembers.list.$index.birth_certificate.mimes" => 'El archivo debe ser imagen o PDF.',
+            "familyMembers.list.$index.identification_doc.mimes" => 'El archivo debe ser imagen o PDF.',
             "familyMembers.list.$index.income_proof.mimes" => 'El comprobante debe ser imagen o PDF.',
         ];
     }
