@@ -89,10 +89,6 @@ class CreateFamilyProfileWizard extends Component
 
         $steps[] = ['type' => 'general_docs'];
 
-        for ($i = 0; $i < $this->family->member_count; $i++) {
-            $steps[] = ['type' => 'member_review', 'index' => $i];
-        }
-
         return $steps;
     }
 
@@ -195,12 +191,6 @@ class CreateFamilyProfileWizard extends Component
                 $this->validate(
                     $this->familyMembers->getUploadRules($stepDefinition['index']),
                     $this->familyMembers->getUploadMessages($stepDefinition['index'])
-                );
-                break;
-            case 'member_review':
-                $this->validate(
-                    $this->familyMembers->getReviewRules($stepDefinition['index']),
-                    $this->familyMembers->getReviewMessages($stepDefinition['index'])
                 );
                 break;
             default:

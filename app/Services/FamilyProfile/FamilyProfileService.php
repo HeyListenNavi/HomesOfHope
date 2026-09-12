@@ -4,6 +4,7 @@ namespace App\Services\FamilyProfile;
 
 use App\Enums\DocumentType;
 use App\Enums\FamilyStatus;
+use App\Jobs\ProcessMemberOcrJob;
 use App\Livewire\Forms\DocumentsForm;
 use App\Livewire\Forms\FamilyForm;
 use App\Livewire\Forms\FamilyMembersForm;
@@ -13,8 +14,11 @@ use App\Models\Applicant;
 use App\Models\Document;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
+use App\Services\Applicant\ApplicantService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -33,14 +37,34 @@ class FamilyProfileService
                 ? $docs->family_photo->store('documents', 'r2')
                 : null;
 
-            $profile = FamilyProfile::create([
+            $homeData = $family->lives_on_land ? [] : [
+                'home_city' => $home->city,
+                'home_colony' => $home->colony,
+                'home_address' => $home->address,
+                'home_address_link' => $this->buildMapLink($home->lat, $home->lng),
+                'home_latitude' => $home->lat,
+                'home_longitude' => $home->lng,
+                'home_status' => $home->status,
+                'home_ownership_time' => $home->ownership_time,
+                'home_owner_name' => $home->owner_name,
+                'home_monthly_rent' => $home->monthly_rent,
+                'home_monthly_rent_currency' => $home->monthly_rent_currency ?: 'mxn',
+                'home_has_receipts' => $home->has_receipts,
+                'house_description' => $home->description,
+            ];
+
+            $profileData = [
                 'family_name' => $family->name,
                 'slug' => Str::slug($family->name.'-'.uniqid()),
                 'status' => FamilyStatus::PreProfile,
                 'lives_on_land' => $family->lives_on_land,
                 'family_photo_path' => $familyPhotoPath,
                 'opened_at' => null,
+                'has_addictions' => $family->has_addictions,
+                'addictions_details' => $family->addictions_details,
+            ];
 
+            $landData = [
                 'land_city' => $land->city,
                 'land_colony' => $land->colony,
                 'land_address' => $land->address,
@@ -56,24 +80,9 @@ class FamilyProfileService
                 'land_is_up_to_date' => $land->is_up_to_date,
                 'land_is_flat' => $land->is_flat,
                 'land_services' => $land->services,
+            ];
 
-                'home_city' => $family->lives_on_land ? null : $home->city,
-                'home_colony' => $family->lives_on_land ? null : $home->colony,
-                'home_address' => $family->lives_on_land ? null : $home->address,
-                'home_address_link' => $family->lives_on_land ? null : $this->buildMapLink($home->lat, $home->lng),
-                'home_latitude' => $family->lives_on_land ? null : $home->lat,
-                'home_longitude' => $family->lives_on_land ? null : $home->lng,
-                'home_status' => $family->lives_on_land ? null : $home->status,
-                'home_ownership_time' => $family->lives_on_land ? null : $home->ownership_time,
-                'home_owner_name' => $family->lives_on_land ? null : $home->owner_name,
-                'home_monthly_rent' => $family->lives_on_land ? null : $home->monthly_rent,
-                'home_monthly_rent_currency' => $home->monthly_rent_currency ?: 'mxn',
-                'home_has_receipts' => $family->lives_on_land ? null : $home->has_receipts,
-                'house_description' => $family->lives_on_land ? null : $home->description,
-
-                'has_addictions' => $family->has_addictions,
-                'addictions_details' => $family->addictions_details,
-            ]);
+            $profile = FamilyProfile::create(array_merge($profileData, $homeData, $landData));
 
             $responsibleMemberId = null;
             foreach ($members->list as $memberData) {
@@ -85,7 +94,7 @@ class FamilyProfileService
                     'paternal_surname' => $memberData['paternal_surname'],
                     'maternal_surname' => $memberData['maternal_surname'],
                     'relationship' => $memberData['relationship'],
-                    'birth_date' => $memberData['birth_date'] ?: null,
+                    'birth_date' => $memberData['birth_date'],
                     'curp' => $memberData['curp'],
                     'phone' => $memberData['phone'],
                     'occupation' => $memberData['occupation'],
@@ -96,25 +105,23 @@ class FamilyProfileService
                     'origin_state' => $memberData['origin_state'],
                     'origin_country' => $memberData['origin_country'],
                     'religion' => $memberData['religion'],
-                    'speaks_indigenous_language' => (bool) ($memberData['speaks_indigenous_language'] ?? false),
+                    'speaks_indigenous_language' => $memberData['speaks_indigenous_language'] ?? false,
                     'indigenous_language' => $memberData['indigenous_language'],
-                    'is_pregnant' => (bool) ($memberData['is_pregnant'] ?? false),
+                    'is_pregnant' => $memberData['is_pregnant'] ?? false,
                     'pregnancy_months' => $memberData['pregnancy_months'],
                     'medical_notes' => $memberData['medical_notes'],
-                    'is_responsible' => (bool) ($memberData['is_responsible'] ?? false),
-                    'is_land_owner' => (bool) ($memberData['is_land_owner'] ?? false),
+                    'is_responsible' => $memberData['is_responsible'] ?? false,
+                    'is_land_owner' => $memberData['is_land_owner'] ?? false,
                 ]);
 
                 if (! empty($memberData['is_responsible'])) {
                     $responsibleMemberId = $member->id;
                 }
 
-                if (! empty($memberData['identification'])) {
-                    $this->createDocument($member, DocumentType::Identification, $memberData['identification']);
+                if (! empty($memberData['identification_doc'])) {
+                    $this->createDocument($member, DocumentType::Identification, $memberData['identification_doc']);
                 }
-                if (! empty($memberData['birth_certificate'])) {
-                    $this->createDocument($member, DocumentType::BirthCertificate, $memberData['birth_certificate']);
-                }
+
                 if (! empty($memberData['income_proof'])) {
                     $this->createDocument($member, DocumentType::IncomeProof, $memberData['income_proof']);
                 }
@@ -125,6 +132,7 @@ class FamilyProfileService
             if ($family->parents_married && $docs->marriage_certificate) {
                 $this->createDocument($profile, DocumentType::MarriageCertificate, $docs->marriage_certificate);
             }
+
             if ($docs->family_photo) {
                 Document::create([
                     'documentable_type' => FamilyProfile::class,
@@ -136,9 +144,11 @@ class FamilyProfileService
                     'size' => $docs->family_photo->getSize(),
                 ]);
             }
+
             if ($docs->land_ownership) {
                 $this->createDocument($profile, DocumentType::LandOwnership, $docs->land_ownership);
             }
+
             foreach ($docs->land_receipts as $receipt) {
                 if ($receipt) {
                     $this->createDocument($profile, DocumentType::LandReceipt, $receipt);
@@ -148,7 +158,40 @@ class FamilyProfileService
             $applicant->update([
                 'completed_at' => now(),
             ]);
+
+            $this->dispatchOcrJobs($profile, $applicant);
         });
+    }
+
+    private function dispatchOcrJobs(FamilyProfile $profile, Applicant $applicant): void
+    {
+        $memberJobs = $profile->members()
+            ->whereHas('documents', fn ($q) => $q->where('document_type', 'identification'))
+            ->get()
+            ->map(fn (FamilyMember $member) => new ProcessMemberOcrJob($member))
+            ->all();
+
+        $sendNotification = function () use ($applicant, $profile) {
+            $link = URL::temporarySignedRoute(
+                'applicant.complete-profile',
+                now()->addDays(7),
+                ['familyProfile' => $profile->id]
+            );
+
+            app(ApplicantService::class)->sendCompleteProfileNotification($applicant, $link);
+        };
+
+        if (! empty($memberJobs)) {
+            Bus::batch($memberJobs)
+                ->then($sendNotification)
+                ->catch($sendNotification)
+                ->allowFailures()
+                ->dispatch();
+
+            return;
+        }
+
+        $sendNotification();
     }
 
     private function createDocument(Model $model, DocumentType $type, ?TemporaryUploadedFile $file): void
@@ -160,7 +203,7 @@ class FamilyProfileService
         $path = $file->store('documents', 'r2');
 
         Document::create([
-            'documentable_type' => get_class($model),
+            'documentable_type' => $model::class,
             'documentable_id' => $model->id,
             'document_type' => $type->value,
             'original_name' => $file->getClientOriginalName(),
