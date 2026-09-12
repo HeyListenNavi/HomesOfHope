@@ -251,4 +251,16 @@ class ApplicantService
 
         $applicant->save();
     }
+
+    public function sendCompleteProfileNotification(Applicant $applicant, string $profileUrl): void
+    {
+        $message = "Hola {$applicant->applicant_name}! Hemos terminado de escanear los documentos de tu familia para tu solicitud.\n\n";
+        $message .= "Por favor ingresa al enlace para revisar y confirmar que los datos sean correctos:\n\n";
+        $message .= $profileUrl;
+
+        $this->whatsappService->send($applicant, $message, 'verificacion_de_documentos', [
+            'nombre' => $applicant->applicant_name,
+            'link' => $profileUrl,
+        ]);
+    }
 }
