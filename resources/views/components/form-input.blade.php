@@ -3,18 +3,21 @@
 <fieldset class="{{ in_array($type, ['checkbox', 'radio']) ? 'flex items-center gap-2' : 'flex flex-col gap-4' }}">
     @if (in_array($type, ['checkbox', 'radio']))
         <label for="{{ $id }}"
-            class="text-body-small has-checked:bg-highlight has-checked:text-white has-checked:font-bold flex w-full cursor-pointer items-center gap-4 rounded-2xl px-6 py-4 transition-all">
+            class="text-body-small relative flex w-full cursor-pointer items-center gap-4 rounded-2xl border-2 border-white/25 bg-white/10 p-5 transition-all hover:border-white/60 hover:bg-white/20 focus-within:ring-2 focus-within:ring-white/60 has-checked:border-highlight has-checked:bg-highlight has-checked:font-bold">
             <input
                 {{ $attributes->merge([
-                    'class' =>
-                        'size-2 rounded accent-highlight ring-6 ring-foreground checked:ring-lime-700/80 rounded-full bg-white appearance-none transition-colors',
+                    'class' => 'peer sr-only',
                     'type' => $type,
                     'name' => $name,
                     'id' => $id,
                     'value' => $label,
                     'required' => $required,
                 ]) }} />
-            {{ $slot }}
+            <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 bg-white text-zinc-300 transition-all hover:border-highlight hover:text-highlight peer-checked:border-white peer-checked:bg-white peer-checked:text-highlight peer-checked:shadow-md">
+                <i class="bx bx-check text-base"></i>
+            </span>
+            <span class="min-w-0 flex-1">{{ $slot }}</span>
         </label>
     @elseif ($type === 'textarea')
         <label for="{{ $id }}" class="text-body-small">
