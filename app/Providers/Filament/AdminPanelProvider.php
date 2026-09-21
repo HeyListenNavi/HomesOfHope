@@ -46,6 +46,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#61b346'),
             ])
             ->maxContentWidth(MaxWidth::Full)
+            ->sidebarCollapsibleOnDesktop()
             ->resources([
                 FamilyProfileResource::class,
                 FamilyMemberResource::class,
