@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ApplicantGender;
 use App\Enums\ApplicantStatus;
+use App\Enums\RejectionReason;
 use App\Enums\TagType;
 use App\Filament\Resources\ApplicantResource\Pages;
 use App\Filament\Resources\ApplicantResource\RelationManagers;
@@ -230,17 +231,7 @@ class ApplicantResource extends Resource
                                                 Forms\Components\Placeholder::make('rejection_reason')
                                                     ->label('Motivo')
                                                     ->content(function (?string $state, $record) {
-                                                        $reasons = [
-                                                            'no_children' => 'No tiene hijos',
-                                                            'contract_issues' => 'Problemas con el contrato',
-                                                            'not_owner' => 'No es dueño del terreno',
-                                                            'lives_too_far' => 'Vive muy lejos del terreno',
-                                                            'less_than_a_year' => 'Tiene menos de un año con el terreno',
-                                                            'late_payments' => 'Atrasado con los pagos',
-                                                            'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
-                                                        ];
-
-                                                        return $reasons[$record->rejection_reason] ?? $record->rejection_reason ?? 'N/A';
+                                                        return RejectionReason::tryFrom($record->rejection_reason)?->getLabel() ?? $record->rejection_reason ?? 'N/A';
                                                     }),
                                             ]),
                                     ]),
@@ -371,18 +362,12 @@ class ApplicantResource extends Resource
                         ->form([
                             Forms\Components\Select::make('predefined_reason')
                                 ->label('Motivo de rechazo')
-                                ->options([
-                                    'no_children' => 'No tiene hijos',
-                                    'contract_issues' => 'Problemas con el contrato',
-                                    'not_owner' => 'No es dueño del terreno',
-                                    'lives_too_far' => 'Vive muy lejos del terreno',
-                                    'less_than_a_year' => 'Tiene menos de un año con el terreno',
-                                    'late_payments' => 'Atrasado con los pagos',
-                                    'out_of_coverage' => 'Vive en una colonia no atendida o de riesgo',
-                                    'other_family_members' => 'Abuelos - Tios - Hermanos',
-                                    'out_of_coverage_approved' => 'Fuera de Zona',
-                                    'other' => 'Otro (Especificar)',
-                                ])
+                                ->options(function (): array {
+                                    return collect(RejectionReason::cases())
+                                        ->mapWithKeys(fn (RejectionReason $reason) => [$reason->value => $reason->getLabel()])
+                                        ->put('other', 'Otro (Especificar)')
+                                        ->all();
+                                })
                                 ->required()
                                 ->native(false)
                                 ->live(),

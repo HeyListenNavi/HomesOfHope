@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\ApplicantStatus;
+use App\Enums\RejectionReason;
 use App\Filament\Widgets\Concerns\HasDatePeriod;
 use App\Models\Applicant;
 use Filament\Widgets\ChartWidget;
@@ -36,24 +37,26 @@ class RejectionReasonsChart extends ChartWidget
             ->countBy()
             ->toArray();
 
-        $statuses = [
-            'no_children' => ['label' => 'No tiene hijos',            'color' => '#ef4444'],
-            'contract_issues' => ['label' => 'Problemas con contrato',    'color' => '#f97316'],
-            'not_owner' => ['label' => 'No es dueño',               'color' => '#f59e0b'],
-            'lives_too_far' => ['label' => 'Muy lejos',                 'color' => '#eab308'],
-            'less_than_a_year' => ['label' => 'Menos de 1 año',            'color' => '#84cc16'],
-            'late_payments' => ['label' => 'Pagos atrasados',           'color' => '#22c55e'],
-            'out_of_coverage' => ['label' => 'Colonia No Atendida',       'color' => '#10b981'],
-            'other' => ['label' => 'Otros',                     'color' => '#64748b'],
-        ];
+        $reasons = collect(RejectionReason::cases());
+        $knownKeys = $reasons->pluck('value')->all();
+
+        $configs = $reasons
+            ->mapWithKeys(fn (RejectionReason $reason) => [
+                $reason->value => [
+                    'label' => $reason->getLabel(),
+                    'color' => $reason->getColor(),
+                ],
+            ])
+            ->put('other', ['label' => 'Otros', 'color' => '#64748b'])
+            ->all();
 
         $labels = [];
         $counts = [];
         $colors = [];
 
-        foreach ($statuses as $key => $config) {
+        foreach ($configs as $key => $config) {
             if ($key === 'other') {
-                $count = collect($data)->except('no_children', 'contract_issues', 'not_owner', 'lives_too_far', 'less_than_a_year', 'late_payments', 'out_of_coverage')->sum();
+                $count = collect($data)->except($knownKeys)->sum();
             } else {
                 $count = $data[$key] ?? 0;
             }
