@@ -250,8 +250,14 @@ class ApplicantResource extends Resource
                 Forms\Components\Actions::make([
                     // Botón para aprobar una etapa y pasar a la siguiente
                     Action::make('approveStage')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
-                        )
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && ! in_array($record->process_status, [
+                                ApplicantStatus::Approved,
+                                ApplicantStatus::StaffApproved,
+                                ApplicantStatus::Rejected,
+                                ApplicantStatus::StaffRejected,
+                            ]))
                         ->label('Aprobar etapa')
                         ->icon('heroicon-o-check-circle')
                         ->requiresConfirmation()
@@ -262,8 +268,9 @@ class ApplicantResource extends Resource
 
                     // Botón para aprobar al aplicante de forma definitiva
                     Action::make('approveFinal')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
-                        )
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && ! in_array($record->process_status, [ApplicantStatus::StaffApproved], true))
                         ->label('Aprobar definitivamente')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -274,8 +281,8 @@ class ApplicantResource extends Resource
 
                     // Botón de mensaje personalizado
                     Action::make('sendCustomMessage')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
-                        )
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null)
                         ->label('Enviar mensaje personalizado')
                         ->icon('heroicon-o-chat-bubble-bottom-center-text')
                         ->form([
@@ -305,8 +312,14 @@ class ApplicantResource extends Resource
 
                     // Botón para reenviar la pregunta actual
                     Action::make('resendQuestion')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
-                        )
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && ! in_array($record->process_status, [
+                                ApplicantStatus::Approved,
+                                ApplicantStatus::StaffApproved,
+                                ApplicantStatus::Rejected,
+                                ApplicantStatus::StaffRejected,
+                            ]))
                         ->label('Reenviar pregunta actual')
                         ->icon('heroicon-o-question-mark-circle')
                         ->color('warning')
@@ -317,8 +330,9 @@ class ApplicantResource extends Resource
 
                     // Botón para reenviar el enlace de selección de grupo
                     Action::make('resendGroupLink')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
-                        )
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && in_array($record->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved], true))
                         ->label('Reenviar enlace de grupo')
                         ->icon('heroicon-o-link')
                         ->color('warning')
@@ -335,7 +349,8 @@ class ApplicantResource extends Resource
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.delete')
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.delete')
+                            && $record !== null
                         )
                         ->label('Reiniciar')
                         ->icon('heroicon-o-arrow-path')
@@ -347,9 +362,10 @@ class ApplicantResource extends Resource
 
                     // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update')
-                        )
-                        ->label('Rechazar')
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && ! in_array($record->process_status, [ApplicantStatus::StaffRejected], true))
+                        ->label('Rechazar Definitivamente')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->form([
@@ -387,7 +403,9 @@ class ApplicantResource extends Resource
                         }),
 
                     Action::make('rejectSilent')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update'))
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && ! in_array($record->process_status, [ApplicantStatus::StaffRejected], true))
                         ->label('Rechazar: Staff')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
@@ -396,7 +414,9 @@ class ApplicantResource extends Resource
                         ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->setProcessStatusSilently($record, 'staff_rejected')),
 
                     Action::make('approveSilent')
-                        ->visible(fn (string $operation) => $operation !== 'create' && auth()->user()->can('applicant.update'))
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && ! in_array($record->process_status, [ApplicantStatus::StaffApproved], true))
                         ->label('Aprobar: Staff')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
