@@ -524,7 +524,11 @@ class BotApplicantController extends Controller
             return response()->json(['error' => 'Solicitante no encontrado.'], 404);
         }
 
-        $this->applicantService->reSendGroupSelectionLink($applicant);
+        $sent = $this->applicantService->reSendGroupSelectionLink($applicant);
+
+        if (! $sent) {
+            return response()->json(['error' => 'El solicitante debe estar aprobado para reagendar.'], 403);
+        }
 
         return response()->json([
             'status' => 'success',

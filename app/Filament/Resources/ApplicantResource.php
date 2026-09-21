@@ -325,7 +325,13 @@ class ApplicantResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Reenviar enlace de grupo')
                         ->modalDescription("¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->reSendGroupSelectionLink($record)),
+                        ->action(function (Action $action, Applicant $record, ApplicantService $applicantService) {
+                            $applicantService->reSendGroupSelectionLink($record)
+                                ? $action->success()
+                                : $action->failure();
+                        })
+                        ->successNotificationTitle('Enlace reenviado')
+                        ->failureNotificationTitle('No se reenvió el enlace, el aplicante no está aprobado'),
 
                     // Botón para reiniciar el proceso del aplicante
                     Action::make('restartApplicant')

@@ -106,6 +106,12 @@ class ApplicantActions
 
     public static function reSendGroupSelectionLink(Applicant $applicant): void
     {
+        if (! in_array($applicant->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved])) {
+            Log::warning("No se reenvió el enlace de selección de grupo: el aplicante con ID {$applicant->id} no está aprobado.");
+
+            return;
+        }
+
         Log::info("Reenviando enlace de selección de grupo al aplicante con ID {$applicant->id}.");
         $notificationService = new WhatsappApiNotificationService;
 

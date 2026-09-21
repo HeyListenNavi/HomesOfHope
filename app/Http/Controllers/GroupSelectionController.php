@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ApplicantStatus;
 use App\Enums\AttendanceStatus;
 use App\Models\Applicant;
 use App\Models\Group;
@@ -23,7 +24,12 @@ class GroupSelectionController extends Controller
     public function showSelectionForm(Applicant $applicant)
     {
         // La ruta firmada ya protege contra manipulación de URL.
-        // Verificamos el estado lógico del aplicante.
+        if (! in_array($applicant->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved])) {
+            return view('selection.invalid', [
+                'message' => 'Este enlace no es válido, tu solicitud está en revisión.',
+            ]);
+        }
+
         if ($applicant->group_id !== null) {
             return view('selection.invalid', [
                 'message' => 'Este enlace no es válido o ya has seleccionado un grupo.',
@@ -47,6 +53,10 @@ class GroupSelectionController extends Controller
     public function assignToGroup(Request $request, Applicant $applicant)
     {
         // Validación inicial
+        if (! in_array($applicant->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved])) {
+            return redirect()->route('selection.invalid')->with('error', 'Acción no permitida.');
+        }
+
         if ($applicant->group_id !== null) {
             return redirect()->route('selection.invalid')->with('error', 'Acción no permitida.');
         }

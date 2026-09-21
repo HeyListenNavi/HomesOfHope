@@ -2,6 +2,7 @@
 
 namespace App\Services\Applicant;
 
+use App\Enums\ApplicantStatus;
 use App\Models\Applicant;
 use App\Models\ApplicantQuestionResponse;
 use App\Models\Question;
@@ -189,15 +190,20 @@ class ApplicantService
         ]);
     }
 
-    public function reSendGroupSelectionLink(Applicant $applicant): void
+    public function reSendGroupSelectionLink(Applicant $applicant): bool
     {
+        if (! in_array($applicant->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved], true)) {
+            return false;
+        }
+
         $applicant->update([
-            'process_status' => 'staff_approved',
             'group_id' => null,
             'confirmation_status' => 'pending',
         ]);
 
         $this->sendSelectionLink($applicant);
+
+        return true;
     }
 
     public function approveApplicantFinal(Applicant $applicant): void
