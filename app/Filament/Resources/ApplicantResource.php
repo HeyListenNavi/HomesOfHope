@@ -239,7 +239,6 @@ class ApplicantResource extends Resource
                     ]),
 
                 Forms\Components\Actions::make([
-                    // Botón para aprobar una etapa y pasar a la siguiente
                     Action::make('approveStage')
                         ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
                             && $record !== null
@@ -251,13 +250,14 @@ class ApplicantResource extends Resource
                             ]))
                         ->label('Aprobar etapa')
                         ->icon('heroicon-o-check-circle')
+                        ->color('primary')
+                        ->tooltip('Avanza al aplicante a la siguiente etapa del proceso y le envía la siguiente pregunta por WhatsApp.')
                         ->requiresConfirmation()
                         ->modalHeading('Pasar a la siguiente etapa')
                         ->modalDescription("¿Estás seguro de aprobar a este aplicante? Esta acción no se puede deshacer.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->modalSubmitActionLabel('Sí, aprobar!')
                         ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->approveStage($record)),
 
-                    // Botón para aprobar al aplicante de forma definitiva
                     Action::make('approveFinal')
                         ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
                             && $record !== null
@@ -265,100 +265,33 @@ class ApplicantResource extends Resource
                         ->label('Aprobar definitivamente')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
+                        ->tooltip('Aprueba al aplicante de forma definitiva y le envía el enlace de selección de grupo por WhatsApp.')
                         ->requiresConfirmation()
                         ->modalHeading('Aprobar aplicante')
                         ->modalDescription("Esta acción marcará al aplicante como aprobado y le enviará el enlace para la selección de grupo. ¿Estás seguro?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
                         ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->approveApplicantFinal($record)),
 
-                    // Botón de mensaje personalizado
-                    Action::make('sendCustomMessage')
-                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
-                            && $record !== null)
-                        ->label('Enviar mensaje personalizado')
-                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
-                        ->form([
-                            Forms\Components\Textarea::make('message')
-                                ->label('Mensaje')
-                                ->required()
-                                ->rows(5)
-                                ->placeholder('Escribe tu mensaje aquí...'),
-                        ])
-                        ->modalHeading('Enviar mensaje personalizado')
-                        ->disabled(function (Applicant $applicant) {
-                            $conversation = $applicant->conversation;
-                            if (! $conversation) {
-                                return true;
-                            }
-
-                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
-                            if (! $last) {
-                                return true;
-                            }
-
-                            return $last->created_at->lt(now()->subHours(23));
-                        })
-                        ->action(function (array $data, Applicant $record, ApplicantService $applicantService) {
-                            $applicantService->sendCustomMessage($record, $data['message']);
-                        }),
-
-                    // Botón para reenviar la pregunta actual
-                    Action::make('resendQuestion')
+                    Action::make('approveSilent')
                         ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
                             && $record !== null
-                            && ! in_array($record->process_status, [
-                                ApplicantStatus::Approved,
-                                ApplicantStatus::StaffApproved,
-                                ApplicantStatus::Rejected,
-                                ApplicantStatus::StaffRejected,
-                            ]))
-                        ->label('Reenviar pregunta actual')
-                        ->icon('heroicon-o-question-mark-circle')
-                        ->color('warning')
+                            && ! in_array($record->process_status, [ApplicantStatus::StaffApproved], true))
+                        ->label('Aprobar sin notificar')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->outlined()
+                        ->tooltip('Solo cambia el estado a aprobado, sin enviar ningún mensaje por WhatsApp.')
                         ->requiresConfirmation()
-                        ->modalHeading('Reenviar pregunta')
-                        ->modalDescription("¿Estás seguro de reenviar la pregunta actual a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->reSendCurrentQuestion($record)),
+                        ->modalHeading('Aprobar al aplicante (sin notificar)')
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->setProcessStatusSilently($record, 'staff_approved')),
 
-                    // Botón para reenviar el enlace de selección de grupo
-                    Action::make('resendGroupLink')
-                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
-                            && $record !== null
-                            && in_array($record->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved], true))
-                        ->label('Reenviar enlace de grupo')
-                        ->icon('heroicon-o-link')
-                        ->color('warning')
-                        ->requiresConfirmation()
-                        ->modalHeading('Reenviar enlace de grupo')
-                        ->modalDescription("¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(function (Action $action, Applicant $record, ApplicantService $applicantService) {
-                            $applicantService->reSendGroupSelectionLink($record)
-                                ? $action->success()
-                                : $action->failure();
-                        })
-                        ->successNotificationTitle('Enlace reenviado')
-                        ->failureNotificationTitle('No se reenvió el enlace, el aplicante no está aprobado'),
-
-                    // Botón para reiniciar el proceso del aplicante
-                    Action::make('restartApplicant')
-                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.delete')
-                            && $record !== null
-                        )
-                        ->label('Reiniciar')
-                        ->icon('heroicon-o-arrow-path')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->modalHeading('Reiniciar proceso del aplicante')
-                        ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
-                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->resetApplicant($record)),
-
-                    // Botón para rechazar al aplicante
                     Action::make('rejectApplicant')
                         ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
                             && $record !== null
                             && ! in_array($record->process_status, [ApplicantStatus::StaffRejected], true))
-                        ->label('Rechazar Definitivamente')
+                        ->label('Rechazar definitivamente')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
+                        ->tooltip('Rechaza al aplicante y le envía el aviso de rechazo por WhatsApp.')
                         ->form([
                             Forms\Components\Select::make('predefined_reason')
                                 ->label('Motivo de rechazo')
@@ -391,26 +324,97 @@ class ApplicantResource extends Resource
                         ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
                             && $record !== null
                             && ! in_array($record->process_status, [ApplicantStatus::StaffRejected], true))
-                        ->label('Rechazar: Staff')
+                        ->label('Rechazar sin notificar')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
+                        ->outlined()
+                        ->tooltip('Solo cambia el estado a rechazado, sin enviar ningún mensaje por WhatsApp.')
                         ->requiresConfirmation()
-                        ->modalHeading('Rechazar al aplicante (Staff)')
+                        ->modalHeading('Rechazar al aplicante (sin notificar)')
                         ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->setProcessStatusSilently($record, 'staff_rejected')),
 
-                    Action::make('approveSilent')
+                    Action::make('sendCustomMessage')
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null)
+                        ->label('Enviar mensaje personalizado')
+                        ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                        ->color('info')
+                        ->tooltip('Envía un mensaje de texto libre al aplicante por WhatsApp.')
+                        ->form([
+                            Forms\Components\Textarea::make('message')
+                                ->label('Mensaje')
+                                ->required()
+                                ->rows(5)
+                                ->placeholder('Escribe tu mensaje aquí...'),
+                        ])
+                        ->modalHeading('Enviar mensaje personalizado')
+                        ->disabled(function (Applicant $applicant) {
+                            $conversation = $applicant->conversation;
+                            if (! $conversation) {
+                                return true;
+                            }
+
+                            $last = $conversation->messages()->where('role', 'user')->latest('created_at')->first();
+                            if (! $last) {
+                                return true;
+                            }
+
+                            return $last->created_at->lt(now()->subHours(23));
+                        })
+                        ->action(function (array $data, Applicant $record, ApplicantService $applicantService) {
+                            $applicantService->sendCustomMessage($record, $data['message']);
+                        }),
+
+                    Action::make('resendQuestion')
                         ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
                             && $record !== null
-                            && ! in_array($record->process_status, [ApplicantStatus::StaffApproved], true))
-                        ->label('Aprobar: Staff')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
+                            && ! in_array($record->process_status, [
+                                ApplicantStatus::Approved,
+                                ApplicantStatus::StaffApproved,
+                                ApplicantStatus::Rejected,
+                                ApplicantStatus::StaffRejected,
+                            ]))
+                        ->label('Reenviar pregunta actual')
+                        ->icon('heroicon-o-question-mark-circle')
+                        ->color('warning')
+                        ->tooltip('Reenvía la pregunta actual del proceso por WhatsApp.')
                         ->requiresConfirmation()
-                        ->modalHeading('Aprobar al aplicante (Staff)')
-                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->setProcessStatusSilently($record, 'staff_approved')),
-                ])
-                    ->fullWidth()
-                    ->columnSpanFull(),
+                        ->modalHeading('Reenviar pregunta')
+                        ->modalDescription("¿Estás seguro de reenviar la pregunta actual a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->reSendCurrentQuestion($record)),
+
+                    Action::make('resendGroupLink')
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.update')
+                            && $record !== null
+                            && in_array($record->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved], true))
+                        ->label('Reenviar enlace de grupo')
+                        ->icon('heroicon-o-link')
+                        ->color('warning')
+                        ->tooltip('Reenvía el enlace de selección de grupo por WhatsApp. Solo aplica para aplicantes aprobados.')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reenviar enlace de grupo')
+                        ->modalDescription("¿Estás seguro de reenviar el enlace de selección de grupo a este aplicante?\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(function (Action $action, Applicant $record, ApplicantService $applicantService) {
+                            $applicantService->reSendGroupSelectionLink($record)
+                                ? $action->success()
+                                : $action->failure();
+                        })
+                        ->successNotificationTitle('Enlace reenviado')
+                        ->failureNotificationTitle('No se reenvió el enlace, el aplicante no está aprobado'),
+
+                    Action::make('restartApplicant')
+                        ->visible(fn (?Applicant $record) => auth()->user()->can('applicant.delete')
+                            && $record !== null
+                        )
+                        ->label('Reiniciar proceso')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('gray')
+                        ->tooltip('Borra todas las respuestas y reinicia el proceso desde la primera etapa.')
+                        ->requiresConfirmation()
+                        ->modalHeading('Reiniciar proceso del aplicante')
+                        ->modalDescription("¿Estás seguro de reiniciar el proceso de este aplicante? Se eliminarán todas las respuestas existentes.\nRecuerda que si han pasado 24 horas desde la última interacción del aplicante con el bot se cobrara este mensaje")
+                        ->action(fn (Applicant $record, ApplicantService $applicantService) => $applicantService->resetApplicant($record)),
+                ])->fullWidth()->columnSpanFull(),
             ]);
     }
 
