@@ -66,9 +66,17 @@ class Applicant extends Model
         return $this->morphToMany(Tag::class, 'taggable');
     }
 
-    public function attendance(): HasOne
+    public function attendances(): HasMany
     {
-        return $this->hasOne(Attendance::class);
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function currentAttendance(): HasOne
+    {
+        return $this->hasOne(Attendance::class)
+            ->join('applicants', 'applicants.id', '=', 'attendances.applicant_id')
+            ->whereColumn('attendances.group_id', 'applicants.group_id')
+            ->select('attendances.*');
     }
 
     public function group(): BelongsTo

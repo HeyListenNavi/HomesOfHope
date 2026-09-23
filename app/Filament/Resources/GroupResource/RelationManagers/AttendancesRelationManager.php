@@ -5,6 +5,7 @@ namespace App\Filament\Resources\GroupResource\RelationManagers;
 use App\Enums\AttendanceStatus;
 use App\Filament\Resources\ApplicantResource;
 use App\Models\Attendance;
+use App\Services\Attendance\AttendanceService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -114,10 +115,7 @@ class AttendancesRelationManager extends RelationManager
                         ->icon('heroicon-m-check-circle')
                         ->color('info')
                         ->action(function (Attendance $record) {
-                            $record->update([
-                                'status' => AttendanceStatus::Present,
-                                'scanned_at' => now(),
-                            ]);
+                            app(AttendanceService::class)->markPresent($record);
 
                             Notification::make()
                                 ->title('Asistencia marcada como Presente')
@@ -131,10 +129,7 @@ class AttendancesRelationManager extends RelationManager
                         ->icon('heroicon-m-check-badge')
                         ->color('success')
                         ->action(function (Attendance $record) {
-                            $record->update([
-                                'status' => AttendanceStatus::Attended,
-                                'scanned_at' => $record->scanned_at ?? now(),
-                            ]);
+                            app(AttendanceService::class)->markAttended($record);
 
                             Notification::make()
                                 ->title('Asistencia marcada como Atendido')
@@ -148,10 +143,7 @@ class AttendancesRelationManager extends RelationManager
                         ->icon('heroicon-m-x-circle')
                         ->color('danger')
                         ->action(function (Attendance $record) {
-                            $record->update([
-                                'status' => AttendanceStatus::Absent,
-                                'scanned_at' => null,
-                            ]);
+                            app(AttendanceService::class)->markAbsent($record);
 
                             Notification::make()
                                 ->title('Asistencia marcada como Ausente')

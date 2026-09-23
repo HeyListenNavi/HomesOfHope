@@ -6,7 +6,7 @@ use App\Enums\AttendanceStatus;
 use App\Models\Applicant;
 use App\Models\Attendance;
 use App\Models\Group;
-use App\Services\Group\GroupService;
+use App\Services\Attendance\AttendanceService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -36,14 +36,14 @@ class AttendancePage extends Component
     public function loadGroupMembers()
     {
         $this->groupMembers = Applicant::where('group_id', $this->group->id)
-            ->orWhereHas('attendance', fn ($query) => $query->where('group_id', $this->group->id))
-            ->with(['attendance', 'responses'])
+            ->orWhereHas('currentAttendance', fn ($query) => $query->where('group_id', $this->group->id))
+            ->with(['currentAttendance', 'responses'])
             ->get()
-            ->sortBy(fn ($m) => $m->attendance?->scanned_at?->timestamp)
+            ->sortBy(fn ($m) => $m->currentAttendance?->scanned_at?->timestamp)
             ->values();
     }
 
-    public function toggleAttendance(int $memberId): void
+    public function toggleAttendance(AttendanceService $attendanceService, int $memberId): void
     {
         $attendance = Attendance::where('applicant_id', $memberId)
             ->where('group_id', $this->group->id)
@@ -53,16 +53,12 @@ class AttendancePage extends Component
             return;
         }
 
-        $newStatus = $attendance->status === AttendanceStatus::Present
-            ? AttendanceStatus::Attended
-            : AttendanceStatus::Present;
-
-        $attendance->update(['status' => $newStatus]);
+        $attendanceService->toggleAttended($attendance);
 
         $this->loadGroupMembers();
     }
 
-    public function processCode()
+    public function processCode(AttendanceService $attendanceService)
     {
         $code = trim($this->scanCode);
 
@@ -105,54 +101,35 @@ class AttendancePage extends Component
             return;
         }
 
-        if ($attendance->status === AttendanceStatus::Present || $attendance->status === AttendanceStatus::Attended) {
-            $this->lastScanStatus = $attendance->status;
-            $this->scanResult = 'warning';
-            $this->scanMessage = 'Esta persona ya había marcado asistencia.';
-        } else {
-            $attendance->update([
-                'status' => AttendanceStatus::Present,
-                'scanned_at' => now(),
-            ]);
+        $result = $attendanceService->checkIn($attendance);
 
-            $this->lastScanStatus = AttendanceStatus::Present;
-            $this->scanResult = 'success';
-            $this->scanMessage = 'Asistencia registrada correctamente.';
-        }
+        $this->lastScanStatus = match ($result['reason']) {
+            'success' => AttendanceStatus::Present,
+            'already' => $attendance->status,
+            default => null,
+        };
+
+        $this->scanResult = match ($result['reason']) {
+            'success' => 'success',
+            'already' => 'warning',
+            default => 'danger',
+        };
+
+        $this->scanMessage = match ($result['reason']) {
+            'success' => 'Asistencia registrada correctamente.',
+            'already' => 'Esta persona ya había marcado asistencia.',
+            'closed' => 'Este grupo ya fue cerrado.',
+            default => 'No se pudo registrar la asistencia.',
+        };
 
         $this->loadGroupMembers();
         $this->resetScanField();
     }
 
-    public function closeAttendance(GroupService $groupService)
+    public function closeAttendance(AttendanceService $attendanceService)
     {
-        if ($this->group->attendance_closed_at) {
-            return;
-        }
+        $attendanceService->close($this->group);
 
-        $applicants = Applicant::where('group_id', $this->group->id)->get();
-
-        foreach ($applicants as $applicant) {
-            $attendance = Attendance::where('applicant_id', $applicant->id)
-                ->where('group_id', $this->group->id)
-                ->first();
-
-            if (! $attendance || $attendance->status === AttendanceStatus::Pending) {
-                $applicant->attendance()->updateOrCreate(
-                    ['group_id' => $this->group->id],
-                    ['status' => AttendanceStatus::Absent]
-                );
-
-                $applicant->update([
-                    'group_id' => null,
-                    'confirmation_status' => 'pending',
-                ]);
-
-                $groupService->sendRescheduleLink($applicant);
-            }
-        }
-
-        $this->group->update(['attendance_closed_at' => now()]);
         $this->group->refresh();
         $this->loadGroupMembers();
     }

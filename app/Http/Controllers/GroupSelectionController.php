@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ApplicantStatus;
-use App\Enums\AttendanceStatus;
 use App\Models\Applicant;
 use App\Models\Group;
+use App\Services\Attendance\AttendanceService;
 use App\Services\Group\GroupService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use chillerlan\QRCode\QRCode;
@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\URL;
 
 class GroupSelectionController extends Controller
 {
-    public function __construct(protected GroupService $groupService) {}
+    public function __construct(
+        protected GroupService $groupService,
+        protected AttendanceService $attendanceService,
+    ) {}
 
     /**
      * Muestra el formulario para que el aplicante elija un grupo.
@@ -85,18 +88,11 @@ class GroupSelectionController extends Controller
             }
 
             // Asignación final y definitiva
+            $this->attendanceService->enroll($applicant, $group);
+
             $applicant->group_id = $group->id;
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
-
-            $applicant->attendance()->updateOrCreate(
-                ['applicant_id' => $applicant->id],
-                [
-                    'group_id' => $group->id,
-                    'attendance_code' => $applicant->attendance?->attendance_code ?? strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8)),
-                    'status' => AttendanceStatus::Pending,
-                ]
-            );
 
             $this->groupService->sendInterviewDetails($applicant);
 
@@ -112,11 +108,11 @@ class GroupSelectionController extends Controller
         $number = config('services.whatsapp.number');
         $whatsAppUrl = "https://wa.me/{$number}";
 
-        $applicant->load('group');
+        $applicant->load(['group', 'currentAttendance']);
 
         $qrCode = null;
-        if ($applicant->attendance?->attendance_code) {
-            $qrCode = (new QRCode)->render($applicant->attendance->attendance_code);
+        if ($applicant->currentAttendance?->attendance_code) {
+            $qrCode = (new QRCode)->render($applicant->currentAttendance->attendance_code);
         }
 
         return view('selection.success', compact('whatsAppUrl', 'applicant', 'qrCode'));
@@ -124,11 +120,11 @@ class GroupSelectionController extends Controller
 
     public function downloadInvitation(Applicant $applicant)
     {
-        $applicant->load('group');
+        $applicant->load(['group', 'currentAttendance']);
 
         $qrCode = null;
-        if ($applicant->attendance?->attendance_code) {
-            $qrCode = (new QRCode)->render($applicant->attendance->attendance_code);
+        if ($applicant->currentAttendance?->attendance_code) {
+            $qrCode = (new QRCode)->render($applicant->currentAttendance->attendance_code);
         }
 
         $pdf = Pdf::loadView('pdf.invitation', compact('applicant', 'qrCode'))
@@ -149,11 +145,11 @@ class GroupSelectionController extends Controller
             return $this->downloadInvitation($applicant);
         }
 
-        $applicant->load('group');
+        $applicant->load(['group', 'currentAttendance']);
 
         $qrCode = null;
-        if ($applicant->attendance?->attendance_code) {
-            $qrCode = (new QRCode)->render($applicant->attendance->attendance_code);
+        if ($applicant->currentAttendance?->attendance_code) {
+            $qrCode = (new QRCode)->render($applicant->currentAttendance->attendance_code);
         }
 
         $number = config('services.whatsapp.number');

@@ -201,14 +201,14 @@ class ApplicantResource extends Resource
                                             ->disabled(fn (Get $get) => ! in_array($get('process_status'), [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]))
                                             ->helperText(fn (Get $get) => in_array($get('process_status'), [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value]) ? 'Solo aplicantes aprobados pueden tener grupo.' : null),
 
-                                        Forms\Components\TextInput::make('attendance.attendance_code')
+                                        Forms\Components\TextInput::make('currentAttendance.attendance_code')
                                             ->label('Código de Asistencia')
                                             ->prefixIcon('heroicon-m-qr-code')
                                             ->readOnly()
                                             ->disabled()
-                                            ->visible(fn ($record) => $record?->attendance !== null)
+                                            ->visible(fn ($record) => $record?->currentAttendance !== null)
                                             ->afterStateHydrated(function (Forms\Components\TextInput $component, $record) {
-                                                $component->state($record?->attendance?->attendance_code);
+                                                $component->state($record?->currentAttendance?->attendance_code);
                                             })
                                             ->suffixAction(
                                                 Action::make('copy')

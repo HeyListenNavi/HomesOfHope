@@ -29,7 +29,7 @@ class GroupController extends Controller
         $group = Group::findOrFail($id);
 
         $applicants = $group->applicants()
-            ->with(['attendance'])
+            ->with(['currentAttendance'])
             ->get();
 
         return response()->json([

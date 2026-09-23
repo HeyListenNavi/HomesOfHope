@@ -56,7 +56,7 @@ class ApplicantFactory extends Factory
             'group_id' => Group::inRandomOrder()->first() ?? Group::factory(),
             'confirmation_status' => 'confirmed',
         ])->afterCreating(function (Applicant $applicant) {
-            $applicant->attendance()->create([
+            $applicant->attendances()->create([
                 'group_id' => $applicant->group_id,
                 'attendance_code' => strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8)),
                 'status' => AttendanceStatus::Pending,

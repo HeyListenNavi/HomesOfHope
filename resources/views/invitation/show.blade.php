@@ -45,13 +45,13 @@
         @endif
     </div>
 
-    @if($applicant->attendance?->attendance_code && $qrCode)
+    @if($applicant->currentAttendance?->attendance_code && $qrCode)
     <div class="flex flex-col items-center bg-zinc-50 p-8 rounded-2xl shadow-inner border border-zinc-100">
         <p class="text-label-small text-zinc-400 mb-4 uppercase tracking-widest font-black">Tu Código de Asistencia</p>
         <div class="bg-white p-4 rounded-xl shadow-sm border border-zinc-200 mb-4">
             <img src="{{ $qrCode }}" alt="QR Code" class="w-40 h-40">
         </div>
-        <span class="text-3xl font-mono font-black tracking-[0.3em] text-zinc-900">{{ $applicant->attendance->attendance_code }}</span>
+        <span class="text-3xl font-mono font-black tracking-[0.3em] text-zinc-900">{{ $applicant->currentAttendance->attendance_code }}</span>
         <p class="text-sm text-zinc-500 mt-4 text-center max-w-xs">⚠️ Guarda este Código para entrar a tu Entrevista</p>
     </div>
     @endif

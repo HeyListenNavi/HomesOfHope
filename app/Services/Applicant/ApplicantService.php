@@ -15,12 +15,9 @@ use Illuminate\Support\Facades\URL;
 
 class ApplicantService
 {
-    protected $whatsappService;
-
-    public function __construct(WhatsappService $whatsappService)
-    {
-        $this->whatsappService = $whatsappService;
-    }
+    public function __construct(
+        protected WhatsappService $whatsappService,
+    ) {}
 
     public function startApplicantQuestions(Applicant $applicant): void
     {

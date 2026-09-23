@@ -7,6 +7,7 @@ use App\Enums\AttendanceStatus;
 use App\Filament\Resources\ApplicantResource;
 use App\Models\Applicant;
 use App\Models\Question;
+use App\Services\Attendance\AttendanceService;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -67,7 +68,7 @@ class ApplicantsRelationManager extends RelationManager
                 ->searchable()
                 ->toggleable(isToggledHiddenByDefault: true),
 
-            TextColumn::make('attendance.status')
+            TextColumn::make('currentAttendance.status')
                 ->label('Asistencia')
                 ->badge()
                 ->default(AttendanceStatus::Pending),
@@ -125,10 +126,9 @@ class ApplicantsRelationManager extends RelationManager
         );
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'attendance']))
-            ->paginated([10, 25, 50, 100])
-            ->defaultPaginationPageOption(25)
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['responses', 'currentAttendance']))
             ->paginated([25, 50, 100])
+            ->defaultPaginationPageOption(25)
             ->defaultSort('created_at', 'desc')
             ->columns($columns)
             ->filters([
@@ -180,30 +180,25 @@ class ApplicantsRelationManager extends RelationManager
                         ->icon('heroicon-m-check-circle')
                         ->color('success')
                         ->action(function (Applicant $record) {
-                            $record->attendance()->updateOrCreate(
-                                ['group_id' => $this->getOwnerRecord()->id],
-                                [
-                                    'status' => AttendanceStatus::Present,
-                                    'scanned_at' => now(),
-                                ]
-                            );
+                            $attendanceService = app(AttendanceService::class);
+
+                            $attendance = $record->currentAttendance
+                                ?? $attendanceService->enroll($record, $this->getOwnerRecord());
+
+                            $attendanceService->markPresent($attendance);
                         })
-                        ->visible(fn (Applicant $record) => $record->attendance?->status === AttendanceStatus::Absent),
+                        ->visible(fn (Applicant $record) => $record->currentAttendance === null || $record->currentAttendance?->status === AttendanceStatus::Absent),
 
                     Tables\Actions\Action::make('markAbsent')
                         ->label('Marcar Ausente')
                         ->icon('heroicon-m-x-circle')
                         ->color('danger')
                         ->action(function (Applicant $record) {
-                            $record->attendance()->updateOrCreate(
-                                ['group_id' => $this->getOwnerRecord()->id],
-                                [
-                                    'status' => AttendanceStatus::Absent,
-                                    'scanned_at' => null,
-                                ]
-                            );
+                            if ($record->currentAttendance) {
+                                app(AttendanceService::class)->markAbsent($record->currentAttendance);
+                            }
                         })
-                        ->visible(fn (Applicant $record) => $record->attendance?->status === AttendanceStatus::Present),
+                        ->visible(fn (Applicant $record) => $record->currentAttendance?->status === AttendanceStatus::Present),
 
                     Tables\Actions\EditAction::make()
                         ->label('Editar')

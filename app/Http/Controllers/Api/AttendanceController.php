@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\AttendanceStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Services\Attendance\AttendanceService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -13,11 +14,10 @@ class AttendanceController extends Controller
     /**
      * Scan QR code payload to mark attendance.
      */
-    public function scan(Request $request)
+    public function scan(Request $request, AttendanceService $attendanceService)
     {
         $validated = $request->validate([
             'attendance_code' => 'required|string',
-            'status' => ['nullable', Rule::enum(AttendanceStatus::class)],
         ]);
 
         $attendance = Attendance::with(['applicant', 'group'])
@@ -30,10 +30,15 @@ class AttendanceController extends Controller
             ], 404);
         }
 
-        $attendance->update([
-            'status' => $validated['status'] ?? AttendanceStatus::Present,
-            'scanned_at' => now(),
-        ]);
+        $result = $attendanceService->checkIn($attendance);
+
+        if (! $result['success']) {
+            return response()->json([
+                'message' => $result['reason'] === 'closed'
+                    ? 'Attendance is closed for this group.'
+                    : 'Attendance has already been marked for this code.',
+            ], $result['reason'] === 'closed' ? 423 : 409);
+        }
 
         return response()->json([
             'message' => 'Attendance marked successfully.',
@@ -56,9 +61,18 @@ class AttendanceController extends Controller
             'status' => ['required', Rule::enum(AttendanceStatus::class)],
         ]);
 
+        if ($attendance->group && $attendance->group->attendance_closed_at) {
+            return response()->json([
+                'message' => 'Attendance is closed for this group.',
+            ], 423);
+        }
+
         $attendance->update([
             'status' => $validated['status'],
-            'scanned_at' => now(),
+            'scanned_at' => match (AttendanceStatus::from($validated['status'])) {
+                AttendanceStatus::Present, AttendanceStatus::Attended => $attendance->scanned_at ?? now(),
+                default => null,
+            },
         ]);
 
         return response()->json([
