@@ -69,7 +69,7 @@ class WhatsappClient
                 'parameters' => collect($parameters)->map(fn ($value, $key) => [
                     'type' => 'text',
                     'parameter_name' => $key,
-                    'text' => (string) $value,
+                    'text' => $this->sanitizeTemplateParam((string) $value),
                 ])->values()->toArray(),
             ];
         }
@@ -94,5 +94,10 @@ class WhatsappClient
 
             return false;
         }
+    }
+
+    protected function sanitizeTemplateParam(string $value): string
+    {
+        return trim(preg_replace('/\s+/u', ' ', $value) ?? $value);
     }
 }
