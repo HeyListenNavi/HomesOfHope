@@ -67,11 +67,11 @@ class GroupService
             "Por favor recuerda la siguiente informacion:\n".
             "Tu cita es el dia: {$day}\n".
             "A las: {$time}\n".
-            "Con direccion: ${address}\n".
-            "Ubicacion: ${address_link}\n\n".
+            "Con direccion: {$address}\n".
+            "Ubicacion: {$address_link}\n\n".
 
             "Aqui estan mas detalles sobre tu entrevista\n".
-            "${invitation}\n".
+            "{$invitation}\n".
             "No olvides leer la informacion, es importante para realizar tu entrevista correctamente\n";
 
         $this->whatsappService->send($applicant, $message, 'enviar_informacion_de_entrevista', [
@@ -102,7 +102,7 @@ class GroupService
         $address = $group->location;
         $invitation = 'En este link puedes ver todos los detalles de tu entrevista y el QR de asistencia: '.$invitationUrl;
 
-        $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día {$dateTime}. La entrevista sera en ${address}\n".
+        $message = "Hola! Somos del equipo de Casas de Esperanza, nos gustaría recordarte que tu fecha de entrevista es el día {$dateTime}. La entrevista sera en {$address}\n".
             "Aquí hay mas detalles sobre tu entrevista:\n".
 
             "{$invitation}\n".
