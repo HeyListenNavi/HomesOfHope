@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ApplicantStatus;
 use App\Services\Applicant\ApplicantService;
+use App\Services\Attendance\AttendanceService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,8 +56,18 @@ class Applicant extends Model
                 );
             }
 
+            if ($applicant->group_id !== null) {
+                app(AttendanceService::class)->enroll($applicant, Group::findOrFail($applicant->group_id));
+            }
+
             if ($applicant->applicant_name && is_null($applicant->current_step)) {
                 app(ApplicantService::class)->startApplicantQuestions($applicant);
+            }
+        });
+
+        static::updated(function (Applicant $applicant) {
+            if ($applicant->wasChanged('group_id') && $applicant->group_id !== null) {
+                app(AttendanceService::class)->enroll($applicant, Group::findOrFail($applicant->group_id));
             }
         });
     }

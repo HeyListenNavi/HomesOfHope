@@ -4,8 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\ApplicantGender;
 use App\Enums\ApplicantStatus;
-use App\Enums\AttendanceStatus;
-use App\Models\Applicant;
 use App\Models\Group;
 use App\Models\Question;
 use App\Models\Stage;
@@ -55,13 +53,7 @@ class ApplicantFactory extends Factory
             'rejection_reason' => null,
             'group_id' => Group::inRandomOrder()->first() ?? Group::factory(),
             'confirmation_status' => 'confirmed',
-        ])->afterCreating(function (Applicant $applicant) {
-            $applicant->attendances()->create([
-                'group_id' => $applicant->group_id,
-                'attendance_code' => strtoupper(substr(md5(uniqid($applicant->id, true)), 0, 8)),
-                'status' => AttendanceStatus::Pending,
-            ]);
-        });
+        ]);
     }
 
     /**

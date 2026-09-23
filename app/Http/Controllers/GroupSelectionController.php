@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\ApplicantStatus;
 use App\Models\Applicant;
 use App\Models\Group;
-use App\Services\Attendance\AttendanceService;
 use App\Services\Group\GroupService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use chillerlan\QRCode\QRCode;
@@ -18,7 +17,6 @@ class GroupSelectionController extends Controller
 {
     public function __construct(
         protected GroupService $groupService,
-        protected AttendanceService $attendanceService,
     ) {}
 
     /**
@@ -88,8 +86,6 @@ class GroupSelectionController extends Controller
             }
 
             // Asignación final y definitiva
-            $this->attendanceService->enroll($applicant, $group);
-
             $applicant->group_id = $group->id;
             $applicant->confirmation_status = 'confirmed';
             $applicant->save();
