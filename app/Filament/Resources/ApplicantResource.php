@@ -245,8 +245,6 @@ class ApplicantResource extends Resource
                             && ! in_array($record->process_status, [
                                 ApplicantStatus::Approved,
                                 ApplicantStatus::StaffApproved,
-                                ApplicantStatus::Rejected,
-                                ApplicantStatus::StaffRejected,
                             ]))
                         ->label('Aprobar etapa')
                         ->icon('heroicon-o-check-circle')
