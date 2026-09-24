@@ -193,7 +193,13 @@ class ApplicantResource extends Resource
                                             ->live(),
 
                                         Forms\Components\Select::make('group_id')
-                                            ->relationship('group', 'name')
+                                            ->relationship(
+                                                'group',
+                                                'name',
+                                                modifyQueryUsing: fn (Builder $query, Get $get) => $query
+                                                    ->enrollable()
+                                                    ->orWhere('id', $get('group_id')),
+                                            )
                                             ->label('Grupo Asignado')
                                             ->searchable()
                                             ->preload()
