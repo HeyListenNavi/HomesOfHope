@@ -83,7 +83,7 @@ class AttendancePage extends Component
             $this->lastScannedApplicant = null;
             $this->lastScanStatus = null;
             $this->scanResult = 'danger';
-            $this->scanMessage = "El código '{$code}' no es válido o no existe.";
+            $this->scanMessage = "El código '{$code}' no es válido para este grupo.";
             $this->resetScanField();
 
             return;
@@ -92,10 +92,10 @@ class AttendancePage extends Component
         $applicant = $attendance->applicant()->with('responses')->first();
         $this->lastScannedApplicant = $applicant;
 
-        if ($attendance->group_id != $this->group->id) {
+        if ($applicant && $applicant->group_id != $this->group->id) {
             $this->lastScanStatus = null;
             $this->scanResult = 'warning';
-            $this->scanMessage = 'Pertenece a otro grupo.';
+            $this->scanMessage = 'Este código pertenece a otro grupo, asegurate de escanear el código correcto.';
             $this->resetScanField();
 
             return;
