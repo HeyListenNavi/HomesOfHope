@@ -283,7 +283,7 @@
                                                 @endif
                                             "
                                         >
-                                            <i class='bx bxs-check text-xl'></i>
+                                            <i class='bx bx-check text-xl'></i>
                                         </button>
                                     @endif
 
