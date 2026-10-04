@@ -17,31 +17,47 @@ class VisitController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Visit::with(['attendants:id,name', 'familyProfile:id,family_name', 'notes']);
+        $this->authorize('viewAny', Visit::class);
 
-        if ($request->has('family_profile_id')) {
-            $query->where('family_profile_id', $request->family_profile_id);
+        $validated = $request->validate([
+            'family_profile_id' => ['sometimes', 'integer'],
+            'status' => ['sometimes', Rule::enum(VisitStatus::class)],
+            'date' => ['sometimes', 'date', 'date_format:Y-m-d'],
+            'min_date' => ['sometimes', 'date', 'date_format:Y-m-d'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        $query = Visit::with([
+            'attendants:id,name',
+            'familyProfile:id,family_name,home_address_link,land_address_link,responsible_member_id',
+            'familyProfile.responsibleMember:id,family_profile_id,phone',
+            'notes',
+        ]);
+        if (isset($validated['family_profile_id'])) {
+            $query->where('family_profile_id', $validated['family_profile_id']);
         }
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
+        if (isset($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
 
-        if ($request->has('date')) {
-            $query->whereDate('scheduled_at', $request->date);
+        if (isset($validated['date'])) {
+            $query->whereDate('scheduled_at', $validated['date']);
         }
 
-        if ($request->has('min_date')) {
-            $query->whereDate('scheduled_at', '>=', $request->min_date);
+        if (isset($validated['min_date'])) {
+            $query->whereDate('scheduled_at', '>=', $validated['min_date']);
         }
 
         $query->orderBy('scheduled_at', 'desc');
 
-        return response()->json($query->paginate(20));
+        return $query->paginate(20);
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', Visit::class);
+
         $validated = $request->validate([
             'family_profile_id' => 'required|exists:family_profiles,id',
             'scheduled_at' => 'required|date',
@@ -58,21 +74,20 @@ class VisitController extends Controller
 
         return response()->json([
             'message' => 'Visit scheduled successfully',
-            'data' => $visit->load('attendants:id,name'),
+            'data' => $visit->load('attendants'),
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(Visit $visit)
     {
-        $visit = Visit::with(['familyProfile.responsibleMember', 'attendants', 'notes.author:id,name', 'documents', 'tasks'])
-            ->findOrFail($id);
+        $this->authorize('view', $visit);
 
-        return response()->json($visit);
+        return $visit->load(['familyProfile.responsibleMember', 'attendants', 'notes.author', 'evidences', 'tasks']);
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, Visit $visit)
     {
-        $visit = Visit::findOrFail($id);
+        $this->authorize('update', $visit);
 
         $validated = $request->validate([
             'scheduled_at' => 'sometimes|date',
@@ -92,13 +107,14 @@ class VisitController extends Controller
 
         return response()->json([
             'message' => 'Visit updated successfully',
-            'data' => $visit->load('attendants:id,name'),
+            'data' => $visit->load('attendants'),
         ]);
     }
 
-    public function destroy(string $id)
+    public function destroy(Visit $visit)
     {
-        $visit = Visit::findOrFail($id);
+        $this->authorize('delete', $visit);
+
         $visit->delete();
 
         return response()->json(['message' => 'Visit deleted successfully']);

@@ -27,6 +27,8 @@ class Testimony extends Model
         'recorded_at' => 'datetime',
     ];
 
+    protected $appends = ['audio_url'];
+
     /**
      * The family that gave the testimony.
      */

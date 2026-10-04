@@ -19,8 +19,13 @@ class Evidence extends Model
     protected $fillable = [
         'visit_id',
         'file_path',
+        'mime_type',
         'description',
         'taken_by',
+    ];
+
+    protected $appends = [
+        'url',
     ];
 
     public function visit(): BelongsTo

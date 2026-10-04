@@ -21,21 +21,40 @@ class UserController extends Controller
      * GET /api/users?email=gmail.com
      * * 5. Búsqueda combinada (Nombre O Correo):
      * GET /api/users?name=Carlos&email=admin
+     * * 6. Filtrar por rol:
+     * GET /api/users?role=admin
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', User::class);
+
+        $validated = $request->validate([
+            'name' => ['sometimes', 'string'],
+            'email' => ['sometimes', 'string'],
+            'role' => ['sometimes', 'string'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
         $users = User::query()
+            ->with('roles')
             // Si el request trae 'name', aplica este filtro
-            ->when($request->name, fn ($q, $name) => $q->where('name', 'like', "%{$name}%"))
+            ->when($validated['name'] ?? null, fn ($q, $name) => $q->where('name', 'like', "%{$name}%"))
             // Si el request trae 'email', aplica este OR WHERE
-            ->when($request->email, fn ($q, $email) => $q->orWhere('email', 'like', "%{$email}%"))
+            ->when($validated['email'] ?? null, fn ($q, $email) => $q->orWhere('email', 'like', "%{$email}%"))
+            // Si el request trae 'role', aplica el scope de Spatie
+            ->when($validated['role'] ?? null, fn ($q, $role) => $q->role($role))
             ->paginate(15);
 
-        return response()->json($users);
+        return $users->through(fn (User $user) => [
+            ...$user->toArray(),
+            'roles' => $user->getRoleNames()->values()->all(),
+        ]);
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -49,11 +68,20 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return response()->json($user);
+        $this->authorize('view', $user);
+
+        $user->load('roles');
+
+        return [
+            ...$user->toArray(),
+            'roles' => $user->getRoleNames()->values()->all(),
+        ];
     }
 
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,'.$user->id,
@@ -62,11 +90,13 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return response()->json($user);
+        return $user;
     }
 
     public function destroy(User $user)
     {
+        $this->authorize('delete', $user);
+
         $user->delete();
 
         return response()->json(null, 204);

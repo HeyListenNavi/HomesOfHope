@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class FamilyProfile extends Model
@@ -93,6 +94,10 @@ class FamilyProfile extends Model
         'building_finish_date' => 'date',
     ];
 
+    protected $appends = [
+        'family_photo_url',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($familyProfile) {
@@ -126,6 +131,13 @@ class FamilyProfile extends Model
     public function getFamilyNameAttribute($value): string
     {
         return Str::title($value);
+    }
+
+    public function getFamilyPhotoUrlAttribute(): ?string
+    {
+        return filled($this->family_photo_path)
+            ? Storage::disk('r2')->url($this->family_photo_path)
+            : null;
     }
 
     /* -------------------------------------------------------------------------- */

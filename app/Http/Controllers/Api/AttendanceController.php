@@ -53,10 +53,8 @@ class AttendanceController extends Controller
     /**
      * Manually update attendance status by ID.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Attendance $attendance)
     {
-        $attendance = Attendance::findOrFail($id);
-
         $validated = $request->validate([
             'status' => ['required', Rule::enum(AttendanceStatus::class)],
         ]);

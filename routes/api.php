@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\HandleMessageController;
 use App\Http\Controllers\Api\MetaWebhookVerificationController;
 use App\Http\Controllers\Api\NoteController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TestimonyController;
 use App\Http\Controllers\Api\UserController;
@@ -28,7 +29,13 @@ Route::get('/handle-message', [MetaWebhookVerificationController::class, 'verify
 
 // Ruta para testing
 Route::get('/user', function (Request $request) {
-    return $request->user();
+    $user = $request->user()->load(['roles', 'roles.permissions', 'permissions']);
+
+    return [
+        ...$user->toArray(),
+        'roles' => $user->getRoleNames()->values()->all(),
+        'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+    ];
 })->middleware('auth:sanctum');
 
 // Login Route
@@ -43,69 +50,70 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('family-profiles')->group(function () {
         Route::get('/', [FamilyProfileController::class, 'index']);
         Route::post('/', [FamilyProfileController::class, 'store']);
-        Route::get('/{id}', [FamilyProfileController::class, 'show']);
-        Route::put('/{id}', [FamilyProfileController::class, 'update']);
-        Route::delete('/{id}', [FamilyProfileController::class, 'destroy']);
+        Route::get('/{familyProfile}', [FamilyProfileController::class, 'show']);
+        Route::put('/{familyProfile}', [FamilyProfileController::class, 'update']);
+        Route::delete('/{familyProfile}', [FamilyProfileController::class, 'destroy']);
+        Route::post('/{familyProfile}/photo', [FamilyProfileController::class, 'storePhoto']);
     });
 
     // Routes for Family Members
     Route::prefix('family-members')->group(function () {
         Route::get('/', [FamilyMemberController::class, 'index']);
         Route::post('/', [FamilyMemberController::class, 'store']);
-        Route::get('/{id}', [FamilyMemberController::class, 'show']);
-        Route::put('/{id}', [FamilyMemberController::class, 'update']);
-        Route::delete('/{id}', [FamilyMemberController::class, 'destroy']);
+        Route::get('/{familyMember}', [FamilyMemberController::class, 'show']);
+        Route::put('/{familyMember}', [FamilyMemberController::class, 'update']);
+        Route::delete('/{familyMember}', [FamilyMemberController::class, 'destroy']);
     });
 
     // Routes for documents
     Route::prefix('documents')->group(function () {
         Route::post('/', [DocumentController::class, 'store']);
-        Route::get('/{id}', [DocumentController::class, 'show']);
-        Route::get('/{id}/download', [DocumentController::class, 'download']);
-        Route::delete('/{id}', [DocumentController::class, 'destroy']);
+        Route::get('/{document}', [DocumentController::class, 'show']);
+        Route::get('/{document}/download', [DocumentController::class, 'download']);
+        Route::delete('/{document}', [DocumentController::class, 'destroy']);
     });
 
     // Routes for notes
     Route::prefix('notes')->group(function () {
         Route::get('/', [NoteController::class, 'index']);
         Route::post('/', [NoteController::class, 'store']);
-        Route::get('/{id}', [NoteController::class, 'show']);
-        Route::put('/{id}', [NoteController::class, 'update']);
-        Route::delete('/{id}', [NoteController::class, 'destroy']);
+        Route::get('/{note}', [NoteController::class, 'show']);
+        Route::put('/{note}', [NoteController::class, 'update']);
+        Route::delete('/{note}', [NoteController::class, 'destroy']);
     });
 
     // Routes for visits
     Route::prefix('visits')->group(function () {
         Route::get('/', [VisitController::class, 'index']);
         Route::post('/', [VisitController::class, 'store']);
-        Route::get('/{id}', [VisitController::class, 'show']);
-        Route::put('/{id}', [VisitController::class, 'update']);
-        Route::delete('/{id}', [VisitController::class, 'destroy']);
+        Route::get('/{visit}', [VisitController::class, 'show']);
+        Route::put('/{visit}', [VisitController::class, 'update']);
+        Route::delete('/{visit}', [VisitController::class, 'destroy']);
     });
 
     // Routes for evidence
     Route::prefix('evidence')->group(function () {
         Route::post('/', [EvidenceController::class, 'store']);
-        Route::get('/{id}', [EvidenceController::class, 'show']);
-        Route::delete('/{id}', [EvidenceController::class, 'destroy']);
+        Route::get('/{evidence}', [EvidenceController::class, 'show']);
+        Route::delete('/{evidence}', [EvidenceController::class, 'destroy']);
     });
 
     // Routes for tasks
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskController::class, 'index']);
         Route::post('/', [TaskController::class, 'store']);
-        Route::get('/{id}', [TaskController::class, 'show']);
-        Route::put('/{id}', [TaskController::class, 'update']);
-        Route::delete('/{id}', [TaskController::class, 'destroy']);
+        Route::get('/{task}', [TaskController::class, 'show']);
+        Route::put('/{task}', [TaskController::class, 'update']);
+        Route::delete('/{task}', [TaskController::class, 'destroy']);
     });
 
     // Routes for testimonies
     Route::prefix('testimonies')->group(function () {
         Route::get('/', [TestimonyController::class, 'index']);
         Route::post('/', [TestimonyController::class, 'store']);
-        Route::get('/{id}', [TestimonyController::class, 'show']);
-        Route::put('/{id}', [TestimonyController::class, 'update']);
-        Route::delete('/{id}', [TestimonyController::class, 'destroy']);
+        Route::get('/{testimony}', [TestimonyController::class, 'show']);
+        Route::put('/{testimony}', [TestimonyController::class, 'update']);
+        Route::delete('/{testimony}', [TestimonyController::class, 'destroy']);
     });
 
     // Routes for Users
@@ -117,16 +125,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/{user}', [UserController::class, 'destroy']);
     });
 
+    // Routes for Roles
+    Route::prefix('roles')->group(function () {
+        Route::get('/', [RoleController::class, 'index']);
+    });
+
     // Routes for Groups and Applicants
     Route::prefix('groups')->group(function () {
         Route::get('/', [GroupController::class, 'index']);
-        Route::get('/{id}/applicants', [GroupController::class, 'applicants']);
+        Route::get('/{group}', [GroupController::class, 'show']);
+        Route::get('/{group}/applicants', [GroupController::class, 'applicants']);
+        Route::post('/{group}/close-attendance', [GroupController::class, 'closeAttendance']);
     });
 
     // Routes for Attendance
     Route::prefix('attendance')->group(function () {
         Route::post('/scan', [AttendanceController::class, 'scan']);
-        Route::put('/{id}', [AttendanceController::class, 'update']);
+        Route::put('/{attendance}', [AttendanceController::class, 'update']);
     });
 
 });

@@ -10,6 +10,10 @@ class ColonyController extends Controller
 {
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'city' => ['sometimes', 'string'],
+        ]);
+
         $query = Colony::query()
             ->where('is_active', true);
 

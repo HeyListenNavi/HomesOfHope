@@ -30,6 +30,10 @@ class Document extends Model
         'document_type' => DocumentType::class,
     ];
 
+    protected $appends = [
+        'url',
+    ];
+
     /**
      * Get the parent documentable model (FamilyProfile, FamilyMember, etc.).
      */

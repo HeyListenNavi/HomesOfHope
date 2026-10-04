@@ -25,9 +25,15 @@ class AuthController extends Controller
             ]);
         }
 
+        $user = $user->load(['roles', 'roles.permissions', 'permissions']);
+
         return response()->json([
             'token' => $user->createToken('mobile-app')->plainTextToken,
-            'user' => $user,
+            'user' => [
+                ...$user->toArray(),
+                'roles' => $user->getRoleNames()->values()->all(),
+                'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+            ],
         ]);
     }
 

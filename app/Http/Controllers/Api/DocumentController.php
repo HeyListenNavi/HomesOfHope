@@ -24,28 +24,21 @@ class DocumentController extends Controller
             'file' => 'required|file|max:10240', // Max 10MB
         ]);
 
-        // Mapeo simple de "alias" a clases reales si quieres seguridad extra
-        // O podrías usar Relation::morphMap() en AppServiceProvider
-        $validTypes = [
-            'family_profile' => FamilyProfile::class,
-            'family_member' => FamilyMember::class,
-            'visit' => Visit::class,
-        ];
+        $documentable = match ($validated['documentable_type']) {
+            'family_profile' => FamilyProfile::findOrFail($validated['documentable_id']),
+            'family_member' => FamilyMember::findOrFail($validated['documentable_id']),
+            'visit' => Visit::findOrFail($validated['documentable_id']),
+            default => abort(403),
+        };
 
-        // Normalizar el tipo si viene como alias
-        $modelClass = $validTypes[$validated['documentable_type']] ?? $validated['documentable_type'];
-
-        if (! class_exists($modelClass)) {
-            return response()->json(['message' => 'Invalid documentable_type'], 400);
-        }
+        $this->authorize('update', $documentable);
 
         $file = $request->file('file');
         $path = $file->store('documents', 'r2');
 
-        // 2. Crear registro en BD
         $document = Document::create([
-            'documentable_id' => $validated['documentable_id'],
-            'documentable_type' => $modelClass,
+            'documentable_id' => $documentable->getKey(),
+            'documentable_type' => $documentable->getMorphClass(),
             'document_type' => $validated['document_type'],
             'original_name' => $file->getClientOriginalName(),
             'file_path' => $path,
@@ -63,23 +56,19 @@ class DocumentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Document $document)
     {
-        $document = Document::findOrFail($id);
+        $this->authorize('view', $document->documentable);
 
-        // Agregamos la URL temporal o pública al response
-        $data = $document->toArray();
-        $data['url'] = Storage::disk('r2')->url($document->file_path);
-
-        return response()->json($data);
+        return $document;
     }
 
     /**
      * Download the file.
      */
-    public function download(string $id)
+    public function download(Document $document)
     {
-        $document = Document::findOrFail($id);
+        $this->authorize('view', $document->documentable);
 
         if (! Storage::disk('r2')->exists($document->file_path)) {
             return response()->json(['message' => 'File not found on disk'], 404);
@@ -91,9 +80,9 @@ class DocumentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Document $document)
     {
-        $document = Document::findOrFail($id);
+        $this->authorize('update', $document->documentable);
 
         // 1. Borrar archivo físico
         if (Storage::disk('r2')->exists($document->file_path)) {

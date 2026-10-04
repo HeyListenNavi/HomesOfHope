@@ -16,18 +16,26 @@ class FamilyMemberController extends Controller
 {
     public function index(Request $request)
     {
-        // Opcional: Filtrar por family_profile_id si viene en el query param
+        $this->authorize('viewAny', FamilyMember::class);
+
+        $validated = $request->validate([
+            'family_profile_id' => ['sometimes', 'integer'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
         $query = FamilyMember::query();
 
-        if ($request->has('family_profile_id')) {
-            $query->where('family_profile_id', $request->family_profile_id);
+        if (isset($validated['family_profile_id'])) {
+            $query->where('family_profile_id', $validated['family_profile_id']);
         }
 
-        return response()->json($query->paginate(20));
+        return $query->paginate(20);
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', FamilyMember::class);
+
         $validated = $request->validate([
             'family_profile_id' => 'required|exists:family_profiles,id',
             'name' => 'required|string',
@@ -45,7 +53,10 @@ class FamilyMemberController extends Controller
             'education_grade' => 'nullable|integer',
             'weekly_income' => 'nullable|numeric',
             'religion' => ['nullable', new Enum(Religion::class)],
+            'origin_state' => 'nullable|string|max:255',
+            'origin_country' => 'nullable|string|max:255',
             'indigenous_language' => 'nullable|string',
+            'speaks_indigenous_language' => 'boolean',
             'is_pregnant' => 'boolean',
             'pregnancy_months' => 'nullable|integer|min:1|max:9',
             'medical_notes' => 'nullable|string',
@@ -64,23 +75,23 @@ class FamilyMemberController extends Controller
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(FamilyMember $familyMember)
     {
-        $member = FamilyMember::with(['familyProfile', 'documents'])->findOrFail($id);
+        $this->authorize('view', $familyMember);
 
-        return response()->json($member);
+        return $familyMember->load(['familyProfile', 'documents']);
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, FamilyMember $familyMember)
     {
-        $member = FamilyMember::findOrFail($id);
+        $this->authorize('update', $familyMember);
 
         $validated = $request->validate([
             'name' => 'sometimes|string',
             'paternal_surname' => 'sometimes|string',
             'maternal_surname' => 'nullable|string',
             'birth_date' => 'sometimes|date',
-            'curp' => 'nullable|string|unique:family_members,curp,'.$member->id,
+            'curp' => 'nullable|string|unique:family_members,curp,'.$familyMember->id,
             'relationship' => ['sometimes', new Enum(Relationship::class)],
             'is_responsible' => 'boolean',
             'is_land_owner' => 'boolean',
@@ -91,29 +102,33 @@ class FamilyMemberController extends Controller
             'education_grade' => 'nullable|integer',
             'weekly_income' => 'nullable|numeric',
             'religion' => ['nullable', new Enum(Religion::class)],
+            'origin_state' => 'nullable|string|max:255',
+            'origin_country' => 'nullable|string|max:255',
             'indigenous_language' => 'nullable|string',
+            'speaks_indigenous_language' => 'boolean',
             'is_pregnant' => 'boolean',
             'pregnancy_months' => 'nullable|integer|min:1|max:9',
             'medical_notes' => 'nullable|string',
         ]);
 
-        $member->update($validated);
+        $familyMember->update($validated);
 
         // Lógica para actualizar responsable en perfil si cambió el flag
         if (isset($validated['is_responsible']) && $validated['is_responsible']) {
-            $member->familyProfile()->update(['responsible_member_id' => $member->id]);
+            $familyMember->familyProfile()->update(['responsible_member_id' => $familyMember->id]);
         }
 
         return response()->json([
             'message' => 'Family Member updated successfully',
-            'data' => $member,
+            'data' => $familyMember,
         ]);
     }
 
-    public function destroy(string $id)
+    public function destroy(FamilyMember $familyMember)
     {
-        $member = FamilyMember::findOrFail($id);
-        $member->delete();
+        $this->authorize('delete', $familyMember);
+
+        $familyMember->delete();
 
         return response()->json(['message' => 'Family Member deleted successfully']);
     }

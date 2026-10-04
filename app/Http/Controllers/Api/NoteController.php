@@ -16,26 +16,26 @@ class NoteController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Note::with('author:id,name');
+        $validated = $request->validate([
+            'noteable_type' => ['required', 'string'],
+            'noteable_id' => ['required', 'integer'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
 
-        // Filtros opcionales para obtener notas de un objeto específico
-        if ($request->has('noteable_type') && $request->has('noteable_id')) {
-            $type = $request->input('noteable_type');
+        $noteable = match ($validated['noteable_type']) {
+            'family_profile' => FamilyProfile::findOrFail($validated['noteable_id']),
+            'family_member' => FamilyMember::findOrFail($validated['noteable_id']),
+            'visit' => Visit::findOrFail($validated['noteable_id']),
+            default => abort(403),
+        };
 
-            // Mapeo simple para facilitar el uso en frontend si envían 'family_profile' en lugar de la clase completa
-            $map = [
-                'family_profile' => FamilyProfile::class,
-                'family_member' => FamilyMember::class,
-                'visit' => Visit::class,
-            ];
+        $this->authorize('view', $noteable);
 
-            $realType = $map[$type] ?? $type;
-
-            $query->where('noteable_type', $realType)
-                ->where('noteable_id', $request->input('noteable_id'));
-        }
-
-        return response()->json($query->latest()->paginate(20));
+        return Note::with('author')
+            ->where('noteable_type', $noteable->getMorphClass())
+            ->where('noteable_id', $noteable->getKey())
+            ->latest()
+            ->paginate(20);
     }
 
     public function store(Request $request)
@@ -47,22 +47,18 @@ class NoteController extends Controller
             'is_private' => 'boolean',
         ]);
 
-        // Mapeo de tipos
-        $validTypes = [
-            'family_profile' => FamilyProfile::class,
-            'family_member' => FamilyMember::class,
-            'visit' => Visit::class,
-        ];
+        $noteable = match ($validated['noteable_type']) {
+            'family_profile' => FamilyProfile::findOrFail($validated['noteable_id']),
+            'family_member' => FamilyMember::findOrFail($validated['noteable_id']),
+            'visit' => Visit::findOrFail($validated['noteable_id']),
+            default => abort(403),
+        };
 
-        $className = $validTypes[$validated['noteable_type']] ?? $validated['noteable_type'];
-
-        if (! class_exists($className)) {
-            return response()->json(['message' => 'Invalid noteable_type'], 400);
-        }
+        $this->authorize('update', $noteable);
 
         $note = Note::create([
-            'noteable_id' => $validated['noteable_id'],
-            'noteable_type' => $className,
+            'noteable_id' => $noteable->getKey(),
+            'noteable_type' => $noteable->getMorphClass(),
             'content' => $validated['content'],
             'is_private' => $validated['is_private'] ?? false,
             'user_id' => $request->user()->id,
@@ -74,16 +70,16 @@ class NoteController extends Controller
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(Note $note)
     {
-        $note = Note::with('author:id,name')->findOrFail($id);
+        $this->authorize('view', $note->noteable);
 
-        return response()->json($note);
+        return $note->load('author');
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, Note $note)
     {
-        $note = Note::findOrFail($id);
+        $this->authorize('update', $note->noteable);
 
         // Opcional: Validar que el usuario sea el dueño de la nota
         if ($request->user()->id !== $note->user_id) {
@@ -103,9 +99,9 @@ class NoteController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, string $id)
+    public function destroy(Request $request, Note $note)
     {
-        $note = Note::findOrFail($id);
+        $this->authorize('update', $note->noteable);
 
         // Opcional: Validar ownership
         if ($request->user()->id !== $note->user_id) {

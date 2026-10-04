@@ -18,6 +18,7 @@ class Note extends Model
         'noteable_type',
         'content',
         'user_id',
+        'is_private',
     ];
 
     protected $casts = [

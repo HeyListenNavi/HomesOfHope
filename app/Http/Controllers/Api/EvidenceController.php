@@ -11,61 +11,48 @@ use Illuminate\Support\Facades\Storage;
 class EvidenceController extends Controller
 {
     /**
-     * Store new evidence (Upload photo).
+     * Store new evidence (Upload media).
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'visit_id' => 'required|exists:visits,id',
-            'image' => 'required|image|max:10240', // Max 10MB, debe ser imagen
+            'file' => 'required|file|mimetypes:image/*,video/*,audio/*|max:51200', // Max 50MB
             'description' => 'nullable|string',
         ]);
 
-        // Verificar que la visita exista (ya validado, pero podemos checar permisos aquí)
-        // $visit = Visit::findOrFail($validated['visit_id']);
+        $this->authorize('update', Visit::findOrFail($validated['visit_id']));
 
-        // 1. Subir imagen
-        $path = $request->file('image')->store('evidence', 'r2');
+        $path = $request->file('file')->store('evidence', 'r2');
 
         // 2. Crear registro
         $evidence = Evidence::create([
             'visit_id' => $validated['visit_id'],
             'file_path' => $path,
-            'description' => $validated['description'],
+            'mime_type' => $request->file('file')->getMimeType(),
+            'description' => $validated['description'] ?? null,
             'taken_by' => $request->user()->id,
         ]);
 
-        return response()->json([
-            'message' => 'Evidence uploaded successfully',
-            'data' => $evidence,
-        ], 201);
+        return $evidence;
     }
 
     /**
      * Show a specific evidence.
      */
-    public function show(string $id)
+    public function show(Evidence $evidence)
     {
-        $evidence = Evidence::findOrFail($id);
+        $this->authorize('view', $evidence->visit);
 
-        return response()->json([
-            'id' => $evidence->id,
-            'visit_id' => $evidence->visit_id,
-            'url' => $evidence->url, // Usando el accessor
-            'description' => $evidence->description,
-            'created_at' => $evidence->created_at,
-        ]);
+        return $evidence;
     }
 
     /**
      * Delete evidence.
      */
-    public function destroy(Request $request, string $id)
+    public function destroy(Request $request, Evidence $evidence)
     {
-        $evidence = Evidence::findOrFail($id);
-
-        // Validar permisos (opcional: solo quien la subió puede borrarla)
-        // if ($evidence->taken_by !== $request->user()->id) abort(403);
+        $this->authorize('update', $evidence->visit);
 
         // 1. Borrar archivo físico
         if (Storage::disk('r2')->exists($evidence->file_path)) {

@@ -29,12 +29,15 @@ use App\Policies\StagePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VisitPolicy;
+use Dedoc\Scramble\Scramble;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
@@ -81,5 +84,33 @@ class AppServiceProvider extends ServiceProvider
             Css::make('leaflet-cluster', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css'),
             Css::make('leaflet-cluster-default', 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css'),
         ]);
+
+        Scramble::routes(function (Route $route) {
+            $allowedPrefixes = [
+                'api/login',
+                'api/logout',
+                'api/user',
+                'api/family-profiles',
+                'api/family-members',
+                'api/visits',
+                'api/notes',
+                'api/evidence',
+                'api/documents',
+                'api/users',
+                'api/groups',
+                'api/attendance',
+                'api/tasks',
+                'api/testimonies',
+                'api/roles',
+            ];
+
+            foreach ($allowedPrefixes as $prefix) {
+                if (Str::startsWith($route->uri, $prefix)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
     }
 }

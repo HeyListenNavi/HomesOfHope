@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Models\Group;
+use App\Services\Attendance\AttendanceService;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
@@ -13,32 +15,81 @@ class GroupController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Group::class);
+
+        $validated = $request->validate([
+            'limit' => ['sometimes', 'integer', 'min:1'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'date' => ['sometimes', 'date', 'date_format:Y-m-d'],
+            'min_date' => ['sometimes', 'date', 'date_format:Y-m-d'],
+        ]);
+
         $query = Group::query()
             ->where('is_active', true)
-            ->whereDate('date_time', '>=', now()->toDateString())
             ->orderBy('date_time', 'asc');
 
-        return response()->json($query->paginate($request->input('limit', 20)));
+        if (isset($validated['date'])) {
+            $query->whereDate('date_time', $validated['date']);
+        }
+
+        if (isset($validated['min_date'])) {
+            $query->whereDate('date_time', '>=', $validated['min_date']);
+        }
+
+        return $query->paginate($validated['limit'] ?? 20);
+    }
+
+    /**
+     * Get a specific group details.
+     */
+    public function show(Group $group)
+    {
+        $this->authorize('view', $group);
+
+        return $group;
     }
 
     /**
      * Get the applicants for a specific group, including their attendance status.
      */
-    public function applicants(string $id)
+    public function applicants(Request $request, Group $group)
     {
-        $group = Group::findOrFail($id);
+        $this->authorize('view', $group);
 
-        $applicants = $group->applicants()
-            ->with(['currentAttendance'])
-            ->get();
+        $validated = $request->validate([
+            'search' => 'nullable|string',
+            'limit' => ['sometimes', 'integer', 'min:1'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        $query = $group->applicants()->with(['currentAttendance']);
+
+        if (! empty($validated['search'])) {
+            $search = $validated['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('applicant_name', 'like', "%{$search}%")
+                    ->orWhere('curp', 'like', "%{$search}%")
+                    ->orWhere('chat_id', 'like', "%{$search}%");
+            });
+        }
+
+        $paginator = $query->paginate($validated['limit'] ?? 20);
+
+        return $paginator;
+    }
+
+    /**
+     * Close the attendance for a group, marking pending applicants as absent.
+     */
+    public function closeAttendance(AttendanceService $attendanceService, Group $group)
+    {
+        $this->authorize('update', $group);
+
+        $attendanceService->close($group);
 
         return response()->json([
-            'group' => [
-                'id' => $group->id,
-                'name' => $group->name,
-                'date_time' => $group->date_time,
-            ],
-            'applicants' => $applicants,
+            'message' => 'Attendance has been closed successfully.',
+            'group' => $group,
         ]);
     }
 }

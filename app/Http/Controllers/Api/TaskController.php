@@ -6,6 +6,7 @@ use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
+use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -16,21 +17,27 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Task::with(['visit', 'assignee:id,name']);
+        $validated = $request->validate([
+            'visit_id' => ['required', 'integer', 'exists:visits,id'],
+            'assigned_to' => ['sometimes', 'integer'],
+            'status' => ['sometimes', Rule::enum(TaskStatus::class)],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
 
-        if ($request->has('visit_id')) {
-            $query->where('visit_id', $request->visit_id);
+        $this->authorize('view', Visit::findOrFail($validated['visit_id']));
+
+        $query = Task::with(['visit', 'assignee'])
+            ->where('visit_id', $validated['visit_id']);
+
+        if (isset($validated['assigned_to'])) {
+            $query->where('assigned_to', $validated['assigned_to']);
         }
 
-        if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->assigned_to);
+        if (isset($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        return response()->json($query->paginate(20));
+        return $query->paginate(20);
     }
 
     public function store(Request $request)
@@ -43,6 +50,8 @@ class TaskController extends Controller
             'due_date' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
+
+        $this->authorize('update', Visit::findOrFail($validated['visit_id']));
 
         // Automáticamente asignamos 'assigned_by' al usuario actual
         $data = $validated;
@@ -57,16 +66,16 @@ class TaskController extends Controller
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(Task $task)
     {
-        $task = Task::with(['visit', 'assignee', 'notes'])->findOrFail($id);
+        $this->authorize('view', $task->visit);
 
-        return response()->json($task);
+        return $task->load(['visit', 'assignee', 'notes']);
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, Task $task)
     {
-        $task = Task::findOrFail($id);
+        $this->authorize('update', $task->visit);
 
         $validated = $request->validate([
             'title' => 'sometimes|string',
@@ -90,9 +99,10 @@ class TaskController extends Controller
         ]);
     }
 
-    public function destroy(string $id)
+    public function destroy(Task $task)
     {
-        $task = Task::findOrFail($id);
+        $this->authorize('update', $task->visit);
+
         $task->delete();
 
         return response()->json(['message' => 'Task deleted successfully']);
