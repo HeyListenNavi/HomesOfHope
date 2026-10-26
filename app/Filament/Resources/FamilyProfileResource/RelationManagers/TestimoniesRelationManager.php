@@ -105,6 +105,7 @@ class TestimoniesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordAction('view')
             ->columns([
                 Tables\Columns\TextColumn::make('recorded_at')
                     ->label('Fecha')
@@ -148,6 +149,10 @@ class TestimoniesRelationManager extends RelationManager
                     ->modalWidth('4xl'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-s-eye')
+                    ->slideOver()
+                    ->modalWidth('4xl'),
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-s-pencil-square')
                     ->slideOver()
