@@ -33,6 +33,7 @@ class ApplicantsRelationManager extends RelationManager
             TextColumn::make('applicant_name')
                 ->label('Nombre')
                 ->searchable()
+                ->sortable()
                 ->description(function (Applicant $record): ?string {
                     if (in_array($record->process_status, [ApplicantStatus::Approved->value, ApplicantStatus::StaffApproved->value])) {
                         if ($record->group) {

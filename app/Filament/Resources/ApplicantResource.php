@@ -428,6 +428,7 @@ class ApplicantResource extends Resource
             TextColumn::make('applicant_name')
                 ->label('Nombre')
                 ->searchable()
+                ->sortable()
                 ->description(function (Applicant $record): ?string {
                     if (in_array($record->process_status, [ApplicantStatus::Approved, ApplicantStatus::StaffApproved])) {
                         if ($record->group) {
