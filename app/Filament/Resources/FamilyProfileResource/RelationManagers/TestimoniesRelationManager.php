@@ -48,8 +48,7 @@ class TestimoniesRelationManager extends RelationManager
                                             ->acceptedFileTypes(['audio/*'])
                                             ->maxSize(51200) // 50MB
                                             ->previewable()
-                                            ->downloadable()
-                                            ->openable()
+                                            ->downloadable(fn () => auth()->user()?->can('testimony.download') ?? false)
                                             ->columnSpanFull(),
 
                                         Forms\Components\Textarea::make('transcription')

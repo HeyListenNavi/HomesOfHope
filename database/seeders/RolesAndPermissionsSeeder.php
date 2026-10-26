@@ -101,6 +101,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $visitUpdate = Permission::firstOrCreate(['name' => 'visit.update']);
         $visitDelete = Permission::firstOrCreate(['name' => 'visit.delete']);
 
+        $testimonyDownload = Permission::firstOrCreate(['name' => 'testimony.download']);
+
         $connection->givePermissionTo([
             $applicantViewAny,
             $applicantView,
@@ -285,6 +287,8 @@ class RolesAndPermissionsSeeder extends Seeder
             $visitCreate,
             $visitUpdate,
             $visitDelete,
+
+            $testimonyDownload,
         ]);
 
         $adminEmails = [
