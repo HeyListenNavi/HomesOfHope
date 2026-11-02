@@ -735,15 +735,11 @@ class FamilyProfileResource extends Resource
                     ->badge()
                     ->color(fn ($record) => $record->building_team_color),
 
-                Tables\Columns\TextColumn::make('construction_dates')
-                    ->label('Fechas de Construcción')
-                    ->getStateUsing(function (FamilyProfile $record): string {
-                        $start = $record->building_start_date?->format('d/m/Y') ?? 'N/A';
-                        $finish = $record->building_finish_date?->format('d/m/Y') ?? 'N/A';
-
-                        return "{$start} - {$finish}";
-                    })
-                    ->sortable(['building_start_date', 'building_finish_date'])
+                Tables\Columns\TextColumn::make('building_start_date')
+                    ->label('Fecha de Construcción')
+                    ->date('d/m/Y')
+                    ->placeholder('N/A')
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
