@@ -58,7 +58,7 @@ class NotesRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
-                    ->dateTime('d M Y, H:i A')
+                    ->dateTime('d M Y, h:i A')
                     ->sortable()
                     ->color('gray'),
 

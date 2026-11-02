@@ -115,13 +115,13 @@ class ApplicantsRelationManager extends RelationManager
 
             TextColumn::make('created_at')
                 ->label('Fecha de Registro')
-                ->dateTime('d/m/Y H:i')
+                ->dateTime('d/m/Y h:i A')
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
 
             TextColumn::make('updated_at')
                 ->label('Última Actualización')
-                ->dateTime('d/m/Y H:i')
+                ->dateTime('d/m/Y h:i A')
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
         );

@@ -65,7 +65,7 @@ class TagResource extends Resource
                     ->label('Color'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
-                    ->dateTime()
+                    ->dateTime('d/m/Y h:i A')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

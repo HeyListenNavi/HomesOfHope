@@ -177,21 +177,21 @@ class GroupResource extends Resource
 
                 TextColumn::make('attendance_closed_at')
                     ->label('Asistencia Cerrada')
-                    ->dateTime('d/m/Y H:i')
+                    ->dateTime('d/m/Y h:i A')
                     ->sortable()
                     ->placeholder('Aún Abierta')
                     ->color(fn ($state) => $state ? 'danger' : 'success')
                     ->icon(fn ($state) => $state ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'),
 
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->dateTime('d/m/Y h:i A')
                     ->label('Creado')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->color('gray'),
 
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->dateTime('d/m/Y h:i A')
                     ->label('Actualizado')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)

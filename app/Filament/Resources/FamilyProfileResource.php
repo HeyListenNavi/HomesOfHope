@@ -94,7 +94,7 @@ class FamilyProfileResource extends Resource
 
                                         Forms\Components\Placeholder::make('updated_at')
                                             ->label('Última actualización')
-                                            ->content(fn ($record) => $record?->updated_at?->diffForHumans() ?? 'N/A')
+                                            ->content(fn ($record) => $record?->updated_at?->locale('es')->translatedFormat('j \d\e F \d\e\l Y, h:i A') ?? 'N/A')
                                             ->visible(fn ($record) => $record !== null),
                                     ])->columnSpan(4),
                             ])->columns(6),

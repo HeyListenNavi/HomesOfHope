@@ -88,14 +88,14 @@ class AttendancesRelationManager extends RelationManager
 
                 TextColumn::make('scanned_at')
                     ->label('Escaneado')
-                    ->dateTime('d/m/Y H:i')
+                    ->dateTime('d/m/Y h:i A')
                     ->sortable()
                     ->placeholder('No escaneado')
                     ->color('gray'),
 
                 TextColumn::make('created_at')
                     ->label('Registrado')
-                    ->dateTime('d/m/Y H:i')
+                    ->dateTime('d/m/Y h:i A')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->color('gray'),
