@@ -6,9 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exportar Grupo</title>
     <style>
-        /* PDF-safe styles inspired by your example */
+        @font-face {
+            font-family: 'Inter';
+            src: url("{{ public_path('fonts/Inter-Regular.ttf') }}") format("truetype");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            src: url("{{ public_path('fonts/Inter-Bold.ttf') }}") format("truetype");
+            font-weight: bold;
+            font-style: normal;
+        }
+
         body {
-            font-family: 'Inter', 'sans-serif';
+            font-family: 'Inter', 'DejaVu Sans', sans-serif;
             color: #111827;
             margin: 0;
             padding: 0;
@@ -75,7 +88,7 @@
             width: 150px;
         }
 
-        /* Member List Table */
+        /* Attendance List Table */
         .member-table {
             width: 100%;
             border-collapse: collapse;
@@ -108,6 +121,11 @@
 
         .curp {
             text-transform: uppercase;
+        }
+
+        .code {
+            font-family: monospace;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -144,30 +162,41 @@
 
         <div class="section">
             <h2>
-                Miembros del Grupo ({{ $group->applicants->count() }})
+                Asistencias del Grupo ({{ $group->attendances->count() }})
             </h2>
 
-            @if($group->applicants->count() > 0)
+            @if($group->attendances->count() > 0)
                 <table class="member-table">
                     <thead>
                         <tr>
+                            <th>Código</th>
                             <th>Nombre</th>
                             <th>Teléfono</th>
                             <th>CURP</th>
+                            <th>Estatus</th>
+                            <th>Escaneado</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($group->applicants as $applicant)
+                        @foreach($group->attendances as $attendance)
                             <tr>
-                                <td>{{ $applicant->applicant_name }}</td>
-                                <td>{{ $applicant->chat_id }}</td>
-                                <td class="curp">{{ $applicant->curp }}</td>
+                                <td class="code">{{ $attendance->attendance_code }}</td>
+                                <td>{{ $attendance->applicant?->applicant_name ?? 'Sin aplicante vinculado' }}</td>
+                                <td>
+                                    @php
+                                        $chatId = $attendance->applicant?->chat_id;
+                                        echo $chatId ? (str_starts_with($chatId, '521') ? substr($chatId, 3) : $chatId) : '-';
+                                    @endphp
+                                </td>
+                                <td class="curp">{{ $attendance->applicant?->curp ?? '-' }}</td>
+                                <td>{{ $attendance->status?->getLabel() ?? 'Pendiente' }}</td>
+                                <td>{{ $attendance->scanned_at ? $attendance->scanned_at->format('d/m/Y h:i A') : 'No escaneado' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             @else
-                <p class="empty-state">No hay miembros en este grupo.</p>
+                <p class="empty-state">No hay asistencias registradas en este grupo.</p>
             @endif
         </div>
     </div>
