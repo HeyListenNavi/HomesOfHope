@@ -12,42 +12,42 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class GroupApplicantsExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
-    protected Group $group;
+    public function __construct(protected Group $group) {}
 
-    public function __construct(Group $group)
-    {
-        $this->group = $group;
-    }
-
-    // 1. Obtenemos los aplicantes del grupo
     public function collection()
     {
-        return $this->group->applicants;
+        return $this->group->attendances()->with('applicant')->get();
     }
 
-    // 2. Definimos los encabezados del Excel
     public function headings(): array
     {
         return [
+            'Código',
             'Nombre',
             'Teléfono',
-            'Fecha Registro',
             'CURP',
+            'Estatus',
+            'Fecha Escaneo',
+            'Fecha Registro',
         ];
     }
 
-    // 3. Mapeamos los datos de cada aplicante a las columnas
-    public function map($applicant): array
+    public function map($attendance): array
     {
+        $chatId = $attendance->applicant?->chat_id;
+        $formattedPhone = $chatId ? (str_starts_with($chatId, '521') ? substr($chatId, 3) : $chatId) : '-';
+
         return [
-            $applicant->applicant_name,
-            $applicant->chat_id, // O el campo de teléfono que uses
-            $applicant->created_at->format('d/m/Y'),
-            $applicant->curp,
+            $attendance->attendance_code,
+            $attendance->applicant?->applicant_name ?? 'Sin aplicante vinculado',
+            $formattedPhone,
+            $attendance->applicant?->curp ?? '-',
+            $attendance->status?->getLabel() ?? 'Pendiente',
+            $attendance->scanned_at ? $attendance->scanned_at->format('d/m/Y h:i A') : 'No escaneado',
+            $attendance->created_at ? $attendance->created_at->format('d/m/Y h:i A') : '-',
         ];
     }
 
-    // 4. (Opcional) Estilo: Pone negritas en la primera fila
     public function styles(Worksheet $sheet)
     {
         return [

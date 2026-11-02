@@ -64,7 +64,7 @@ class EditGroup extends EditRecord
                     ->icon('heroicon-m-document-text')
                     ->color('danger')
                     ->action(function ($record) {
-                        $record->load('applicants');
+                        $record->load(['attendances.applicant']);
                         $pdf = Pdf::loadView('exports.group-export', ['group' => $record])
                             ->setOption(['defaultFont' => 'sans-serif'])
                             ->setOption(['isHtml5ParserEnabled' => true]);
