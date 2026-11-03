@@ -641,8 +641,16 @@ class FamilyProfileResource extends Resource
                     ->label('Foto')
                     ->disk('r2')
                     ->visibility('private')
-                    ->height(100)
-                    ->toggleable(),
+                    ->checkFileExistence(false)
+                    ->square()
+                    ->size(100)
+                    ->alignment('center')
+                    ->extraImgAttributes([
+                        'loading' => 'lazy',
+                        'decoding' => 'async',
+                        'class' => 'rounded-lg',
+                    ])
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('family_name')
                     ->label('Familia')
