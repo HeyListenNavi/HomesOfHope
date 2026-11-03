@@ -32,30 +32,44 @@ class TestimoniesRelationManager extends RelationManager
                                     ->description('Detalles narrativos y archivos multimedia.')
                                     ->icon('heroicon-s-chat-bubble-bottom-center-text')
                                     ->schema([
-                                        // CAMBIO DE ETIQUETA AQUÍ
-                                        Forms\Components\Textarea::make('summary')
-                                            ->label('Resumen de la Historia')
-                                            ->placeholder('Breve descripción del impacto o historia...')
-                                            ->rows(3)
-                                            ->autosize()
-                                            ->required()
-                                            ->columnSpanFull(),
-
                                         Forms\Components\FileUpload::make('audio_path')
                                             ->label('Archivo de Audio')
                                             ->disk('r2')
                                             ->directory('testimonies/audio')
-                                            ->acceptedFileTypes(['audio/*'])
+                                            ->acceptedFileTypes([
+                                                'audio/*',
+                                                'video/mp4',
+                                                'video/x-m4v',
+                                                'audio/mp4',
+                                                'audio/x-m4a',
+                                                'audio/aac',
+                                            ])
+                                            ->mimeTypeMap([
+                                                'm4a' => 'audio/mp4',
+                                            ])
                                             ->maxSize(51200) // 50MB
+                                            ->required()
                                             ->previewable()
                                             ->downloadable(fn () => auth()->user()?->can('testimony.download') ?? false)
+                                            ->helperText('Al subir el audio, la transcripción y el resumen se generarán automáticamente con IA.')
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Textarea::make('summary')
+                                            ->label('Resumen de la Historia')
+                                            ->placeholder('Se generará automáticamente a partir del audio...')
+                                            ->rows(3)
+                                            ->autosize()
+                                            ->disabled()
+                                            ->dehydrated(false)
                                             ->columnSpanFull(),
 
                                         Forms\Components\Textarea::make('transcription')
                                             ->label('Transcripción Completa')
-                                            ->placeholder('Texto completo si está disponible...')
+                                            ->placeholder('Se generará automáticamente a partir del audio...')
                                             ->rows(5)
                                             ->autosize()
+                                            ->disabled()
+                                            ->dehydrated(false)
                                             ->columnSpanFull(),
                                     ]),
                             ]),
@@ -68,19 +82,6 @@ class TestimoniesRelationManager extends RelationManager
                                 Forms\Components\Section::make('Detalles del Registro')
                                     ->icon('heroicon-s-information-circle')
                                     ->schema([
-                                        Forms\Components\Select::make('language')
-                                            ->label('Idioma')
-                                            ->options([
-                                                'es' => 'Español',
-                                                'en' => 'Inglés',
-                                            ])
-                                            ->default('es')
-                                            ->searchable()
-                                            ->preload()
-                                            ->required()
-                                            ->native(false)
-                                            ->prefixIcon('heroicon-s-language'),
-
                                         Forms\Components\DateTimePicker::make('recorded_at')
                                             ->label('Fecha de Grabación')
                                             ->native(false)
