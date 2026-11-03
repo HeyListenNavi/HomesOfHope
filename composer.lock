@@ -2614,20 +2614,20 @@
         },
         {
             "name": "google-gemini-php/client",
-            "version": "2.7.4",
+            "version": "2.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/google-gemini-php/client.git",
-                "reference": "d61ebe8e8f7acc2aa66ce2e8a57c23bf32e1e340"
+                "reference": "086b002d95660ccc3d882d8b19d388c9f9c12c68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google-gemini-php/client/zipball/d61ebe8e8f7acc2aa66ce2e8a57c23bf32e1e340",
-                "reference": "d61ebe8e8f7acc2aa66ce2e8a57c23bf32e1e340",
+                "url": "https://api.github.com/repos/google-gemini-php/client/zipball/086b002d95660ccc3d882d8b19d388c9f9c12c68",
+                "reference": "086b002d95660ccc3d882d8b19d388c9f9c12c68",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.1.0",
+                "php": "^8.2.0",
                 "php-http/discovery": "^1.19.2",
                 "psr/http-client-implementation": "*",
                 "psr/http-factory-implementation": "*"
@@ -2636,8 +2636,8 @@
                 "guzzlehttp/guzzle": "^7.8.1",
                 "guzzlehttp/psr7": "^2.6.2",
                 "laravel/pint": "^1.18.1",
-                "mockery/mockery": "^1.6.7",
-                "pestphp/pest": "^2.32.3",
+                "mockery/mockery": "^1.6.12",
+                "pestphp/pest": "^2.36|^3.8|^4.1",
                 "phpstan/phpstan": "^2.1.32"
             },
             "suggest": {
@@ -2678,7 +2678,7 @@
             ],
             "support": {
                 "issues": "https://github.com/google-gemini-php/client/issues",
-                "source": "https://github.com/google-gemini-php/client/tree/2.7.4"
+                "source": "https://github.com/google-gemini-php/client/tree/2.8.0"
             },
             "funding": [
                 {
@@ -2690,7 +2690,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-12-29T17:51:16+00:00"
+            "time": "2026-10-12T15:27:54+00:00"
         },
         {
             "name": "google-gemini-php/laravel",
