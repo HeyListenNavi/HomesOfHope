@@ -39,15 +39,6 @@ class NotesRelationManager extends RelationManager
                             ->rows(5)
                             ->autosize()
                             ->placeholder('Escribe aquí los detalles, acuerdos o incidentes...'),
-
-                        Forms\Components\Toggle::make('is_private')
-                            ->label('Nota Confidencial')
-                            ->helperText('Solo visible para administradores y el creador.')
-                            ->onIcon('heroicon-s-lock-closed')
-                            ->offIcon('heroicon-s-globe-americas')
-                            ->onColor('danger')
-                            ->offColor('success')
-                            ->default(false),
                     ]),
             ]);
     }
