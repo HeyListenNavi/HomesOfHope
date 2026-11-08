@@ -35,6 +35,7 @@ class TestimoniesRelationManager extends RelationManager
                                         Forms\Components\FileUpload::make('audio_path')
                                             ->label('Archivo de Audio')
                                             ->disk('r2')
+                                            ->visibility('private')
                                             ->directory('testimonies/audio')
                                             ->acceptedFileTypes([
                                                 'audio/*',

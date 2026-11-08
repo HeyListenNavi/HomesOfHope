@@ -7,6 +7,7 @@ use App\Models\Evidence;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EvidenceController extends Controller
 {
@@ -23,13 +24,15 @@ class EvidenceController extends Controller
 
         $this->authorize('update', Visit::findOrFail($validated['visit_id']));
 
-        $path = $request->file('file')->store('evidence', 'r2');
+        $file = $request->file('file');
+        $extension = $file->clientExtension() ?: $file->extension();
+        $path = $file->storeAs('evidence', Str::random(40).'.'.$extension, 'r2');
 
         // 2. Crear registro
         $evidence = Evidence::create([
             'visit_id' => $validated['visit_id'],
             'file_path' => $path,
-            'mime_type' => $request->file('file')->getMimeType(),
+            'mime_type' => $file->getClientMimeType() ?: $file->getMimeType(),
             'description' => $validated['description'] ?? null,
             'taken_by' => $request->user()->id,
         ]);

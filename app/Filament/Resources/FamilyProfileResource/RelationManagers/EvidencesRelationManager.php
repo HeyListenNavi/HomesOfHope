@@ -28,9 +28,11 @@ class EvidencesRelationManager extends RelationManager
                     ->schema([
                         Forms\Components\FileUpload::make('file_path')
                             ->label('Archivo de Evidencia')
-                            ->image()
+                            ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
+                            ->mimeTypeMap(['m4a' => 'audio/x-m4a'])
                             ->imageEditor()
                             ->disk('r2')
+                            ->visibility('private')
                             ->directory('evidence-visits')
                             ->required()
                             ->columnSpanFull()

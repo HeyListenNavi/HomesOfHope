@@ -7,6 +7,7 @@ use App\Models\FamilyProfile;
 use App\Models\Testimony;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TestimonyController extends Controller
 {
@@ -46,7 +47,9 @@ class TestimonyController extends Controller
 
         $path = null;
         if ($request->hasFile('audio')) {
-            $path = $request->file('audio')->store('testimonies', 'r2');
+            $file = $request->file('audio');
+            $extension = $file->clientExtension() ?: $file->extension();
+            $path = $file->storeAs('testimonies', Str::random(40).'.'.$extension, 'r2');
         }
 
         $testimony = Testimony::create([
