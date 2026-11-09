@@ -13,6 +13,7 @@ use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -66,21 +67,66 @@ class MapVisitsPage extends Page implements HasActions, HasForms
         }
     }
 
+    public function getDateFilterColumn(): string
+    {
+        $status = FamilyStatus::tryFrom($this->status ?? '');
+
+        return match ($status) {
+            FamilyStatus::Programmed, FamilyStatus::Built => 'building_start_date',
+            FamilyStatus::NotEligible, FamilyStatus::DontBuild => 'closed_at',
+            default => 'opened_at',
+        };
+    }
+
+    public function getDateFilterLabel(): ?string
+    {
+        if ($this->status) {
+            $status = FamilyStatus::tryFrom($this->status);
+            $label = $status?->getLabel() ?? $this->status;
+
+            if (in_array($this->status, [
+                FamilyStatus::Programmed->value,
+                FamilyStatus::Built->value,
+            ], true)) {
+                return 'Filtrando por Fecha de Construcción ('.$label.')';
+            }
+
+            if (in_array($this->status, [
+                FamilyStatus::NotEligible->value,
+                FamilyStatus::DontBuild->value,
+            ], true)) {
+                return 'Filtrando por Fecha de Asignación de Estado ('.$label.')';
+            }
+
+            return 'Filtrando por Fecha de Entrevista ('.$label.')';
+        }
+
+        if ($this->month || $this->year) {
+            return 'Filtrando por Fecha de Entrevista';
+        }
+
+        return null;
+    }
+
     #[Computed]
     public function markers(): array
     {
+        $dateColumn = $this->getDateFilterColumn();
+
         $query = FamilyProfile::query()
             ->when($this->search, function (Builder $q) {
-                $q->where('family_name', 'like', "%{$this->search}%")
-                    ->orWhereHas('members', function (Builder $q) {
-                        $q->where('name', 'like', "%{$this->search}%")
-                            ->orWhere('paternal_surname', 'like', "%{$this->search}%")
-                            ->orWhere('maternal_surname', 'like', "%{$this->search}%");
-                    });
+                $q->where(function (Builder $subQuery) {
+                    $subQuery->where('family_name', 'like', "%{$this->search}%")
+                        ->orWhereHas('members', function (Builder $q) {
+                            $q->where('name', 'like', "%{$this->search}%")
+                                ->orWhere('paternal_surname', 'like', "%{$this->search}%")
+                                ->orWhere('maternal_surname', 'like', "%{$this->search}%");
+                        });
+                });
             })
             ->when($this->status, fn (Builder $q) => $q->where('status', $this->status))
-            ->when($this->month, fn (Builder $q) => $q->whereMonth('opened_at', $this->month))
-            ->when($this->year, fn (Builder $q) => $q->whereYear('opened_at', $this->year));
+            ->when($this->month, fn (Builder $q) => $q->whereMonth($dateColumn, $this->month))
+            ->when($this->year, fn (Builder $q) => $q->whereYear($dateColumn, $this->year));
 
         $families = $query->get();
         $markers = [];
@@ -127,19 +173,19 @@ class MapVisitsPage extends Page implements HasActions, HasForms
         return $form
             ->schema([
                 TextInput::make('search')
-                    ->hiddenLabel()
+                    ->label('Buscar Familia')
                     ->placeholder('Buscar familia por nombre o miembros...')
                     ->live(debounce: 500),
 
                 Select::make('status')
-                    ->hiddenLabel()
+                    ->label('Estado')
                     ->placeholder('Todos los Estados')
                     ->options(FamilyStatus::class)
                     ->native(false)
                     ->live(),
 
                 Select::make('month')
-                    ->hiddenLabel()
+                    ->label('Mes')
                     ->placeholder('Cualquier Mes')
                     ->options([
                         1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
@@ -150,10 +196,17 @@ class MapVisitsPage extends Page implements HasActions, HasForms
                     ->live(),
 
                 TextInput::make('year')
-                    ->hiddenLabel()
+                    ->label('Año')
                     ->placeholder('Cualquier Año')
                     ->numeric()
+                    ->minValue(2000)
+                    ->maxValue(date('Y'))
                     ->live(debounce: 500),
+
+                Placeholder::make('date_filter_details')
+                    ->label(fn (): ?string => $this->getDateFilterLabel())
+                    ->visible(fn (): bool => filled($this->getDateFilterLabel()))
+                    ->columnSpanFull(),
             ])
             ->columns(['md' => 4])
             ->statePath('');
