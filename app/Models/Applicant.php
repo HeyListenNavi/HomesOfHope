@@ -117,7 +117,7 @@ class Applicant extends Model
 
     public function lastEditedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'last_edited_by');
+        return $this->belongsTo(User::class, 'last_edited_by')->withTrashed();
     }
 
     public function getLastEditedByNameAttribute(): ?string

@@ -11,7 +11,9 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
@@ -138,12 +140,22 @@ class UserResource extends Resource
                     ->label('Filtrar por Rol')
                     ->multiple()
                     ->preload(),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    // Evita que el admin se borre a sí mismo
-                    ->hidden(fn (User $record) => $record->id === auth()->id()),
+                    // Evita que el admin se borre a sí mismo o vuelva a borrar un usuario eliminado
+                    ->hidden(fn (User $record): bool => $record->id === auth()->id() || $record->trashed()),
+                Tables\Actions\RestoreAction::make(),
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
             ]);
     }
 

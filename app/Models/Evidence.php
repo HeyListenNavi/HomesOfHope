@@ -35,7 +35,7 @@ class Evidence extends Model
 
     public function photographer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'taken_by');
+        return $this->belongsTo(User::class, 'taken_by')->withTrashed();
     }
 
     public function getUrlAttribute(): string

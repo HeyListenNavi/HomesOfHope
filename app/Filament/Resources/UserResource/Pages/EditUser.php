@@ -13,7 +13,9 @@ class EditUser extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->hidden(fn (): bool => $this->getRecord()->id === auth()->id() || $this->getRecord()->trashed()),
+            Actions\RestoreAction::make(),
         ];
     }
 }
