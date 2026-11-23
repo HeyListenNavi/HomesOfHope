@@ -37,6 +37,12 @@ class VisitsRelationManager extends RelationManager
                     ->label('Estado')
                     ->badge(),
 
+                Tables\Columns\TextColumn::make('attendants.name')
+                    ->label('Equipo de Visita')
+                    ->icon('heroicon-s-user')
+                    ->badge()
+                    ->placeholder('Sin asignar'),
+
                 Tables\Columns\TextColumn::make('tasks_count')
                     ->counts('tasks')
                     ->label('Tareas')
