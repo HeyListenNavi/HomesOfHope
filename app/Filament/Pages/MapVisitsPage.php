@@ -48,6 +48,8 @@ class MapVisitsPage extends Page implements HasActions, HasForms
 
     public array $selectedLocations = [];
 
+    public array $initialMarkers = [];
+
     public ?array $formData = [];
 
     public static function canAccess(): bool
@@ -58,6 +60,7 @@ class MapVisitsPage extends Page implements HasActions, HasForms
     public function mount()
     {
         $this->form->fill();
+        $this->initialMarkers = $this->markers;
     }
 
     public function updated($propertyName)

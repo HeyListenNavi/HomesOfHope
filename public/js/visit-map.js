@@ -124,10 +124,17 @@ document.addEventListener("alpine:init", () => {
 
             initMap() {
                 const container = document.getElementById('map');
+                if (container && container._leaflet_map) {
+                    container._leaflet_map.remove();
+                    container._leaflet_map = null;
+                }
                 if (container && container._leaflet_id) container._leaflet_id = null;
                 if (map) map.remove();
                 
                 map = L.map('map', { attributionControl: false }).setView([32.5149, -117.0382], 12);
+                if (container) {
+                    container._leaflet_map = map;
+                }
 
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=' + window.cartoBasemapKey, {
                     subdomains: 'abcd',

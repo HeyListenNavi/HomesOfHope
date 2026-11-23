@@ -2,7 +2,7 @@
     <div
         class="flex flex-col gap-4"
         x-data="visitMapData({
-            markersData: @js($this->markers),
+            markersData: @js($this->initialMarkers),
             iconHome: @js(svg('heroicon-s-home')->toHtml()),
             iconLand: @js(svg('heroicon-s-map')->toHtml())
         })"
