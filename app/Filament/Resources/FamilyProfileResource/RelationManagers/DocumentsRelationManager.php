@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\FamilyProfileResource\RelationManagers;
 
 use App\Enums\DocumentType;
+use App\Filament\Concerns\HasDocumentPreviewNavigation;
 use App\Models\Document;
 use App\Models\FamilyMember;
 use App\Models\FamilyProfile;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentsRelationManager extends RelationManager
 {
+    use HasDocumentPreviewNavigation;
+
     protected static string $relationship = 'documents';
 
     protected static ?string $title = 'Documentos y Archivos';
@@ -209,6 +212,7 @@ class DocumentsRelationManager extends RelationManager
                     ->modalContent(fn (Document $record) => view('filament.components.document-preview-modal', [
                         'record' => $record,
                         'url' => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(30)),
+                        ...$this->getPreviewNavigationData($record),
                     ]))
                     ->extraModalFooterActions([
                         Tables\Actions\Action::make('openInNewTab')

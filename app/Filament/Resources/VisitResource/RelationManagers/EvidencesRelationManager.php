@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\VisitResource\RelationManagers;
 
 use App\Enums\FilePreviewType;
+use App\Filament\Concerns\HasDocumentPreviewNavigation;
 use App\Models\Evidence;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
 
 class EvidencesRelationManager extends RelationManager
 {
+    use HasDocumentPreviewNavigation;
+
     protected static string $relationship = 'evidences';
 
     protected static ?string $title = 'Evidencias';
@@ -150,6 +153,7 @@ class EvidencesRelationManager extends RelationManager
                         return view('filament.components.document-preview-modal', [
                             'record' => $record,
                             'url' => Storage::disk('r2')->temporaryUrl($record->file_path, now()->addMinutes(30)),
+                            ...$this->getPreviewNavigationData($record),
                         ]);
                     })
                     ->extraModalFooterActions([

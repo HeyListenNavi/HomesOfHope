@@ -1,4 +1,54 @@
-<div class="space-y-4">
+@php
+    $previousRecordId = $previousRecordId ?? null;
+    $nextRecordId = $nextRecordId ?? null;
+    $currentPosition = $currentPosition ?? null;
+    $totalCount = $totalCount ?? 0;
+@endphp
+
+<div
+    class="space-y-4"
+    @if($totalCount > 1)
+        x-data
+        @keydown.window.arrow-left="if (!['INPUT', 'TEXTAREA', 'SELECT'].includes($event.target.tagName) && @js($previousRecordId !== null)) { $event.preventDefault(); $wire.replaceMountedTableAction('preview', @js($previousRecordId)); }"
+        @keydown.window.arrow-right="if (!['INPUT', 'TEXTAREA', 'SELECT'].includes($event.target.tagName) && @js($nextRecordId !== null)) { $event.preventDefault(); $wire.replaceMountedTableAction('preview', @js($nextRecordId)); }"
+    @endif
+>
+    @if($totalCount > 1)
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
+            <button
+                type="button"
+                @if($previousRecordId !== null)
+                    wire:click="replaceMountedTableAction('preview', '{{ $previousRecordId }}')"
+                @else
+                    disabled
+                @endif
+                wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+                <x-heroicon-m-chevron-left class="h-4 w-4" />
+                <span>Anterior</span>
+            </button>
+
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {{ $currentPosition }} / {{ $totalCount }}
+            </span>
+
+            <button
+                type="button"
+                @if($nextRecordId !== null)
+                    wire:click="replaceMountedTableAction('preview', '{{ $nextRecordId }}')"
+                @else
+                    disabled
+                @endif
+                wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+                <span>Siguiente</span>
+                <x-heroicon-m-chevron-right class="h-4 w-4" />
+            </button>
+        </div>
+    @endif
+
     @switch($record->preview_type)
         @case(\App\Enums\FilePreviewType::Image)
             <div
