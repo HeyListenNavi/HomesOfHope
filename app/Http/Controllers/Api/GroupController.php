@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\AttendanceStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
 use App\Models\Group;
 use App\Services\Attendance\AttendanceService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
@@ -26,6 +27,7 @@ class GroupController extends Controller
 
         $query = Group::query()
             ->where('is_active', true)
+            ->withCount($this->groupCountRelations())
             ->orderBy('date_time', 'asc');
 
         if (isset($validated['date'])) {
@@ -46,7 +48,28 @@ class GroupController extends Controller
     {
         $this->authorize('view', $group);
 
-        return $group;
+        return $group->loadCount($this->groupCountRelations());
+    }
+
+    /**
+     * Relationship count constraints for group applicant summaries.
+     *
+     * @return array<int|string, mixed>
+     */
+    private function groupCountRelations(): array
+    {
+        return [
+            'applicants as total_applicants_count',
+            'attendances as present_applicants_count' => function (Builder $query): void {
+                $query->whereIn('status', [
+                    AttendanceStatus::Present->value,
+                    AttendanceStatus::Attended->value,
+                ]);
+            },
+            'attendances as pending_applicants_count' => function (Builder $query): void {
+                $query->where('status', AttendanceStatus::Pending->value);
+            },
+        ];
     }
 
     /**
